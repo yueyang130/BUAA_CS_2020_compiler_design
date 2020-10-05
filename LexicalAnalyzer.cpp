@@ -44,14 +44,12 @@ LexicalAnalyzer& LexicalAnalyzer::getInstance(istream &fin)
 
 void LexicalAnalyzer::nextChar() {
 	if (!needRetract) {
-		fin.get(chrCurr);
-		if (fin.eof()) {
-			chrCurr = EOF;
-		}else if (chrCurr == '\n') {
+		chrCurr = fin.get();   // fin.get(chr)无法将EOF（-1）读入chr中，必须使用chr = fin.get()
+		if (chrCurr == '\n') {
 			rowCnt++;
 			colCnt = 0;
-		} 
-	} else {  
+		}
+	} else {
 		// 需要回退时，将相当于下次读取的字符还是currChar
 		needRetract = false;
 	}
