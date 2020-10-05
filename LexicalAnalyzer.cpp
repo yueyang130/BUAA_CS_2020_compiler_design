@@ -65,8 +65,8 @@ void LexicalAnalyzer::nextSym() {
 	//while (chrCurr == ' ' || chrCurr == '\t' || chrCurr == '\r') { // 跳过空白
 		nextChar();
 	} 
-	if (isalpha(chrCurr)) {	// 开头是字母，则只能是保留字或标识符
-		while (isalpha(chrCurr)||isdigit(chrCurr)) {
+	if (isLetter()) {	// 开头是字母，则只能是保留字或标识符
+		while (isLetter()||isdigit(chrCurr)) {
 			catToken();
 			nextChar();
 		}
@@ -88,9 +88,8 @@ void LexicalAnalyzer::nextSym() {
 	else if (chrCurr == '\'') {   // 判断是否是字符常量
 		
 		nextChar();
-		//if (isChr()) { catToken(); }
-		//else { error(); }
-		catToken();
+		if (isChr()) { catToken(); }
+		else { error(); }
 		
 		nextChar();
 		if (chrCurr != '\'') {
@@ -256,7 +255,7 @@ string LexicalAnalyzer::type_to_str(symbolType type) {
 	case MULT:
 		return "MULT";
 	case DIV:
-		return "PRINTFTK";
+		return "DIV";
 	case LSS:
 		return "LSS";
 	case LEQ:

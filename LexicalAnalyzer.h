@@ -53,9 +53,14 @@ private:
 		symTypeList.push_back(symType);
 		symRowList.push_back(rowCnt);
 	}
+
+	
+	inline bool isLetter() {									// '_'Ò²ËãÊÇ×ÖÄ¸
+		return isalpha(chrCurr) || chrCurr == '_';
+	}   
 	inline bool isChr() {			                            // £¼×Ö·û£¾    ::=  '£¼¼Ó·¨ÔËËã·û£¾'£ü'£¼³Ë·¨ÔËËã·û£¾'£ü'£¼×ÖÄ¸£¾'£ü'£¼Êı×Ö£¾'   
 		return chrCurr == '+' || chrCurr == '-' || chrCurr == '*'
-			|| chrCurr == '/' || isalpha(chrCurr) || isdigit(chrCurr);
+			|| chrCurr == '/' || isLetter() || isdigit(chrCurr);
 	}
 	inline bool isInStr() {                                     // £¼×Ö·û´®£¾   ::=  "£ûÊ®½øÖÆ±àÂëÎª32,33,35-126µÄASCII×Ö·û£ı
 		return chrCurr == 32 || chrCurr == 33 || (chrCurr >= 35 && chrCurr <= 126);
