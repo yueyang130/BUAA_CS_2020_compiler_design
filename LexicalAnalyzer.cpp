@@ -45,12 +45,12 @@ LexicalAnalyzer& LexicalAnalyzer::getInstance(istream &fin)
 void LexicalAnalyzer::nextChar() {
 	if (!needRetract) {
 		fin.get(chrCurr);
-		if (chrCurr == '\n') {
+		if (fin.eof()) {
+			chrCurr = EOF;
+		}else if (chrCurr == '\n') {
 			rowCnt++;
 			colCnt = 0;
-		} else if (chrCurr != EOF) {
-			colCnt++;
-		}
+		} 
 	} else {  
 		// 需要回退时，将相当于下次读取的字符还是currChar
 		needRetract = false;
@@ -61,8 +61,7 @@ void LexicalAnalyzer::nextChar() {
 void LexicalAnalyzer::nextSym() {
 	symCurr = ""; // 清空sym字符串
 
-	while (isspace(chrCurr)) {  
-	//while (chrCurr == ' ' || chrCurr == '\t' || chrCurr == '\r') { // 跳过空白
+	while (isspace(chrCurr)) {  // 跳过空白
 		nextChar();
 	} 
 	if (isLetter()) {	// 开头是字母，则只能是保留字或标识符
@@ -173,8 +172,11 @@ void LexicalAnalyzer::nextSym() {
 	else if (chrCurr == ']') { symType = RBRACK; catToken(); }
 	else if (chrCurr == '{') { symType = LBRACE; catToken(); }
 	else if (chrCurr == '}') { symType = RBRACE; catToken(); }
-	else if (chrCurr == EOF) { ; }
-	else { error(); }
+	else if (chrCurr == EOF) { return; }
+	else { error();  }
+	
+	// 当没有中途返回，说明读取sym成功，记录到列表中
+	addInfo();
 
 }
 
@@ -192,13 +194,11 @@ bool LexicalAnalyzer::isReserver() {
 
 void LexicalAnalyzer::analyze() {
 	nextChar();  // 预读一个字符
-	do {
+	while (fin) {  // cin.get无法读取EOF到chrCurr，但是bool（cin）可以表示是否能继续读取 
 		// TODO: continue to add exception handler
 		nextSym();
-		addInfo();
-		nextChar();  
-	} //while (chrCurr != EOF);
-	while (fin);  // cin.get无法读取EOF到chrCurr，但是bool（cin）可以表示是否能继续读取
+		nextChar();
+	}  
 
 }
 
