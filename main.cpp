@@ -16,8 +16,10 @@ int main() {
 		cout << "Could not open " << INFIFE << endl;
 		exit(EXIT_FAILURE);
 	}
+	//LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(cin);
 	LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(fin);
 	myLexicalAnalyzer.analyze();
+	//myLexicalAnalyzer.show(cout);
 	myLexicalAnalyzer.show(fout);
 
 	fin.close();

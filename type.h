@@ -23,7 +23,7 @@ enum symbolType
 	PRINTFTK,           // printf
 	RETURNTK,           // return
 	PLUS,               // +
-	MINUS,              // -
+	MINU,              // -
 	MULT,               // *
 	DIV,                // /
 	LSS,                // <
@@ -42,7 +42,6 @@ enum symbolType
 	RBRACK,             // ]
 	LBRACE,             // {
 	RBRACE,             // }
-	END_OF_FILE			// eof
 
 };
 

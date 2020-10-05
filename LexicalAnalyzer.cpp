@@ -1,14 +1,17 @@
 #include "LexicalAnalyzer.h"
 #include <cctype>
+#include <algorithm>
 
 
-
-LexicalAnalyzer::LexicalAnalyzer(ifstream& inFile)  
-	:fin(inFile), symList(INIT_LENGTH), symTypeList(INIT_LENGTH), symRowList(INIT_LENGTH)
+LexicalAnalyzer::LexicalAnalyzer(istream& inFile)  
+	:fin(inFile)
 {
 	/*
 	存储对ifstream的引用到fin，必须在初始化列表中初始化fin,在构造函数中的初始化无效
 	*/
+	symList.reserve(INIT_LENGTH);
+	symTypeList.reserve(INIT_LENGTH);
+	symRowList.reserve(INIT_LENGTH);
 
 	rowCnt = 1;
 	colCnt = 0;
@@ -33,7 +36,7 @@ LexicalAnalyzer::LexicalAnalyzer(ifstream& inFile)
 	reserverMap.insert(make_pair("return", RETURNTK));
 }
 
-LexicalAnalyzer& LexicalAnalyzer::getInstance(ifstream &fin)
+LexicalAnalyzer& LexicalAnalyzer::getInstance(istream &fin)
 {
 	static LexicalAnalyzer singleInstance(fin);
 	return singleInstance;
@@ -42,9 +45,7 @@ LexicalAnalyzer& LexicalAnalyzer::getInstance(ifstream &fin)
 void LexicalAnalyzer::nextChar() {
 	if (!needRetract) {
 		fin.get(chrCurr);
-		if (isupper(chrCurr)) {
-			chrCurr = tolower(chrCurr);
-		}else if (chrCurr == '\n') {
+		if (chrCurr == '\n') {
 			rowCnt++;
 			colCnt = 0;
 		} else if (chrCurr != EOF) {
@@ -59,9 +60,9 @@ void LexicalAnalyzer::nextChar() {
 
 void LexicalAnalyzer::nextSym() {
 	symCurr = ""; // 清空sym字符串
-	nextChar();  // 预读一个字符
 
-	while (isspace(chrCurr)) {  // 跳过空白
+	while (isspace(chrCurr)) {  
+	//while (chrCurr == ' ' || chrCurr == '\t' || chrCurr == '\r') { // 跳过空白
 		nextChar();
 	} 
 	if (isalpha(chrCurr)) {	// 开头是字母，则只能是保留字或标识符
@@ -85,11 +86,13 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '\'') {   // 判断是否是字符常量
-		do {
-			nextChar();
-			catToken();
-		} while (isChr());
-
+		
+		nextChar();
+		//if (isChr()) { catToken(); }
+		//else { error(); }
+		catToken();
+		
+		nextChar();
 		if (chrCurr != '\'') {
 			error();
 		} else {
@@ -100,8 +103,9 @@ void LexicalAnalyzer::nextSym() {
 	else if (chrCurr == '\"') { // 判断是否是字符串
 		do {
 			nextChar();
-			catToken();
-		} while (isInStr());
+			if (isInStr()) { catToken(); }
+			else { break; }
+		} while (true);
 
 		if (chrCurr != '\"') {
 			error();
@@ -111,6 +115,7 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '=') {  // = or ==
+		catToken();
 		nextChar();
 		if (chrCurr == '=') {
 			catToken();
@@ -122,6 +127,7 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '<') { // < or <=
+		catToken();
 		nextChar();
 		if (chrCurr == '=') {
 			catToken();
@@ -133,6 +139,7 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '>') {  // > or >=
+		catToken();
 		nextChar();
 		if (chrCurr == '=') {
 			catToken();
@@ -144,6 +151,7 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '!') {  // !=
+		catToken();
 		nextChar();
 		if (chrCurr == '=') {
 			catToken();
@@ -154,7 +162,7 @@ void LexicalAnalyzer::nextSym() {
 	}
 
 	else if (chrCurr == '+') { symType = PLUS; catToken(); }
-	else if (chrCurr == '-') { symType = MINUS; catToken(); }
+	else if (chrCurr == '-') { symType = MINU; catToken(); }
 	else if (chrCurr == '*') { symType = MULT; catToken(); }
 	else if (chrCurr == '/') { symType = DIV; catToken(); }
 	else if (chrCurr == ':') { symType = COLON; catToken(); }
@@ -172,7 +180,10 @@ void LexicalAnalyzer::nextSym() {
 }
 
 bool LexicalAnalyzer::isReserver() {
-	map<string, symbolType>::iterator iter = reserverMap.find(symCurr);
+	string lowSym = symCurr;
+	transform(lowSym.begin(), lowSym.end(), lowSym.begin(), ::tolower);
+
+	map<string, symbolType>::iterator iter = reserverMap.find(lowSym);
 	if (iter != reserverMap.end()) {
 		symType = iter->second;
 		return true;
@@ -180,19 +191,106 @@ bool LexicalAnalyzer::isReserver() {
 	return false;
 }
 
-
 void LexicalAnalyzer::analyze() {
+	nextChar();  // 预读一个字符
 	do {
 		// TODO: continue to add exception handler
-			nextSym();
-			addInfo();
-	} while (chrCurr != EOF);
+		nextSym();
+		addInfo();
+		nextChar();  
+	} //while (chrCurr != EOF);
+	while (fin);  // cin.get无法读取EOF到chrCurr，但是bool（cin）可以表示是否能继续读取
 
 }
 
 
-void LexicalAnalyzer::show(ofstream& fout) {
+void LexicalAnalyzer::show(ostream& fout) {
 	for (int i = 0; i < symList.size(); i++) {
-		fout << symList[i] << " " << symTypeList[i] << endl;
+		fout <<  type_to_str(symTypeList[i]) << " " << symList[i]<< endl;
 	}
 }
+string LexicalAnalyzer::type_to_str(symbolType type) {
+	switch (type) {
+	case IDENFR:
+		return "IDENFR";
+	case INTCON:
+		return "INTCON";
+	case CHARCON:
+		return "CHARCON";
+	case STRCON:
+		return "STRCON";
+	case CONSTTK:
+		return "CONSTTK";
+	case INTTK:
+		return "INTTK";
+	case CHARTK:
+		return "CHARTK";
+	case VOIDTK:
+		return "VOIDTK";
+	case MAINTK:
+		return "MAINTK";
+	case IFTK:
+		return "IFTK";
+	case ELSETK:
+		return "ELSETK";
+	case SWITCHTK:
+		return "SWITCHTK";
+	case CASETK:
+		return "CASETK";
+	case DEFAULTTK:
+		return "DEFAULTTK";
+	case WHILETK:
+		return "WHILETK";
+	case FORTK:
+		return "FORTK";
+	case SCANFTK:
+		return "SCANFTK";
+	case PRINTFTK:
+		return "PRINTFTK";
+	case RETURNTK:
+		return "RETURNTK";
+	case PLUS:
+		return "PLUS";
+	case MINU:
+		return "MINU";
+	case MULT:
+		return "MULT";
+	case DIV:
+		return "PRINTFTK";
+	case LSS:
+		return "LSS";
+	case LEQ:
+		return "LEQ";
+	case GRE:
+		return "GRE";
+	case GEQ:
+		return "GEQ";
+	case EQL:
+		return "EQL";
+	case NEQ:
+		return "NEQ";
+	case COLON:
+		return "COLON";
+	case ASSIGN:
+		return "ASSIGN";
+	case SEMICN:
+		return "SEMICN";
+	case COMMA:
+		return "COMMA";
+	case LPARENT:
+		return "LPARENT";
+	case RPARENT:
+		return "RPARENT";
+	case LBRACK:
+		return "LBRACK";
+	case RBRACK:
+		return "RBRACK";
+	case LBRACE:
+		return "LBRACE";
+	case RBRACE:
+		return "RBRACE";
+	default:
+		return "******ERROR******";
+	}
+}
+
