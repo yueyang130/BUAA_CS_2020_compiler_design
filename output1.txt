@@ -1,125 +1,253 @@
+CONSTTK const
 CHARTK char
-IDENFR a
+IDENFR anm
 ASSIGN =
-CHARCON s
+CHARCON a
+COMMA ,
+IDENFR bal
+ASSIGN =
+CHARCON b
+<常量定义>
 SEMICN ;
+<常量说明>
+INTTK int
+IDENFR arr
+LBRACK [
+INTCON 3
+<无符号整数>
+RBRACK ]
+<变量定义无初始化>
+<变量定义>
+SEMICN ;
+<变量说明>
+CHARTK char
+IDENFR Woo
+<声明头部>
+LPARENT (
+<参数表>
+RPARENT )
+LBRACE {
+RETURNTK return
+LPARENT (
+CHARCON a
+<因子>
+<项>
+<表达式>
+RPARENT )
+<返回语句>
+SEMICN ;
+<语句>
+<语句列>
+<复合语句>
+RBRACE }
+<有返回值函数定义>
 VOIDTK void
 MAINTK main
 LPARENT (
 RPARENT )
 LBRACE {
 INTTK int
-IDENFR zer
-ASSIGN =
-INTCON 5
+IDENFR x
+COMMA ,
+IDENFR y
+<变量定义无初始化>
+<变量定义>
 SEMICN ;
 CHARTK char
-IDENFR str
+IDENFR c
+<变量定义无初始化>
+<变量定义>
+SEMICN ;
+<变量说明>
+IDENFR x
 ASSIGN =
-CHARCON f
-SEMICN ;
-PRINTFTK printf
-LPARENT (
-STRCON 18231194
-RPARENT )
-SEMICN ;
-IFTK if
-LPARENT (
-INTCON 2
-GRE >
-INTCON 1
-RPARENT )
-LBRACE {
-PRINTFTK printf
-LPARENT (
-STRCON 1
-RPARENT )
-SEMICN ;
-RBRACE }
-IFTK if
-LPARENT (
-INTCON 2
-NEQ !=
-INTCON 1
-RPARENT )
-LBRACE {
-PRINTFTK printf
-LPARENT (
-STRCON 2
-RPARENT )
-SEMICN ;
-RBRACE }
-IFTK if
-LPARENT (
-INTCON 3
-LEQ <=
-INTCON 4
-RPARENT )
-LBRACE {
-PRINTFTK printf
-LPARENT (
-STRCON 3
-RPARENT )
-SEMICN ;
-RBRACE }
-IFTK if
-LPARENT (
-INTCON 2
-EQL ==
-INTCON 2
-RPARENT )
-LBRACE {
-PRINTFTK printf
-LPARENT (
-STRCON 4
-RPARENT )
-SEMICN ;
-RBRACE }
-IDENFR zer
-ASSIGN =
-LPARENT (
 PLUS +
-INTCON 1
-RPARENT )
-MULT *
-IDENFR zer
-MULT *
-CHARCON a
+INTCON 11
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<赋值语句>
 SEMICN ;
-IDENFR zer
+<语句>
+IDENFR y
 ASSIGN =
 MINU -
-INTCON 7
-MULT *
-LPARENT (
-INTCON 7
-MULT *
-IDENFR zer
-RPARENT )
+INTCON 12
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<赋值语句>
 SEMICN ;
+<语句>
 PRINTFTK printf
 LPARENT (
-STRCON 5
+STRCON 18373803
+<字符串>
 RPARENT )
+<写语句>
 SEMICN ;
+<语句>
 PRINTFTK printf
 LPARENT (
-STRCON 6
+IDENFR x
+<因子>
+<项>
+<表达式>
 RPARENT )
+<写语句>
 SEMICN ;
+<语句>
 PRINTFTK printf
 LPARENT (
-STRCON 7
+IDENFR y
+<因子>
+<项>
+<表达式>
 RPARENT )
+<写语句>
 SEMICN ;
+<语句>
 PRINTFTK printf
 LPARENT (
-STRCON 8
+STRCON -(x+y)=
+<字符串>
+COMMA ,
+MINU -
+LPARENT (
+IDENFR x
+<因子>
+<项>
+PLUS +
+IDENFR y
+<因子>
+<项>
+<表达式>
 RPARENT )
+<因子>
+<项>
+<表达式>
+RPARENT )
+<写语句>
 SEMICN ;
+<语句>
+IFTK if
+LPARENT (
+INTCON 1
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+GRE >
+INTCON 0
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<条件>
+RPARENT )
 PRINTFTK printf
 LPARENT (
-STRCON 9
+STRCON 1>0
+<字符串>
 RPARENT )
+<写语句>
 SEMICN ;
+<语句>
+<条件语句>
+<语句>
+IFTK if
+LPARENT (
+MINU -
+INTCON 1
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+LSS <
+INTCON 0
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<条件>
+RPARENT )
+PRINTFTK printf
+LPARENT (
+STRCON -1<0
+<字符串>
+RPARENT )
+<写语句>
+SEMICN ;
+<语句>
+<条件语句>
+<语句>
+IFTK if
+LPARENT (
+INTCON 0
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+EQL ==
+INTCON 0
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<条件>
+RPARENT )
+LBRACE {
+<语句列>
 RBRACE }
+<语句>
+<条件语句>
+<语句>
+SEMICN ;
+<语句>
+PRINTFTK printf
+LPARENT (
+STRCON 18373803
+<字符串>
+RPARENT )
+<写语句>
+SEMICN ;
+<语句>
+PRINTFTK printf
+LPARENT (
+STRCON 18373803
+<字符串>
+RPARENT )
+<写语句>
+SEMICN ;
+<语句>
+PRINTFTK printf
+LPARENT (
+STRCON 18373803
+<字符串>
+RPARENT )
+<写语句>
+SEMICN ;
+<语句>
+PRINTFTK printf
+LPARENT (
+STRCON 18373803
+<字符串>
+RPARENT )
+<写语句>
+SEMICN ;
+<语句>
+<语句列>
+<复合语句>
+RBRACE }
+<主函数>
+<程序>

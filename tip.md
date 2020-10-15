@@ -17,3 +17,13 @@
 		VarDeclare();
 	}
 	StatetmentList();
+
+## 错误
+1. vector的元素类型不能是引用，因为引用必须在定义时初始化。
+2. 不能使用不完整的类型的意思是：没有include对应的头文件。
+3. 类的非静态方法一般不能作为函数指针，因为它有一个隐藏参数this，还要解决继承等问题。要使用类成员函数指针。
+		(void(GrammerAnalyzer::*handler)(symbolType) = &GrammerAnalyzer::ConstValue;  // 取函数指针 
+		(obj/this->*handler)(var_type); // 使用函数指针
+
+## 调试技巧
+1. 在调试状态下，调试->windows->调用堆栈，可以查看函数调用层次

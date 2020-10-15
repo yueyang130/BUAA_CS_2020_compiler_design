@@ -5,11 +5,16 @@
 #include <iostream>
 using namespace std;
 
+
+
 class GrammerAnalyzer {
 
 public:
 	static GrammerAnalyzer& getInstance(LexicalAnalyzer&);
 	void analyzeGrammer();
+
+	/*输出函数*/
+	void show(ostream& fout);
 
 
 private:
@@ -23,16 +28,16 @@ private:
 	vector<string> output_list_;
 
 	/*中间结果记录*/
-	vector<string&> func_with_ret_list_;
-	vector<string&> func_no_ret_list_;
+	vector<string> func_with_ret_list_;
+	vector<string> func_no_ret_list_;
 	
 	/*支持函数*/
 	inline void pop_sym() {
-		output_list_.push_back(sym_infor_list_[tk_idx_].sym + " " + lexical_analyzer_.type_to_str(sym_infor_list_[tk_idx_].type));
+		output_list_.push_back(lexical_analyzer_.type_to_str(sym_infor_list_[tk_idx_].type) + " " + sym_infor_list_[tk_idx_].sym);
 		tk_idx_++;
 	}
 	inline symbolType curr_sym_type() { return sym_infor_list_[tk_idx_].type; }
-	inline string curr_sym_str() { return sym_infor_list_[tk_idx_].sym; }
+	inline string& curr_sym_str() { return sym_infor_list_[tk_idx_].sym; }
 	inline symbolType peek_sym_type(int offset = 1) { return sym_infor_list_[tk_idx_ + offset].type; }
 	inline bool isFunctionWithReturn() { 
 		return (curr_sym_type() == symbolType::INTTK || curr_sym_type() == symbolType::CHARTK)
@@ -57,12 +62,20 @@ private:
 	void String();
 	void Program();
 
+	void RepeatIfMark(void (GrammerAnalyzer::*handler)(symbolType), symbolType var_type, symbolType mark = COMMA);
+	//void RepeatIfMark(void (GrammerAnalyzer::*handler)(void), symbolType mark = COMMA);
+	//void RepeatIfMark(symbolType, symbolType mark = COMMA);
+
+
 	void ConstDeclare();
 	void ConstDefine();
 	void UnsignedInt();
 	void Int();
-	void Char();
+	//void Char();
 	void Identifier();
+
+	void ConstValue(symbolType vartype);   // 用于<变量定义及初始化>和<情况子语句>
+	void ConstValue();   // 暂时不用进行类型匹配检查时使用的函数
 
 	void VarDeclare();
 	void VarDefine();

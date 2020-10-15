@@ -16,30 +16,37 @@ void GrammerAnalyzer::analyzeGrammer() {
 	Program();
 }
 
+void GrammerAnalyzer::show(ostream& fout) {
+	for (auto& x : output_list_) {
+		fout << x << endl;
+	}
+}
+
 /** 
-*									Óï·¨·ÖÎö³ÌĞò
-* 0. Èç¹ûÓĞ¶à¸öÑ¡Ôñ£¬ÔòÔÚÉÏ²ã¶Ôfirst½øĞĞ¼ì²é£»Èç¹ûÖ»ÓĞÒ»¸öÑ¡Ôñ£¬ÔòÔÚ±¾²ãÔÙ¶Ôfirst½øĞĞ¼ì²é¡£
-* 1.±£Ö¤½øÈëÃ¿¸ö·Ö³ÌĞòÊ±£¬sym_idx_Ö¸Ïò·Ö³ÌĞò¶ÔÓ¦µÄµÚÒ»¸ösym
-* 2.ÔÚÍË³ö·Ö³ÌĞòÇ°£¬½«ÒªÊä³öµÄ´Ê·¨³É·ÖÌí¼Óµ½output_list_
-*  ²¢½«sym_idxÖ¸Ïò·Ö³ÌĞò¶ÔÓ¦Óï·¨³É·ÖºóµÄµÚÒ»¸ösym
+*									è¯­æ³•åˆ†æç¨‹åº
+* 0. å¦‚æœæœ‰å¤šä¸ªé€‰æ‹©ï¼Œåˆ™åœ¨ä¸Šå±‚å¯¹firstè¿›è¡Œæ£€æŸ¥ï¼›å¦‚æœåªæœ‰ä¸€ä¸ªé€‰æ‹©ï¼Œåˆ™åœ¨æœ¬å±‚å†å¯¹firstè¿›è¡Œæ£€æŸ¥ã€‚
+* 1.ä¿è¯è¿›å…¥æ¯ä¸ªåˆ†ç¨‹åºæ—¶ï¼Œsym_idx_æŒ‡å‘åˆ†ç¨‹åºå¯¹åº”çš„ç¬¬ä¸€ä¸ªsym
+* 2.åœ¨é€€å‡ºåˆ†ç¨‹åºå‰ï¼Œå°†è¦è¾“å‡ºçš„è¯æ³•æˆåˆ†æ·»åŠ åˆ°output_list_
+*  å¹¶å°†sym_idxæŒ‡å‘åˆ†ç¨‹åºå¯¹åº”è¯­æ³•æˆåˆ†åçš„ç¬¬ä¸€ä¸ªsym
 */
 
-/**
-£¼×Ö·û´®£¾   ::=  "£ûÊ®½øÖÆ±àÂëÎª32,33,35-126µÄASCII×Ö·û£ı" 
 
-×Ö·û´®ÖĞÒªÇóÖÁÉÙÓĞÒ»¸ö×Ö·û
+/**
+ï¼œå­—ç¬¦ä¸²ï¼   ::=  "ï½›åè¿›åˆ¶ç¼–ç ä¸º32,33,35-126çš„ASCIIå­—ç¬¦ï½" 
+
+å­—ç¬¦ä¸²ä¸­è¦æ±‚è‡³å°‘æœ‰ä¸€ä¸ªå­—ç¬¦
 */
 void GrammerAnalyzer::String() {
 	check(symbolType::STRCON);
 	pop_sym();
-	output_list_.push_back("×Ö·û´®");
+	output_list_.push_back("<å­—ç¬¦ä¸²>");
 }
 
 /**
-* 1. £¼³ÌĞò£¾    ::= £Û£¼³£Á¿ËµÃ÷£¾£İ£Û£¼±äÁ¿ËµÃ÷£¾£İ{£¼ÓĞ·µ»ØÖµº¯Êı¶¨Òå£¾|£¼ÎŞ·µ»ØÖµº¯Êı¶¨Òå£¾}£¼Ö÷º¯Êı£¾ 
-* 2. Í¨¹ıÔ¤¶ÁÅĞ¶ÏÊÇ <ÓĞ·µ»ØÖµµÄº¯ÊıÉùÃ÷> »¹ÊÇ  <±äÁ¿ÉùÃ÷>
-* <±äÁ¿ÉùÃ÷> = £¨int|char) <±êÊ¶·û> ('['|,|;|=)
-* <ÓĞ·µ»ØÖµµÄº¯Êı¶¨Òå> = (int|char) <±êÊ¶·û> '('
+* 1. ï¼œç¨‹åºï¼    ::= ï¼»ï¼œå¸¸é‡è¯´æ˜ï¼ï¼½ï¼»ï¼œå˜é‡è¯´æ˜ï¼ï¼½{ï¼œæœ‰è¿”å›å€¼å‡½æ•°å®šä¹‰ï¼|ï¼œæ— è¿”å›å€¼å‡½æ•°å®šä¹‰ï¼}ï¼œä¸»å‡½æ•°ï¼ 
+* 2. é€šè¿‡é¢„è¯»åˆ¤æ–­æ˜¯ <æœ‰è¿”å›å€¼çš„å‡½æ•°å£°æ˜> è¿˜æ˜¯  <å˜é‡å£°æ˜>
+* <å˜é‡å£°æ˜> = ï¼ˆint|char) <æ ‡è¯†ç¬¦> ('['|,|;|=)
+* <æœ‰è¿”å›å€¼çš„å‡½æ•°å®šä¹‰> = (int|char) <æ ‡è¯†ç¬¦> '('
 */
 void GrammerAnalyzer::Program() {
 	if (sym_infor_list_.size() == 0) {
@@ -50,7 +57,7 @@ void GrammerAnalyzer::Program() {
 		ConstDeclare();
 	}
 
-	if (equal(CONSTTK, CHARTK)) {
+	if (equal(INTTK, CHARTK)) {
 		if (peek_sym_type(1) == symbolType::IDENFR) {
 			symbolType peek2 = peek_sym_type(2);
 			if (peek2 == symbolType::LBRACK || peek2 == symbolType::SEMICN ||
@@ -70,28 +77,39 @@ void GrammerAnalyzer::Program() {
 	if (equal(VOIDTK) && peek_sym_type(1) == symbolType::MAINTK) {
 		Main();
 	} 
-	output_list_.push_back("³ÌĞò");
+	output_list_.push_back("<ç¨‹åº>");
 }
 
+void GrammerAnalyzer::RepeatIfMark(void(GrammerAnalyzer::*handler)(symbolType), symbolType var_type, symbolType mark) {
+	while (equal(mark)) {
+		pop_sym();
+		(this->*handler)(var_type);
+	}
+}
+
+
+
 /**
-* £¼³£Á¿ËµÃ÷£¾ ::=  const£¼³£Á¿¶¨Òå£¾;{ const£¼³£Á¿¶¨Òå£¾;}
+* ï¼œå¸¸é‡è¯´æ˜ï¼ ::=  constï¼œå¸¸é‡å®šä¹‰ï¼;{ constï¼œå¸¸é‡å®šä¹‰ï¼;}
 */
 void GrammerAnalyzer::ConstDeclare() {
 	pop_sym();
 	ConstDefine();
+	check(symbolType::SEMICN);
+	pop_sym();
 	while (equal(symbolType::CONSTTK)) {
 		pop_sym();
 		ConstDefine();
+		check(symbolType::SEMICN);
+		pop_sym();
 	}
-	check(symbolType::SEMICN);
-	pop_sym();
-	output_list_.push_back("³£Á¿ËµÃ÷");
+	output_list_.push_back("<å¸¸é‡è¯´æ˜>");
 }
 
 
 /**
-* £¼³£Á¿¶¨Òå£¾   ::=   int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾}  
-                  | char£¼±êÊ¶·û£¾£½£¼×Ö·û£¾{,£¼±êÊ¶·û£¾£½£¼×Ö·û£¾}  
+* ï¼œå¸¸é‡å®šä¹‰ï¼   ::=   intï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œæ•´æ•°ï¼{,ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œæ•´æ•°ï¼}  
+                  | charï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œå­—ç¬¦ï¼{,ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œå­—ç¬¦ï¼}  
 */
 void GrammerAnalyzer::ConstDefine() {
 	if (equal(symbolType::INTTK)) {
@@ -104,6 +122,7 @@ void GrammerAnalyzer::ConstDefine() {
 			}
 		}
 		while (equal(symbolType::COMMA)) {
+			pop_sym();
 			if (!equal(symbolType::IDENFR)) { error(); }
 			else {
 				pop_sym();
@@ -120,40 +139,43 @@ void GrammerAnalyzer::ConstDefine() {
 			pop_sym();
 			if (equal(symbolType::ASSIGN)) {
 				pop_sym();
-				Char();
+				check(symbolType::CHARCON);
+				pop_sym();
 			}
 		}
 		while (equal(symbolType::COMMA)) {
+			pop_sym();
 			check(symbolType::IDENFR);
 			pop_sym();
 			check(symbolType::ASSIGN);
 			pop_sym();
-			Char();
+			check(symbolType::CHARCON);
+			pop_sym();
 		}
 	}
 
-	output_list_.push_back("³£Á¿¶¨Òå");
+	output_list_.push_back("<å¸¸é‡å®šä¹‰>");
 
 }
 
 /**
-£¼ÎŞ·ûºÅÕûÊı£¾  ::= £¼Êı×Ö£¾£û£¼Êı×Ö£¾£ı
+ï¼œæ— ç¬¦å·æ•´æ•°ï¼  ::= ï¼œæ•°å­—ï¼ï½›ï¼œæ•°å­—ï¼ï½
 */
 void GrammerAnalyzer::UnsignedInt() {
 	check(INTCON);
 	pop_sym();
-	output_list_.push_back("ÎŞ·ûºÅÕûÊı");
+	output_list_.push_back("<æ— ç¬¦å·æ•´æ•°>");
 }
 
 /**
-* £¼ÕûÊı£¾        ::= £Û£«£ü£­£İ£¼ÎŞ·ûºÅÕûÊı£¾
+* ï¼œæ•´æ•°ï¼        ::= ï¼»ï¼‹ï½œï¼ï¼½ï¼œæ— ç¬¦å·æ•´æ•°ï¼
 */
 void GrammerAnalyzer::Int() {
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
 		pop_sym();
 	}
 	UnsignedInt();
-	output_list_.push_back("ÕûÊı");
+	output_list_.push_back("<æ•´æ•°>");
 }
 
 
@@ -163,34 +185,58 @@ void GrammerAnalyzer::Identifier() {
 }
 
 /**
-£¼±äÁ¿ËµÃ÷£¾  ::= £¼±äÁ¿¶¨Òå£¾;{£¼±äÁ¿¶¨Òå£¾;}
+ï¼œå¸¸é‡ï¼   ::=  ï¼œæ•´æ•°ï¼|ï¼œå­—ç¬¦ï¼
+*/
+void GrammerAnalyzer::ConstValue(symbolType var_type) {
+	if (var_type == symbolType::INTTK) {
+		Int(); 
+	} else if (var_type == symbolType::CHARTK) { 
+		check(symbolType::CHARCON); 
+		pop_sym();
+	} else { error(); }
+
+	output_list_.push_back("<å¸¸é‡>");
+}
+
+void GrammerAnalyzer::ConstValue() {
+	if (equal(symbolType::CHARCON)) {
+		pop_sym();
+	} else {
+		Int();
+	}
+	output_list_.push_back("<å¸¸é‡>");
+}
+
+/**
+ï¼œå˜é‡è¯´æ˜ï¼  ::= ï¼œå˜é‡å®šä¹‰ï¼;{ï¼œå˜é‡å®šä¹‰ï¼;}
 */
 void GrammerAnalyzer::VarDeclare() {
 	VarDefine();
 	check(symbolType::SEMICN);
 	pop_sym();
-	// ÅĞ¶ÏÊÇ<±äÁ¿¶¨Òå> »¹ÊÇ <ÓĞ·µ»ØÖµº¯Êı¶¨Òå>
-	if (equal(symbolType::INTTK, symbolType::CHARTK)) {
-		if (peek_sym_type(1) == symbolType::IDENFR) {
-			symbolType peek2 = peek_sym_type(2);
-			if (peek2 == symbolType::LBRACK || peek2 == symbolType::SEMICN ||
-				peek2 == symbolType::COMMA || peek2 == symbolType::ASSIGN) {
-				VarDefine();
-				check(SEMICN);
-			}
-			
+	// åˆ¤æ–­æ˜¯<å˜é‡å®šä¹‰> è¿˜æ˜¯ <æœ‰è¿”å›å€¼å‡½æ•°å®šä¹‰>
+	while (true) {
+		if (!equal(symbolType::INTTK, symbolType::CHARTK)) { break; }
+		if (peek_sym_type(1) != symbolType::IDENFR) { break;  }
+		symbolType peek2 = peek_sym_type(2);
+		if (!(peek2 == symbolType::LBRACK || peek2 == symbolType::SEMICN ||
+			peek2 == symbolType::COMMA || peek2 == symbolType::ASSIGN)) {
+			break;
 		}
+		VarDefine();
+		check(SEMICN);
+		pop_sym();
 	}
-	output_list_.push_back("±äÁ¿ËµÃ÷");
+	output_list_.push_back("<å˜é‡è¯´æ˜>");
 }
 
 /**
-* £¼±äÁ¿¶¨Òå£¾ ::= £¼±äÁ¿¶¨ÒåÎŞ³õÊ¼»¯£¾|£¼±äÁ¿¶¨Òå¼°³õÊ¼»¯£¾
+* ï¼œå˜é‡å®šä¹‰ï¼ ::= ï¼œå˜é‡å®šä¹‰æ— åˆå§‹åŒ–ï¼|ï¼œå˜é‡å®šä¹‰åŠåˆå§‹åŒ–ï¼
 */
 void GrammerAnalyzer::VarDefine() {
 	check(INTTK, CHARTK);
 
-	// Í¨¹ıÔÚ·ÖºÅÇ°ÊÇ·ñ³öÏÖµÈºÅÅĞ¶ÏÊÇ·ñ³õÊ¼»¯
+	// é€šè¿‡åœ¨åˆ†å·å‰æ˜¯å¦å‡ºç°ç­‰å·åˆ¤æ–­æ˜¯å¦åˆå§‹åŒ–
 	bool no_init = true;
 	for (int i = 2; peek_sym_type(i) != symbolType::SEMICN; i++) {
 		if (peek_sym_type(i) == symbolType::ASSIGN) {
@@ -201,14 +247,14 @@ void GrammerAnalyzer::VarDefine() {
 	else { VarDefineWithInit(); }
 	
 
-	output_list_.push_back("±äÁ¿¶¨Òå");
+	output_list_.push_back("<å˜é‡å®šä¹‰>");
 }
 
 /**
-* £¼±äÁ¿¶¨ÒåÎŞ³õÊ¼»¯£¾  ::= £¼ÀàĞÍ±êÊ¶·û£¾(£¼±êÊ¶·û£¾
-	|£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']'
-	|£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']''['£¼ÎŞ·ûºÅÕûÊı£¾']')
-	{,(£¼±êÊ¶·û£¾|£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']'|£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']''['£¼ÎŞ·ûºÅÕûÊı£¾']' )}
+* ï¼œå˜é‡å®šä¹‰æ— åˆå§‹åŒ–ï¼  ::= ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼(ï¼œæ ‡è¯†ç¬¦ï¼
+	|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'
+	|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']''['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']')
+	{,(ï¼œæ ‡è¯†ç¬¦ï¼|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']''['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']' )}
 */
 void GrammerAnalyzer::VarDefineNoInit() {
 	check(INTTK, CHARTK);
@@ -219,13 +265,13 @@ void GrammerAnalyzer::VarDefineNoInit() {
 		VarDefineType();
 	}
 
-	output_list_.push_back("±äÁ¿¶¨ÒåÎŞ³õÊ¼»¯");
+	output_list_.push_back("<å˜é‡å®šä¹‰æ— åˆå§‹åŒ–>");
 }
 
 /**
-* (£¼±êÊ¶·û£¾|
-  £¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']'|
-  £¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']''['£¼ÎŞ·ûºÅÕûÊı£¾']'
+* (ï¼œæ ‡è¯†ç¬¦ï¼|
+  ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'|
+  ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']''['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'
 */
 void GrammerAnalyzer::VarDefineType() {
 	check(IDENFR);
@@ -245,11 +291,11 @@ void GrammerAnalyzer::VarDefineType() {
 }
 
 /**
-* £¼±äÁ¿¶¨Òå¼°³õÊ¼»¯£¾  ::= £¼ÀàĞÍ±êÊ¶·û£¾£¼±êÊ¶·û£¾=£¼³£Á¿£¾|
-	£¼ÀàĞÍ±êÊ¶·û£¾£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']'='{'£¼³£Á¿£¾{,£¼³£Á¿£¾}'}'|
-	£¼ÀàĞÍ±êÊ¶·û£¾£¼±êÊ¶·û£¾'['£¼ÎŞ·ûºÅÕûÊı£¾']''['£¼ÎŞ·ûºÅÕûÊı£¾']'='{''{'£¼³£Á¿£¾{,£¼³£Á¿£¾}'}'{, '{'£¼³£Á¿£¾{,£¼³£Á¿£¾}'}'}'}'
+* ï¼œå˜é‡å®šä¹‰åŠåˆå§‹åŒ–ï¼  ::= ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼=ï¼œå¸¸é‡ï¼|
+	ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'='{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'|
+	ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']''['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'='{''{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'{, '{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'}'}'
 
-* 	ÓĞ³õÊ¼»¯µÄ±äÁ¿¶¨ÒåÒ»´ÎÖ»ÄÜ¶ÔÒ»¸ö±êÊ¶·û½øĞĞ³õÊ¼»¯
+* 	æœ‰åˆå§‹åŒ–çš„å˜é‡å®šä¹‰ä¸€æ¬¡åªèƒ½å¯¹ä¸€ä¸ªæ ‡è¯†ç¬¦è¿›è¡Œåˆå§‹åŒ–
 */
 void GrammerAnalyzer::VarDefineWithInit() {
 	check(INTTK, CHARTK);
@@ -257,38 +303,59 @@ void GrammerAnalyzer::VarDefineWithInit() {
 	pop_sym();
 	check(IDENFR);
 	pop_sym();
-	if (equal(symbolType::ASSIGN)) {
+	if (equal(symbolType::ASSIGN)) {   // ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼=ï¼œå¸¸é‡ï¼
 		pop_sym();
-		if (var_type == symbolType::INTTK) { UnsignedInt(); }
-		else if (var_type == symbolType::CHARTK) { check(symbolType::CHARCON); pop_sym(); }
-		else { error(); }
+		ConstValue(var_type);
 
 	} else if (equal(symbolType::LBRACK)) {
 		pop_sym();
 		UnsignedInt();
-		check(RBRACK);
-		pop_sym();
-		if (equal(symbolType::LBRACK)) {
+		check(RBRACK); pop_sym();
+		
+		if (equal(symbolType::ASSIGN)) {    // ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'='{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'
+			check(ASSIGN); pop_sym();
+			check(LBRACE); pop_sym();
+			ConstValue(var_type);
+			RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+			check(RBRACE); pop_sym();
+
+		} else if(equal(symbolType::LBRACK)) {  
+			/*  ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']''['ï¼œæ— ç¬¦å·æ•´æ•°ï¼']'='
+			{''{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'{, '{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'   }'}' */
 			pop_sym();
 			UnsignedInt();
-			check(RBRACK);
-			pop_sym();
-		}
+			check(RBRACK); pop_sym();
+			check(ASSIGN); pop_sym();
+			check(LBRACE); pop_sym();
+			check(LBRACE); pop_sym();
+			ConstValue(var_type);
+			RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+			check(RBRACE); pop_sym();
+
+			while (equal(symbolType::COMMA)) {   // {,  '{'ï¼œå¸¸é‡ï¼{,ï¼œå¸¸é‡ï¼}'}'   }
+				pop_sym();
+				check(LBRACE); pop_sym();
+				ConstValue(var_type);
+				RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+				check(RBRACE); pop_sym();
+			}
+			check(RBRACE); pop_sym();
+
+		} else { error(); }
 
 	} else { error(); }
 
-	output_list_.push_back("±äÁ¿¶¨Òå¼°³õÊ¼»¯");
+	output_list_.push_back("<å˜é‡å®šä¹‰åŠåˆå§‹åŒ–>");
 }
 
 /**
-£¼ÓĞ·µ»ØÖµº¯Êı¶¨Òå£¾  ::=  £¼ÉùÃ÷Í·²¿£¾'('£¼²ÎÊı±í£¾')' '{'£¼¸´ºÏÓï¾ä£¾'}'
+ï¼œæœ‰è¿”å›å€¼å‡½æ•°å®šä¹‰ï¼  ::=  ï¼œå£°æ˜å¤´éƒ¨ï¼'('ï¼œå‚æ•°è¡¨ï¼')' '{'ï¼œå¤åˆè¯­å¥ï¼'}'
 */
 void GrammerAnalyzer::FuncDefineWithReturn() {
 	FuncDefineHead();
 	check(symbolType::LPARENT);
 	pop_sym();
 	ParameterList();
-	pop_sym();
 	check(symbolType::RPARENT);
 	pop_sym();
 	check(symbolType::LBRACE);
@@ -296,11 +363,11 @@ void GrammerAnalyzer::FuncDefineWithReturn() {
 	CompoundStatement();
 	check(symbolType::RBRACE);
 	pop_sym();
-	output_list_.push_back("ÓĞ·µ»ØÖµº¯Êı¶¨Òå");
+	output_list_.push_back("<æœ‰è¿”å›å€¼å‡½æ•°å®šä¹‰>");
 }
 
 /**
-£¼ÎŞ·µ»ØÖµº¯Êı¶¨Òå£¾  ::= void£¼±êÊ¶·û£¾'('£¼²ÎÊı±í£¾')''{'£¼¸´ºÏÓï¾ä£¾'}'
+ï¼œæ— è¿”å›å€¼å‡½æ•°å®šä¹‰ï¼  ::= voidï¼œæ ‡è¯†ç¬¦ï¼'('ï¼œå‚æ•°è¡¨ï¼')''{'ï¼œå¤åˆè¯­å¥ï¼'}'
 */
 void GrammerAnalyzer::FuncDefineNoReturn() {
 	check(symbolType::VOIDTK);
@@ -318,11 +385,11 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	CompoundStatement();
 	check(symbolType::RBRACE);
 	pop_sym();
-	output_list_.push_back("ÎŞ·µ»ØÖµº¯Êı¶¨Òå");
+	output_list_.push_back("<æ— è¿”å›å€¼å‡½æ•°å®šä¹‰>");
 }
 
 /**
-*£¼ÉùÃ÷Í·²¿£¾   ::=  int£¼±êÊ¶·û£¾ |char£¼±êÊ¶·û£¾ 
+*ï¼œå£°æ˜å¤´éƒ¨ï¼   ::=  intï¼œæ ‡è¯†ç¬¦ï¼ |charï¼œæ ‡è¯†ç¬¦ï¼ 
 */
 void GrammerAnalyzer::FuncDefineHead() {
 	check(symbolType::INTTK, symbolType::CHARTK);
@@ -330,12 +397,12 @@ void GrammerAnalyzer::FuncDefineHead() {
 	check(IDENFR);
 	func_with_ret_list_.push_back(curr_sym_str());
 	pop_sym();
-	output_list_.push_back("ÉùÃ÷Í·²¿");
+	output_list_.push_back("<å£°æ˜å¤´éƒ¨>");
 }
 
 /**
-£¼²ÎÊı±í£¾    ::=  £¼ÀàĞÍ±êÊ¶·û£¾£¼±êÊ¶·û£¾{,£¼ÀàĞÍ±êÊ¶·û£¾£¼±êÊ¶·û£¾}| £¼¿Õ£¾
-£¼ÀàĞÍ±êÊ¶·û£¾      ::=  int | char  
+ï¼œå‚æ•°è¡¨ï¼    ::=  ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼{,ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼ï¼œæ ‡è¯†ç¬¦ï¼}| ï¼œç©ºï¼
+ï¼œç±»å‹æ ‡è¯†ç¬¦ï¼      ::=  int | char  
 */
 void GrammerAnalyzer::ParameterList() {
 	if (equal(INTTK, CHARTK)) {
@@ -350,11 +417,11 @@ void GrammerAnalyzer::ParameterList() {
 			pop_sym();
 		}
 	}
-	output_list_.push_back("²ÎÊı±í");
+	output_list_.push_back("<å‚æ•°è¡¨>");
 }
 
 /**
-£¼Ö÷º¯Êı£¾    ::= void main¡®(¡¯¡®)¡¯ ¡®{¡¯£¼¸´ºÏÓï¾ä£¾¡®}¡¯
+ï¼œä¸»å‡½æ•°ï¼    ::= void mainâ€˜(â€™â€˜)â€™ â€˜{â€™ï¼œå¤åˆè¯­å¥ï¼â€˜}â€™
 */
 void GrammerAnalyzer::Main() {
 	check(symbolType::VOIDTK);
@@ -370,11 +437,11 @@ void GrammerAnalyzer::Main() {
 	CompoundStatement();
 	check(symbolType::RBRACE);
 	pop_sym();
-	output_list_.push_back("Ö÷º¯Êı");
+	output_list_.push_back("<ä¸»å‡½æ•°>");
 }
 
 /**
-£¼±í´ïÊ½£¾    ::= £Û£«£ü£­£İ£¼Ïî£¾{£¼¼Ó·¨ÔËËã·û£¾£¼Ïî£¾}
+ï¼œè¡¨è¾¾å¼ï¼    ::= ï¼»ï¼‹ï½œï¼ï¼½ï¼œé¡¹ï¼{ï¼œåŠ æ³•è¿ç®—ç¬¦ï¼ï¼œé¡¹ï¼}
 */
 void GrammerAnalyzer::Expr() {
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
@@ -387,11 +454,11 @@ void GrammerAnalyzer::Expr() {
 		pop_sym();
 		Item();
 	}
-	output_list_.push_back("±í´ïÊ½");
+	output_list_.push_back("<è¡¨è¾¾å¼>");
 }
 
 /**
-£¼Ïî£¾     ::= £¼Òò×Ó£¾{£¼³Ë·¨ÔËËã·û£¾£¼Òò×Ó£¾}
+ï¼œé¡¹ï¼     ::= ï¼œå› å­ï¼{ï¼œä¹˜æ³•è¿ç®—ç¬¦ï¼ï¼œå› å­ï¼}
 */
 void GrammerAnalyzer::Item() {
 	Factor();
@@ -399,31 +466,32 @@ void GrammerAnalyzer::Item() {
 		pop_sym();
 		Factor();
 	}
-	output_list_.push_back("Ïî");
+	output_list_.push_back("<é¡¹>");
 }
 
 
 /**
-£¼Òò×Ó£¾    ::= £¼±êÊ¶·û£¾
-				£ü£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']'
-				 |£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']''['£¼±í´ïÊ½£¾']'
-				 |'('£¼±í´ïÊ½£¾')'
-			     £ü£¼ÕûÊı£¾
-				 |£¼×Ö·û£¾
-				£ü£¼ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾
+ï¼œå› å­ï¼    ::= ï¼œæ ‡è¯†ç¬¦ï¼
+				ï½œï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']'
+				 |ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']''['ï¼œè¡¨è¾¾å¼ï¼']'
+				 |'('ï¼œè¡¨è¾¾å¼ï¼')'
+			     ï½œï¼œæ•´æ•°ï¼
+				 |ï¼œå­—ç¬¦ï¼
+				ï½œï¼œæœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼
 
-£¼ÕûÊı£¾        ::= £Û£«£ü£­£İ£¼ÎŞ·ûºÅÕûÊı£¾
-£¼ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾ ::= £¼±êÊ¶·û£¾'('£¼Öµ²ÎÊı±í£¾')'
+ï¼œæ•´æ•°ï¼        ::= ï¼»ï¼‹ï½œï¼ï¼½ï¼œæ— ç¬¦å·æ•´æ•°ï¼
+ï¼œæœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼ ::= ï¼œæ ‡è¯†ç¬¦ï¼'('ï¼œå€¼å‚æ•°è¡¨ï¼')'
 
-1.£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']'ºÍ£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']''['£¼±í´ïÊ½£¾']'ÖĞµÄ£¼±í´ïÊ½£¾Ö»ÄÜÊÇÕûĞÍ£¬ÏÂ±ê´Ó0¿ªÊ¼
+1.ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']'å’Œï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']''['ï¼œè¡¨è¾¾å¼ï¼']'ä¸­çš„ï¼œè¡¨è¾¾å¼ï¼åªèƒ½æ˜¯æ•´å‹ï¼Œä¸‹æ ‡ä»0å¼€å§‹
 
-2.µ¥¸ö£¼±êÊ¶·û£¾²»°üÀ¨Êı×éÃû£¬¼´Êı×é²»ÄÜÕûÌå²Î¼ÓÔËËã£¬Êı×éÔªËØ¿ÉÒÔ²Î¼ÓÔËËã
+2.å•ä¸ªï¼œæ ‡è¯†ç¬¦ï¼ä¸åŒ…æ‹¬æ•°ç»„åï¼Œå³æ•°ç»„ä¸èƒ½æ•´ä½“å‚åŠ è¿ç®—ï¼Œæ•°ç»„å…ƒç´ å¯ä»¥å‚åŠ è¿ç®—
 */
 void GrammerAnalyzer::Factor() {
 	if (equal(symbolType::IDENFR)) {
-		pop_sym();
-		if (equal(symbolType::LBRACK)) {
-			pop_sym();
+	
+		if (this->peek_sym_type()  == symbolType::LBRACK) {
+			pop_sym();  // pop identifier
+			pop_sym();  // pop '['
 			Expr();
 			check(symbolType::RBRACK);
 			pop_sym();
@@ -434,11 +502,10 @@ void GrammerAnalyzer::Factor() {
 				pop_sym();
 			}
 
-		} else if (equal(symbolType::LPARENT)) {   // ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃ
-			pop_sym();
-			ValueParameterList();
-			check(symbolType::RPARENT);
-			pop_sym();
+		} else if (this->peek_sym_type() == symbolType::LPARENT) {   // æœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨
+			CallWithReturn();
+		} else {
+			pop_sym();  // pop identifier
 		}
 
 	} else if (equal(symbolType::LPARENT)) {
@@ -452,11 +519,11 @@ void GrammerAnalyzer::Factor() {
 	} else if (equal(symbolType::PLUS, symbolType(MINU)) || equal(symbolType::INTCON)) {
 		Int();
 	} else { error(); }
-	output_list_.push_back("Òò×Ó");
+	output_list_.push_back("<å› å­>");
 }
 
 /**
-£¼¸´ºÏÓï¾ä£¾   ::=  £Û£¼³£Á¿ËµÃ÷£¾£İ£Û£¼±äÁ¿ËµÃ÷£¾£İ£¼Óï¾äÁĞ£¾
+ï¼œå¤åˆè¯­å¥ï¼   ::=  ï¼»ï¼œå¸¸é‡è¯´æ˜ï¼ï¼½ï¼»ï¼œå˜é‡è¯´æ˜ï¼ï¼½ï¼œè¯­å¥åˆ—ï¼
 */
 void GrammerAnalyzer::CompoundStatement() {
 	if (equal(symbolType::CONSTTK)) {
@@ -466,26 +533,26 @@ void GrammerAnalyzer::CompoundStatement() {
 		VarDeclare();
 	}
 	StatetmentList();
-	output_list_.push_back("¸´ºÏÓï¾ä");
+	output_list_.push_back("<å¤åˆè¯­å¥>");
 
 }
 
 /**
-£¼Óï¾äÁĞ£¾   ::= £û£¼Óï¾ä£¾£ı
-ÕâÀïµÄ{}Ö¸µÄÊÇ0µ½ÎŞÇî¸ö£¬²»ÊÇ'{'
+ï¼œè¯­å¥åˆ—ï¼   ::= ï½›ï¼œè¯­å¥ï¼ï½
+è¿™é‡Œçš„{}æŒ‡çš„æ˜¯0åˆ°æ— ç©·ä¸ªï¼Œä¸æ˜¯'{'
 */
 void GrammerAnalyzer::StatetmentList() {
 	while (!equal(symbolType::RBRACE)) {
 		Statement();
 	}
-	output_list_.push_back("Óï¾äÁĞ");
+	output_list_.push_back("<è¯­å¥åˆ—>");
 }
 
 /**
-£¼Óï¾ä£¾    ::= £¼Ñ­»·Óï¾ä£¾£ü£¼Ìõ¼şÓï¾ä£¾|
-			£¼ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾;  |£¼ÎŞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾;£ü
-			£¼¸³ÖµÓï¾ä£¾;£ü£¼¶ÁÓï¾ä£¾;£ü£¼Ğ´Óï¾ä£¾;£ü£¼Çé¿öÓï¾ä£¾£ü
-			£¼¿Õ£¾;|£¼·µ»ØÓï¾ä£¾; | '{'£¼Óï¾äÁĞ£¾'}'
+ï¼œè¯­å¥ï¼    ::= ï¼œå¾ªç¯è¯­å¥ï¼ï½œï¼œæ¡ä»¶è¯­å¥ï¼|
+			ï¼œæœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼;  |ï¼œæ— è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼;ï½œ
+			ï¼œèµ‹å€¼è¯­å¥ï¼;ï½œï¼œè¯»è¯­å¥ï¼;ï½œï¼œå†™è¯­å¥ï¼;ï½œï¼œæƒ…å†µè¯­å¥ï¼ï½œ
+			ï¼œç©ºï¼;|ï¼œè¿”å›è¯­å¥ï¼; | '{'ï¼œè¯­å¥åˆ—ï¼'}'
 */
 void GrammerAnalyzer::Statement() {
 	switch (curr_sym_type()) {
@@ -499,11 +566,12 @@ void GrammerAnalyzer::Statement() {
 		ConditionalStatement();
 		break;
 	case symbolType::IDENFR:
-		if (peek_sym_type(1) == symbolType::ASSIGN) {
+		// å‡½æ•°è°ƒç”¨è¯­å¥| èµ‹å€¼è¯­å¥
+		if (peek_sym_type(1) == symbolType::ASSIGN || peek_sym_type() == symbolType::LBRACK) {
 			AssignStatement();
 			check(symbolType::SEMICN);
 			pop_sym();
-		} else {
+		} else if(peek_sym_type() == symbolType::LPARENT) {
 			CallFunc();
 			check(symbolType::SEMICN);
 			pop_sym();
@@ -534,19 +602,21 @@ void GrammerAnalyzer::Statement() {
 		pop_sym();
 		StatetmentList();
 		check(symbolType::RBRACE);
+		pop_sym();
+		break;
 	default:
 		error();
 		break;
 	}
-	output_list_.push_back("Óï¾ä");
+	output_list_.push_back("<è¯­å¥>");
 }
 
 /**
-£¼¸³ÖµÓï¾ä£¾   ::=  £¼±êÊ¶·û£¾£½£¼±í´ïÊ½£¾
-		|£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']'=£¼±í´ïÊ½£¾
-		|£¼±êÊ¶·û£¾'['£¼±í´ïÊ½£¾']''['£¼±í´ïÊ½£¾']' =£¼±í´ïÊ½£¾
+ï¼œèµ‹å€¼è¯­å¥ï¼   ::=  ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œè¡¨è¾¾å¼ï¼
+		|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']'=ï¼œè¡¨è¾¾å¼ï¼
+		|ï¼œæ ‡è¯†ç¬¦ï¼'['ï¼œè¡¨è¾¾å¼ï¼']''['ï¼œè¡¨è¾¾å¼ï¼']' =ï¼œè¡¨è¾¾å¼ï¼
 
-£¼±êÊ¶·û£¾£½£¼±í´ïÊ½£¾ÖĞµÄ<±êÊ¶·û>²»ÄÜÎª³£Á¿ÃûºÍÊı×éÃû
+ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œè¡¨è¾¾å¼ï¼ä¸­çš„<æ ‡è¯†ç¬¦>ä¸èƒ½ä¸ºå¸¸é‡åå’Œæ•°ç»„å
 */
 void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::IDENFR);
@@ -566,11 +636,11 @@ void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::ASSIGN);
 	pop_sym();
 	Expr();
-	output_list_.push_back("¸³ÖµÓï¾ä");
+	output_list_.push_back("<èµ‹å€¼è¯­å¥>");
 }
 
 /**
-£¼Ìõ¼şÓï¾ä£¾  ::= if '('£¼Ìõ¼ş£¾')'£¼Óï¾ä£¾£Ûelse£¼Óï¾ä£¾£İ
+ï¼œæ¡ä»¶è¯­å¥ï¼  ::= if '('ï¼œæ¡ä»¶ï¼')'ï¼œè¯­å¥ï¼ï¼»elseï¼œè¯­å¥ï¼ï¼½
 */
 void GrammerAnalyzer::ConditionalStatement() {
 	check(symbolType::IFTK);
@@ -585,27 +655,27 @@ void GrammerAnalyzer::ConditionalStatement() {
 		pop_sym();
 		Statement();
 	}
-	output_list_.push_back("Ìõ¼şÓï¾ä");
+	output_list_.push_back("<æ¡ä»¶è¯­å¥>");
 }
 
 /**
-£¼Ìõ¼ş£¾    ::=  £¼±í´ïÊ½£¾£¼¹ØÏµÔËËã·û£¾£¼±í´ïÊ½£¾
-£¼¹ØÏµÔËËã·û£¾  ::=  <£ü<=£ü>£ü>=£ü!=£ü==
-±í´ïÊ½Ğè¾ùÎªÕûÊıÀàĞÍ²ÅÄÜ½øĞĞ±È½Ï
+ï¼œæ¡ä»¶ï¼    ::=  ï¼œè¡¨è¾¾å¼ï¼ï¼œå…³ç³»è¿ç®—ç¬¦ï¼ï¼œè¡¨è¾¾å¼ï¼
+ï¼œå…³ç³»è¿ç®—ç¬¦ï¼  ::=  <ï½œ<=ï½œ>ï½œ>=ï½œ!=ï½œ==
+è¡¨è¾¾å¼éœ€å‡ä¸ºæ•´æ•°ç±»å‹æ‰èƒ½è¿›è¡Œæ¯”è¾ƒ
 */
 void GrammerAnalyzer::Condition() {
-	// TODO: ±í´ïÊ½Ğè¾ùÎªÕûÊıÀàĞÍ²ÅÄÜ½øĞĞ±È½Ï
+	// TODO: è¡¨è¾¾å¼éœ€å‡ä¸ºæ•´æ•°ç±»å‹æ‰èƒ½è¿›è¡Œæ¯”è¾ƒ
 	Expr();
 	if (equal(LSS, LEQ) || equal(GRE, GEQ) || equal(NEQ, EQL)) {
 		pop_sym();
 	}else { error(); }
 	Expr();
-	output_list_.push_back("Ìõ¼ş");
+	output_list_.push_back("<æ¡ä»¶>");
 }
 
 /**
-£¼Ñ­»·Óï¾ä£¾   ::=  while '('£¼Ìõ¼ş£¾')'£¼Óï¾ä£¾
-	| for'('£¼±êÊ¶·û£¾£½£¼±í´ïÊ½£¾;£¼Ìõ¼ş£¾;£¼±êÊ¶·û£¾£½£¼±êÊ¶·û£¾(+|-)£¼²½³¤£¾')'£¼Óï¾ä£¾
+ï¼œå¾ªç¯è¯­å¥ï¼   ::=  while '('ï¼œæ¡ä»¶ï¼')'ï¼œè¯­å¥ï¼
+	| for'('ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œè¡¨è¾¾å¼ï¼;ï¼œæ¡ä»¶ï¼;ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œæ ‡è¯†ç¬¦ï¼(+|-)ï¼œæ­¥é•¿ï¼')'ï¼œè¯­å¥ï¼
 */
 void GrammerAnalyzer::LoopStatement() {
 	if (equal(WHILETK)) {
@@ -618,6 +688,7 @@ void GrammerAnalyzer::LoopStatement() {
 		Statement();
 
 	} else if (equal(FORTK)) {
+		// for'('ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œè¡¨è¾¾å¼ï¼;ï¼œæ¡ä»¶ï¼;ï¼œæ ‡è¯†ç¬¦ï¼ï¼ï¼œæ ‡è¯†ç¬¦ï¼(+|-)ï¼œæ­¥é•¿ï¼')'ï¼œè¯­å¥ï¼
 		pop_sym();
 		check(LPARENT);
 		pop_sym();
@@ -633,6 +704,8 @@ void GrammerAnalyzer::LoopStatement() {
 		pop_sym();
 		check(IDENFR);
 		pop_sym();
+		check(ASSIGN); pop_sym();
+		check(IDENFR); pop_sym();
 		check(PLUS, MINU);
 		pop_sym();
 		Step();
@@ -642,22 +715,22 @@ void GrammerAnalyzer::LoopStatement() {
 
 	} else { error(); }
 	
-	output_list_.push_back("Ñ­»·Óï¾ä");
+	output_list_.push_back("<å¾ªç¯è¯­å¥>");
 }
 
 /**
-£¼²½³¤£¾::= £¼ÎŞ·ûºÅÕûÊı£¾
+ï¼œæ­¥é•¿ï¼::= ï¼œæ— ç¬¦å·æ•´æ•°ï¼
 */
 void GrammerAnalyzer::Step() {
 	UnsignedInt();
-	output_list_.push_back("²½³¤");
+	output_list_.push_back("<æ­¥é•¿>");
 }
 
 /**
-£¼Çé¿öÓï¾ä£¾  ::=  switch ¡®(¡¯£¼±í´ïÊ½£¾¡®)¡¯ ¡®{¡¯£¼Çé¿ö±í£¾£¼È±Ê¡£¾¡®}¡¯
+ï¼œæƒ…å†µè¯­å¥ï¼  ::=  switch â€˜(â€™ï¼œè¡¨è¾¾å¼ï¼â€˜)â€™ â€˜{â€™ï¼œæƒ…å†µè¡¨ï¼ï¼œç¼ºçœï¼â€˜}â€™
 
-Çé¿öÓï¾äÖĞ£¬switchºóÃæµÄ±í´ïÊ½ºÍcaseºóÃæµÄ³£Á¿Ö»ÔÊĞí³öÏÖintºÍcharÀàĞÍ£»
-Ã¿¸öÇé¿ö×ÓÓï¾äÖ´ĞĞÍê±Ïºó£¬²»¼ÌĞøÖ´ĞĞºóÃæµÄÇé¿ö×ÓÓï¾ä
+æƒ…å†µè¯­å¥ä¸­ï¼Œswitchåé¢çš„è¡¨è¾¾å¼å’Œcaseåé¢çš„å¸¸é‡åªå…è®¸å‡ºç°intå’Œcharç±»å‹ï¼›
+æ¯ä¸ªæƒ…å†µå­è¯­å¥æ‰§è¡Œå®Œæ¯•åï¼Œä¸ç»§ç»­æ‰§è¡Œåé¢çš„æƒ…å†µå­è¯­å¥
 */
 void GrammerAnalyzer::SwitchStatement() {
 	check(symbolType::SWITCHTK);
@@ -667,53 +740,51 @@ void GrammerAnalyzer::SwitchStatement() {
 	Expr();
 	check(symbolType::RPARENT);
 	pop_sym();
-	check(symbolType::RBRACE);
+	check(symbolType::LBRACE);
 	pop_sym();
 	CaseList();
 	SwitchDefault();
 	check(symbolType::RBRACE);
 	pop_sym();
-	output_list_.push_back("Çé¿öÓï¾ä");
+	output_list_.push_back("<æƒ…å†µè¯­å¥>");
 }
 
 /**
-£¼Çé¿ö±í£¾   ::=  £¼Çé¿ö×ÓÓï¾ä£¾{£¼Çé¿ö×ÓÓï¾ä£¾}
+ï¼œæƒ…å†µè¡¨ï¼   ::=  ï¼œæƒ…å†µå­è¯­å¥ï¼{ï¼œæƒ…å†µå­è¯­å¥ï¼}
 */
 void GrammerAnalyzer::CaseList() {
 	CaseStatement();
 	while (equal(symbolType::CASETK)) {
 		CaseStatement();
 	}
-	output_list_.push_back("Çé¿ö±í");
+	output_list_.push_back("<æƒ…å†µè¡¨>");
 }
 
 /**
-£¼Çé¿ö×ÓÓï¾ä£¾  ::=  case£¼³£Á¿£¾£º£¼Óï¾ä£¾
-£¼³£Á¿£¾   ::=  £¼ÕûÊı£¾|£¼×Ö·û£¾
+ï¼œæƒ…å†µå­è¯­å¥ï¼  ::=  caseï¼œå¸¸é‡ï¼ï¼šï¼œè¯­å¥ï¼
+ï¼œå¸¸é‡ï¼   ::=  ï¼œæ•´æ•°ï¼|ï¼œå­—ç¬¦ï¼
 */
 void GrammerAnalyzer::CaseStatement() {
-	// TODO: ¼ì²é³£Á¿ÓëswitchÀàĞÍÊÇ·ñÆ¥Åä
+	// TODO: æ£€æŸ¥å¸¸é‡ä¸switchç±»å‹æ˜¯å¦åŒ¹é…
 	check(symbolType::CASETK);
 	pop_sym();
-	if (equal(symbolType::CHARCON)) {
-		pop_sym();
-	} else {
-		Int();
-	}
+	ConstValue();
 	check(symbolType::COLON);
 	pop_sym();
 	Statement();
-	output_list_.push_back("Çé¿ö×ÓÓï¾ä");
+	output_list_.push_back("<æƒ…å†µå­è¯­å¥>");
 }
 
 /**
-£¼È±Ê¡£¾   ::=  default :£¼Óï¾ä£¾
+ï¼œç¼ºçœï¼   ::=  default :ï¼œè¯­å¥ï¼
 */
 void GrammerAnalyzer::SwitchDefault() {
 	check(symbolType::DEFAULTTK);
 	pop_sym();
+	check(symbolType::COLON);
+	pop_sym();
 	Statement();
-	output_list_.push_back("È±Ê¡");
+	output_list_.push_back("<ç¼ºçœ>");
 }
 
 void GrammerAnalyzer::CallFunc() {
@@ -735,8 +806,8 @@ void GrammerAnalyzer::CallFunc() {
 }
 
 /**
-£¼ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾ ::= £¼±êÊ¶·û£¾'('£¼Öµ²ÎÊı±í£¾')'
-º¯Êıµ÷ÓÃÊ±£¬Ö»ÄÜµ÷ÓÃÔÚÖ®Ç°ÒÑ¾­¶¨Òå¹ıµÄº¯Êı£¬¶ÔÊÇ·ñÓĞ·µ»ØÖµµÄº¯Êı¶¼ÊÇÈç´Ë
+ï¼œæœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼ ::= ï¼œæ ‡è¯†ç¬¦ï¼'('ï¼œå€¼å‚æ•°è¡¨ï¼')'
+å‡½æ•°è°ƒç”¨æ—¶ï¼Œåªèƒ½è°ƒç”¨åœ¨ä¹‹å‰å·²ç»å®šä¹‰è¿‡çš„å‡½æ•°ï¼Œå¯¹æ˜¯å¦æœ‰è¿”å›å€¼çš„å‡½æ•°éƒ½æ˜¯å¦‚æ­¤
 */
 void GrammerAnalyzer::CallWithReturn() {
 	check(symbolType::IDENFR);
@@ -746,11 +817,11 @@ void GrammerAnalyzer::CallWithReturn() {
 	ValueParameterList();
 	check(RPARENT);
 	pop_sym();
-	output_list_.push_back("ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä");
+	output_list_.push_back("<æœ‰è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥>");
 }
 
 /**
-£¼ÎŞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä£¾ ::= £¼±êÊ¶·û£¾'('£¼Öµ²ÎÊı±í£¾')'
+ï¼œæ— è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥ï¼ ::= ï¼œæ ‡è¯†ç¬¦ï¼'('ï¼œå€¼å‚æ•°è¡¨ï¼')'
 */
 void GrammerAnalyzer::CallNoReturn() {
 	check(symbolType::IDENFR);
@@ -760,14 +831,14 @@ void GrammerAnalyzer::CallNoReturn() {
 	ValueParameterList();
 	check(RPARENT);
 	pop_sym();
-	output_list_.push_back("ÎŞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä");
+	output_list_.push_back("<æ— è¿”å›å€¼å‡½æ•°è°ƒç”¨è¯­å¥>");
 }
 
 /**
-£¼Öµ²ÎÊı±í£¾   ::= £¼±í´ïÊ½£¾{,£¼±í´ïÊ½£¾}£ü£¼¿Õ£¾
+ï¼œå€¼å‚æ•°è¡¨ï¼   ::= ï¼œè¡¨è¾¾å¼ï¼{,ï¼œè¡¨è¾¾å¼ï¼}ï½œï¼œç©ºï¼
 
-Êµ²ÎµÄ±í´ïÊ½²»ÄÜÊÇÊı×éÃû£¬¿ÉÒÔÊÇÊı×éÔªËØ
-Êµ²ÎµÄ¼ÆËãË³Ğò,ÒªÇóÉú³ÉµÄÄ¿±êÂëÔËĞĞ½á¹ûÓëClang8.0.1 ±àÒëÆ÷ÔËĞĞµÄ½á¹ûÒ»ÖÂ
+å®å‚çš„è¡¨è¾¾å¼ä¸èƒ½æ˜¯æ•°ç»„åï¼Œå¯ä»¥æ˜¯æ•°ç»„å…ƒç´ 
+å®å‚çš„è®¡ç®—é¡ºåº,è¦æ±‚ç”Ÿæˆçš„ç›®æ ‡ç è¿è¡Œç»“æœä¸Clang8.0.1 ç¼–è¯‘å™¨è¿è¡Œçš„ç»“æœä¸€è‡´
 */
 void GrammerAnalyzer::ValueParameterList() {
 	if (!equal(symbolType::RPARENT)) {
@@ -777,15 +848,15 @@ void GrammerAnalyzer::ValueParameterList() {
 			Expr();
 		}
 	}
-	output_list_.push_back("Öµ²ÎÊı±í");
+	output_list_.push_back("<å€¼å‚æ•°è¡¨>");
 }
 
 /**
-£¼¶ÁÓï¾ä£¾    ::=  scanf '('£¼±êÊ¶·û£¾')'
+ï¼œè¯»è¯­å¥ï¼    ::=  scanf '('ï¼œæ ‡è¯†ç¬¦ï¼')'
 
-´Ó±ê×¼ÊäÈë»ñÈ¡<±êÊ¶·û>µÄÖµ£¬¸Ã±êÊ¶·û²»ÄÜÊÇ³£Á¿ÃûºÍÊı×éÃû
-Éú³ÉµÄPCODE»òMIPS»ã±àÔÚÔËĞĞÊ±£¬¶ÔÃ¿Ò»¸öscanfÓï¾ä£¬ÎŞÂÛ±êÊ¶·ûµÄÀàĞÍÊÇchar»¹ÊÇint£¬Ä©Î²¾ùĞè»Ø³µ£»ÔÚtestin.txtÎÄ¼şÖĞµÄÊäÈëÊı¾İÒ²ÊÇÃ¿ÏîÔÚÒ»ĞĞ
-Éú³ÉMIPS»ã±àÊ±°´ÕÕsyscallÖ¸ÁîµÄÓÃ·¨Ê¹ÓÃ
+ä»æ ‡å‡†è¾“å…¥è·å–<æ ‡è¯†ç¬¦>çš„å€¼ï¼Œè¯¥æ ‡è¯†ç¬¦ä¸èƒ½æ˜¯å¸¸é‡åå’Œæ•°ç»„å
+ç”Ÿæˆçš„PCODEæˆ–MIPSæ±‡ç¼–åœ¨è¿è¡Œæ—¶ï¼Œå¯¹æ¯ä¸€ä¸ªscanfè¯­å¥ï¼Œæ— è®ºæ ‡è¯†ç¬¦çš„ç±»å‹æ˜¯charè¿˜æ˜¯intï¼Œæœ«å°¾å‡éœ€å›è½¦ï¼›åœ¨testin.txtæ–‡ä»¶ä¸­çš„è¾“å…¥æ•°æ®ä¹Ÿæ˜¯æ¯é¡¹åœ¨ä¸€è¡Œ
+ç”ŸæˆMIPSæ±‡ç¼–æ—¶æŒ‰ç…§syscallæŒ‡ä»¤çš„ç”¨æ³•ä½¿ç”¨
 */
 void GrammerAnalyzer::ReadStatement() {
 	check(symbolType::SCANFTK);
@@ -797,16 +868,16 @@ void GrammerAnalyzer::ReadStatement() {
 	check(symbolType::RPARENT);
 	pop_sym();
 
-	output_list_.push_back("¶ÁÓï¾ä");
+	output_list_.push_back("<è¯»è¯­å¥>");
 }
 
 /**
-£¼Ğ´Óï¾ä£¾    ::= printf '(' £¼×Ö·û´®£¾,£¼±í´ïÊ½£¾ ')'| printf '('£¼×Ö·û´®£¾ ')'| printf '('£¼±í´ïÊ½£¾')'
+ï¼œå†™è¯­å¥ï¼    ::= printf '(' ï¼œå­—ç¬¦ä¸²ï¼,ï¼œè¡¨è¾¾å¼ï¼ ')'| printf '('ï¼œå­—ç¬¦ä¸²ï¼ ')'| printf '('ï¼œè¡¨è¾¾å¼ï¼')'
 
-printf '(' £¼×Ö·û´®£¾,£¼±í´ïÊ½£¾ ')'Êä³öÊ±£¬ÏÈÊä³ö×Ö·û´®µÄÄÚÈİ£¬ÔÙÊä³ö±í´ïÊ½µÄÖµ£¬Á½ÕßÖ®¼äÎŞ¿Õ¸ñ
-±í´ïÊ½Îª×Ö·ûĞÍÊ±£¬Êä³ö×Ö·û£»ÎªÕûĞÍÊ±Êä³öÕûÊı
-£¼×Ö·û´®£¾Ô­ÑùÊä³ö£¨²»´æÔÚ×ªÒå£©
-Ã¿¸öprintfÓï¾äµÄÄÚÈİÊä³öµ½Ò»ĞĞ£¬°´½áÎ²ÓĞ»»ĞĞ·û\n´¦Àí
+printf '(' ï¼œå­—ç¬¦ä¸²ï¼,ï¼œè¡¨è¾¾å¼ï¼ ')'è¾“å‡ºæ—¶ï¼Œå…ˆè¾“å‡ºå­—ç¬¦ä¸²çš„å†…å®¹ï¼Œå†è¾“å‡ºè¡¨è¾¾å¼çš„å€¼ï¼Œä¸¤è€…ä¹‹é—´æ— ç©ºæ ¼
+è¡¨è¾¾å¼ä¸ºå­—ç¬¦å‹æ—¶ï¼Œè¾“å‡ºå­—ç¬¦ï¼›ä¸ºæ•´å‹æ—¶è¾“å‡ºæ•´æ•°
+ï¼œå­—ç¬¦ä¸²ï¼åŸæ ·è¾“å‡ºï¼ˆä¸å­˜åœ¨è½¬ä¹‰ï¼‰
+æ¯ä¸ªprintfè¯­å¥çš„å†…å®¹è¾“å‡ºåˆ°ä¸€è¡Œï¼ŒæŒ‰ç»“å°¾æœ‰æ¢è¡Œç¬¦\nå¤„ç†
 */
 void GrammerAnalyzer::WriteStatement() {
 	check(symbolType::PRINTFTK);
@@ -825,17 +896,17 @@ void GrammerAnalyzer::WriteStatement() {
 	check(symbolType::RPARENT);
 	pop_sym();
 	
-	output_list_.push_back("Ğ´Óï¾ä");
+	output_list_.push_back("<å†™è¯­å¥>");
 }
 
 /**
-£¼·µ»ØÓï¾ä£¾   ::=  return['('£¼±í´ïÊ½£¾')']
+ï¼œè¿”å›è¯­å¥ï¼   ::=  return['('ï¼œè¡¨è¾¾å¼ï¼')']
 
-ÎŞ·µ»ØÖµµÄº¯ÊıÖĞ¿ÉÒÔÃ»ÓĞreturnÓï¾ä£¬Ò²¿ÉÒÔÓĞĞÎÈçreturn;µÄÓï¾ä
-ÓĞ·µ»ØÖµµÄº¯ÊıÖ»Òª³öÏÖÒ»Ìõ´ø·µ»ØÖµµÄreturnÓï¾ä£¨±í´ïÊ½´øĞ¡À¨ºÅ£©¼´¿É£¬²»ÓÃ¼ì²éÃ¿¸ö·ÖÖ§ÊÇ·ñÓĞ´ø·µ»ØÖµµÄreturnÓï¾ä
+æ— è¿”å›å€¼çš„å‡½æ•°ä¸­å¯ä»¥æ²¡æœ‰returnè¯­å¥ï¼Œä¹Ÿå¯ä»¥æœ‰å½¢å¦‚return;çš„è¯­å¥
+æœ‰è¿”å›å€¼çš„å‡½æ•°åªè¦å‡ºç°ä¸€æ¡å¸¦è¿”å›å€¼çš„returnè¯­å¥ï¼ˆè¡¨è¾¾å¼å¸¦å°æ‹¬å·ï¼‰å³å¯ï¼Œä¸ç”¨æ£€æŸ¥æ¯ä¸ªåˆ†æ”¯æ˜¯å¦æœ‰å¸¦è¿”å›å€¼çš„returnè¯­å¥
 */
 void GrammerAnalyzer::ReturnStatement() {
-	// ¼ì²éreturnÓï¾äÓëº¯Êı·µ»ØÖµÀàĞÍµÄÆ¥Åä
+	// æ£€æŸ¥returnè¯­å¥ä¸å‡½æ•°è¿”å›å€¼ç±»å‹çš„åŒ¹é…
 	check(symbolType::RETURNTK);
 	pop_sym();
 	if (equal(symbolType::LPARENT)) {
@@ -845,5 +916,5 @@ void GrammerAnalyzer::ReturnStatement() {
 		pop_sym();
 	}
 
-	output_list_.push_back("£¼·µ»ØÓï¾ä");
+	output_list_.push_back("<è¿”å›è¯­å¥>");
 }

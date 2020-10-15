@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include "LexicalAnalyzer.h"
+#include "GrammerAnalyzer.h"
+
 using namespace std;
 
 const string INFIFE = "testfile.txt";
@@ -16,11 +18,12 @@ int main() {
 		cout << "Could not open " << INFIFE << endl;
 		exit(EXIT_FAILURE);
 	}
-	//LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(cin);
 	LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(fin);
 	myLexicalAnalyzer.analyzeLexis();
-	//myLexicalAnalyzer.show(cout);
-	myLexicalAnalyzer.show(fout);
+
+	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer);
+	myGrammerAnalyzer.analyzeGrammer();
+	myGrammerAnalyzer.show(fout);
 
 	fin.close();
 	fout.close();
