@@ -18,7 +18,7 @@ int main() {
 	}
 	//LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(cin);
 	LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(fin);
-	myLexicalAnalyzer.analyze();
+	myLexicalAnalyzer.analyzeLexis();
 	//myLexicalAnalyzer.show(cout);
 	myLexicalAnalyzer.show(fout);
 

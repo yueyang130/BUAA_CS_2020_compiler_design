@@ -9,9 +9,7 @@ LexicalAnalyzer::LexicalAnalyzer(istream& inFile)
 	/*
 	存储对ifstream的引用到fin，必须在初始化列表中初始化fin,在构造函数中的初始化无效
 	*/
-	symList.reserve(INIT_LENGTH);
-	symTypeList.reserve(INIT_LENGTH);
-	symRowList.reserve(INIT_LENGTH);
+	sym_infor_list_.reserve(INIT_LENGTH);
 
 	rowCnt = 1;
 	colCnt = 0;
@@ -190,7 +188,7 @@ bool LexicalAnalyzer::isReserver() {
 	return false;
 }
 
-void LexicalAnalyzer::analyze() {
+void LexicalAnalyzer::analyzeLexis() {
 	nextChar();  // 预读一个字符
 	while (fin) {  // cin.get无法读取EOF到chrCurr，但是bool（cin）可以表示是否能继续读取 
 		// TODO: continue to add exception handler
@@ -202,8 +200,8 @@ void LexicalAnalyzer::analyze() {
 
 
 void LexicalAnalyzer::show(ostream& fout) {
-	for (int i = 0; i < symList.size(); i++) {
-		fout <<  type_to_str(symTypeList[i]) << " " << symList[i]<< endl;
+	for (int i = 0; i < sym_infor_list_.size(); i++) {
+		fout <<  type_to_str(sym_infor_list_[i].type) << " " << sym_infor_list_[i].sym<< endl;
 	}
 }
 string LexicalAnalyzer::type_to_str(symbolType type) {
