@@ -8,11 +8,13 @@ using namespace std;
 
 const string INFIFE = "testfile.txt";
 const string OUTFILE = "output.txt";
+const string ERRFILE = "error.txt";
 
 int main() {
 
 	ifstream fin(INFIFE);
 	ofstream fout(OUTFILE);
+	ofstream ferror(ERRFILE);
 
 	if (!fin.is_open()) {
 		cout << "Could not open " << INFIFE << endl;
@@ -24,9 +26,11 @@ int main() {
 	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer);
 	myGrammerAnalyzer.analyzeGrammer();
 	myGrammerAnalyzer.show(fout);
+	myGrammerAnalyzer.showError(ferror);
 
 	fin.close();
 	fout.close();
+	ferror.close();
 
 	return 0;
 }

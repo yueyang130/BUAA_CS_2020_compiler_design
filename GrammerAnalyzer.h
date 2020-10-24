@@ -2,6 +2,7 @@
 #define GRAMMER_ANALYZER_H_
 
 #include "LexicalAnalyzer.h"
+#include "SymbolTable.h"
 #include <iostream>
 using namespace std;
 
@@ -15,21 +16,27 @@ public:
 
 	/*输出函数*/
 	void show(ostream& fout);
+	void showError(ostream& fout);
 
 
 private:
 	GrammerAnalyzer(LexicalAnalyzer&);
 
+	/*指向当前要进行语法分析的sym*/
 	int tk_idx_;
+	/*存储词法分析结果的列表*/
 	vector<SymInfor>& sym_infor_list_;
+	/*词法分析器*/
 	LexicalAnalyzer& lexical_analyzer_;
 
 	/*输出结果列表*/
 	vector<string> output_list_;
 
-	/*中间结果记录*/
-	vector<string> func_with_ret_list_;
-	vector<string> func_no_ret_list_;
+	/*错误信息列表*/
+	vector<ErrorInfor>& error_infor_list_;
+
+	/*符号表*/
+	SymbolTable& sym_table_;
 	
 	/*支持函数*/
 	inline void pop_sym() {
@@ -38,7 +45,9 @@ private:
 	}
 	inline symbolType curr_sym_type() { return sym_infor_list_[tk_idx_].type; }
 	inline string& curr_sym_str() { return sym_infor_list_[tk_idx_].sym; }
+	inline int curr_sym_row() { return sym_infor_list_[tk_idx_].row; }
 	inline symbolType peek_sym_type(int offset = 1) { return sym_infor_list_[tk_idx_ + offset].type; }
+
 	inline bool isFunctionWithReturn() { 
 		return (curr_sym_type() == symbolType::INTTK || curr_sym_type() == symbolType::CHARTK)
 			&& peek_sym_type(1) == symbolType::IDENFR && peek_sym_type(2) == symbolType::LPARENT;
@@ -46,8 +55,14 @@ private:
 	inline bool isFunctionNoReturn() {
 		return curr_sym_type() == symbolType::VOIDTK && peek_sym_type(1) == symbolType::IDENFR;
 	}
+
 	inline bool equal(symbolType ref) { return curr_sym_type() == ref; }
 	inline bool equal(symbolType ref1, symbolType ref2) { return curr_sym_type() == ref1 || curr_sym_type() == ref2; }
+
+	inline void addErrorInfor(ErrorType error_type) {
+		ErrorInfor error_infor = { curr_sym_row(), error_type, curr_sym_str() };
+		error_infor_list_.push_back(error_infor);
+	}
 	
 	/*错误处理函数*/
 	void error() { cout << "error!"; }
@@ -57,6 +72,8 @@ private:
 	inline void check(symbolType ref1, symbolType ref2) {
 		if (!equal(ref1, ref2)) { error(); }
 	}
+
+	void checkUndefine();
 
 	/*非终结符的分析函数*/
 	void String();
@@ -69,9 +86,10 @@ private:
 
 	void ConstDeclare();
 	void ConstDefine();
+	void ConstDefineForInt();
+	void ConstDefineForChar();
 	void UnsignedInt();
 	void Int();
-	//void Char();
 	void Identifier();
 
 	void ConstValue(symbolType vartype);   // 用于<变量定义及初始化>和<情况子语句>
@@ -80,38 +98,39 @@ private:
 	void VarDeclare();
 	void VarDefine();
 	void VarDefineNoInit();
-	void VarDefineType();
+	void VarDefineType(ValueType entry_value_type);
 	void VarDefineWithInit();
 
 	void FuncDefineWithReturn();
 	void FuncDefineNoReturn();
-	void FuncDefineHead();
-	void ParameterList();
+	void FuncDefineHead(string& func_name, ValueType& value_type);
+	void ParameterList(vector<ValueType>& formal_param_list);
 
 	void Main();
 	void Expr();
 	void Item();
 	void Factor();
 
-	void CompoundStatement();
-	void StatetmentList();
-	void Statement();
+	void CompoundStatement(bool* p_exist_return, ValueType return_value_type);
+	void StatetmentList(bool* p_exist_return, ValueType return_value_type);
+	void Statement(bool* p_exist_return, ValueType return_value_type);
 	void AssignStatement();
-	void ConditionalStatement();
+	void ConditionalStatement(bool* p_exsit_return, ValueType return_value_type);
 	void Condition();
-	void LoopStatement();
+	void LoopStatement(bool* p_exsit_return, ValueType return_value_type);
 	void Step();
-	void SwitchStatement();
-	void CaseList();
-	void CaseStatement();
-	void SwitchDefault();
+	void SwitchStatement(bool* p_exsit_return, ValueType return_value_type);
+	void CaseList(bool* p_exsit_return, ValueType return_value_type);
+	void CaseStatement(bool* p_exsit_return, ValueType return_value_type);
+	void SwitchDefault(bool* p_exsit_return, ValueType return_value_type);
 	void CallFunc();
-	void CallWithReturn();
-	void CallNoReturn();
-	void ValueParameterList();
+	void CallWithReturn(FunctionEntry* p_entry);
+	void CallNoReturn(FunctionEntry* p_entry);
+	void ValueParameterList(FunctionEntry* p_entry);
 	void ReadStatement();
 	void WriteStatement();
-	void ReturnStatement();
+	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);
+
 
 };
 

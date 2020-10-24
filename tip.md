@@ -24,6 +24,7 @@
 3. 类的非静态方法一般不能作为函数指针，因为它有一个隐藏参数this，还要解决继承等问题。要使用类成员函数指针。
 		(void(GrammerAnalyzer::*handler)(symbolType) = &GrammerAnalyzer::ConstValue;  // 取函数指针 
 		(obj/this->*handler)(var_type); // 使用函数指针
+4. 与Java不同，使用类的静态方法时，不能使用.运算符，要使用::运算符。
 
 ## 调试技巧
 1. 在调试状态下，调试->windows->调用堆栈，可以查看函数调用层次

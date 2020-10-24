@@ -1,6 +1,7 @@
 #ifndef TYPE_H_
 #define TYPE_H_
 
+/*词法分析中的符号类型*/
 enum symbolType
 {
 	IDENFR,				// 标识符
@@ -44,6 +45,21 @@ enum symbolType
 	RBRACE,             // }
 
 };
+
+/*符号表中每一项标识符的类型*/
+enum EntryType {
+	CONST,
+	VAR,
+	FUNCTION
+};
+
+/*符号表中每一项标识符值的类型*/
+enum ValueType {
+	INTV,
+	CHARV,
+	VOIDV,
+};
+
 
 #endif // !TYPE_H_
 

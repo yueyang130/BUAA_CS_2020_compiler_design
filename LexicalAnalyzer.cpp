@@ -10,7 +10,7 @@ LexicalAnalyzer::LexicalAnalyzer(istream& inFile)
 	存储对ifstream的引用到fin，必须在初始化列表中初始化fin,在构造函数中的初始化无效
 	*/
 	sym_infor_list_.reserve(INIT_LENGTH);
-
+	 
 	rowCnt = 1;
 	colCnt = 0;
 	symCurr = "";
@@ -84,7 +84,9 @@ void LexicalAnalyzer::nextSym() {
 		
 		nextChar();
 		if (isChr()) { catToken(); }
-		else { error(); }
+		else { 
+			error();
+		}
 		
 		nextChar();
 		if (chrCurr != '\'') {
@@ -97,15 +99,12 @@ void LexicalAnalyzer::nextSym() {
 	else if (chrCurr == '\"') { // 判断是否是字符串
 		do {
 			nextChar();
+			// isInStr('\"')结果是False，所以下面的判断包含了空字符串的情况
 			if (isInStr()) { catToken(); }
-			else { break; }
-		} while (true);
+			else { error(); }
+		} while (chrCurr != '\"');
 
-		if (chrCurr != '\"') {
-			error();
-		} else {
-			symType = STRCON;
-		}
+		symType = STRCON;
 	}
 
 	else if (chrCurr == '=') {  // = or ==
