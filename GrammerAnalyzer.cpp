@@ -42,12 +42,28 @@ void GrammerAnalyzer::showError(ostream& fout) {
 *										 错误检查与处理函数
 */
 
-void GrammerAnalyzer::checkUndefine() {
+TableEntry* GrammerAnalyzer::checkUndefine() {
 	// 引用未定义的名字
-	TableEntry* entry = sym_table_.find(curr_sym_str());
+	TableEntry* entry = sym_table_.checkReference(curr_sym_str());
 	if (!entry) {
 		addErrorInfor(ErrorType::Undefine);
 	}
+	return entry;
+}
+
+void GrammerAnalyzer::checkMissSemi() {
+	if (!equal(symbolType::SEMICN)) { addErrorInfor(ErrorType::MissSemi, -1); } 
+	else { pop_sym(); }
+}
+
+void GrammerAnalyzer::checkMissRparent() {
+	if (!equal(symbolType::RPARENT)) { addErrorInfor(ErrorType::MissRparent); }
+	else { pop_sym(); }
+}
+
+void GrammerAnalyzer::checkMissRbrack() {
+	if (!equal(symbolType::RBRACK)) { addErrorInfor(ErrorType::MissRbrack);  }
+	else { pop_sym(); }
 }
 
 /** 
@@ -110,11 +126,14 @@ void GrammerAnalyzer::Program() {
 	output_list_.push_back("<程序>");
 }
 
-void GrammerAnalyzer::RepeatIfMark(void(GrammerAnalyzer::*handler)(symbolType), symbolType var_type, symbolType mark) {
+int GrammerAnalyzer::RepeatIfMark(void(GrammerAnalyzer::*handler)(ValueType), ValueType var_type, symbolType mark) {
+	int cnt = 0;
 	while (equal(mark)) {
 		pop_sym();
 		(this->*handler)(var_type);
+		cnt++;
 	}
+	return cnt;
 }
 
 
@@ -124,13 +143,11 @@ void GrammerAnalyzer::RepeatIfMark(void(GrammerAnalyzer::*handler)(symbolType), 
 void GrammerAnalyzer::ConstDeclare() {
 	pop_sym();
 	ConstDefine();
-	check(symbolType::SEMICN);
-	pop_sym();
+	checkMissSemi();
 	while (equal(symbolType::CONSTTK)) {
 		pop_sym();
 		ConstDefine();
-		check(symbolType::SEMICN);
-		pop_sym();
+		checkMissSemi();
 	}
 	output_list_.push_back("<常量说明>");
 }
@@ -201,21 +218,27 @@ void GrammerAnalyzer::ConstDefineForChar() {
 /**
 ＜无符号整数＞  ::= ＜数字＞｛＜数字＞｝
 */
-void GrammerAnalyzer::UnsignedInt() {
+int GrammerAnalyzer::UnsignedInt() {
 	check(INTCON);
+	int value = std::stoi(curr_sym_str());
 	pop_sym();
 	output_list_.push_back("<无符号整数>");
+	return value;
 }
+
 
 /**
 * ＜整数＞        ::= ［＋｜－］＜无符号整数＞
 */
-void GrammerAnalyzer::Int() {
+int GrammerAnalyzer::Int() {
+	int value = 1;
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
+		if (equal(symbolType::MINU)) { value = -1; }
 		pop_sym();
 	}
-	UnsignedInt();
+	value = value * UnsignedInt();
 	output_list_.push_back("<整数>");
+	return value;
 }
 
 
@@ -227,13 +250,19 @@ void GrammerAnalyzer::Identifier() {
 /**
 ＜常量＞   ::=  ＜整数＞|＜字符＞
 */
-void GrammerAnalyzer::ConstValue(symbolType var_type) {
-	if (var_type == symbolType::INTTK) {
-		Int(); 
-	} else if (var_type == symbolType::CHARTK) { 
-		check(symbolType::CHARCON); 
+void GrammerAnalyzer::ConstValue(ValueType left_value_type) {
+	ValueType right_value_type;
+	if (equal(symbolType::CHARCON)) {
 		pop_sym();
-	} else { error(); }
+		right_value_type = ValueType::CHARV;
+	}
+	else {
+		Int();
+		right_value_type = ValueType::INTV;
+	}
+	if (left_value_type != right_value_type) {
+		addErrorInfor(ErrorType::UnmatchedConstType);
+	}
 
 	output_list_.push_back("<常量>");
 }
@@ -252,8 +281,7 @@ void GrammerAnalyzer::ConstValue() {
 */
 void GrammerAnalyzer::VarDeclare() {
 	VarDefine();
-	check(symbolType::SEMICN);
-	pop_sym();
+	checkMissSemi();
 	// 判断是<变量定义> 还是 <有返回值函数定义>
 	while (true) {
 		if (!equal(symbolType::INTTK, symbolType::CHARTK)) { break; }
@@ -264,25 +292,32 @@ void GrammerAnalyzer::VarDeclare() {
 			break;
 		}
 		VarDefine();
-		check(SEMICN);
-		pop_sym();
+		checkMissSemi();
 	}
 	output_list_.push_back("<变量说明>");
 }
 
 /**
 * ＜变量定义＞ ::= ＜变量定义无初始化＞|＜变量定义及初始化＞
+* 
+* version1：通过在分号前是否出现等号判断是否初始化
+* TODO: 如果这一行缺失分号，可能导致意想不到的结果。
+* 考虑到错误处理中同样会出现却少 ]等情况，所以决定以 int|char|void的最近的一个为结束符（其实就是换行）
+*   
 */
 void GrammerAnalyzer::VarDefine() {
 	check(INTTK, CHARTK);
 
-	// 通过在分号前是否出现等号判断是否初始化
+	
 	bool no_init = true;
-	for (int i = 2; peek_sym_type(i) != symbolType::SEMICN; i++) {
+
+	for (int i = 2; peek_sym_type(i) != symbolType::INTTK && peek_sym_type(i) != CHARTK && peek_sym_type(i) != VOIDTK; i++) {
 		if (peek_sym_type(i) == symbolType::ASSIGN) {
 			no_init = false;
 		}
 	}
+	
+
 	if (no_init) { VarDefineNoInit(); }
 	else { VarDefineWithInit(); }
 	
@@ -317,22 +352,23 @@ void GrammerAnalyzer::VarDefineNoInit() {
 void GrammerAnalyzer::VarDefineType(ValueType entry_value_type) {
 	check(IDENFR);
 	// 重名检查
-	if (!sym_table_.add(VarEntry(entry_value_type, curr_sym_str()))) {
+	string& var_name = curr_sym_str();
+	vector<int> shape;
+	if (!sym_table_.checkDefine(var_name)) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
 	if (equal(LBRACK)) {
 		pop_sym();
-		UnsignedInt();
-		check(symbolType::RBRACK);
-		pop_sym();
+		shape.push_back(UnsignedInt());
+		checkMissRbrack();
 		if (equal(symbolType::LBRACK)) {
 			pop_sym();
-			UnsignedInt();
-			check(symbolType::RBRACK);
-			pop_sym();
+			shape.push_back(UnsignedInt());
+			checkMissRbrack();
 		}
 	}
+	sym_table_.add(VarEntry(entry_value_type, var_name, shape));
 }
 
 /**
@@ -344,56 +380,71 @@ void GrammerAnalyzer::VarDefineType(ValueType entry_value_type) {
 */
 void GrammerAnalyzer::VarDefineWithInit() {
 	check(INTTK, CHARTK);
+	string& var_name = curr_sym_str();
+	vector<int> declared_shape;
+	//vector<int> initialized_shape;
 	symbolType var_type = curr_sym_type();
 	ValueType value_type = (var_type == INTTK) ? ValueType::INTV : ValueType::CHARV;
 	pop_sym();
 	check(IDENFR);
 	// 重名检查
-	if (!sym_table_.add(VarEntry(value_type, curr_sym_str()))) {
+	if (!sym_table_.checkDefine(var_name)) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
+
 	if (equal(symbolType::ASSIGN)) {   // ＜类型标识符＞＜标识符＞=＜常量＞
 		pop_sym();
-		ConstValue(var_type);
+		ConstValue(value_type);
 
 	} else if (equal(symbolType::LBRACK)) {
 		pop_sym();
-		UnsignedInt();
-		check(RBRACK); pop_sym();
+		declared_shape.push_back(UnsignedInt());
+		checkMissRbrack();
 		
 		if (equal(symbolType::ASSIGN)) {    // ＜类型标识符＞＜标识符＞'['＜无符号整数＞']'='{'＜常量＞{,＜常量＞}'}'
 			check(ASSIGN); pop_sym();
 			check(LBRACE); pop_sym();
-			ConstValue(var_type);
-			RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+			ConstValue(value_type);
+			int cnt = 1 + RepeatIfMark(&GrammerAnalyzer::ConstValue, value_type);
+			if (declared_shape[0] != cnt) { addErrorInfor(ErrorType::IllegalArrayInit); }
 			check(RBRACE); pop_sym();
 
 		} else if(equal(symbolType::LBRACK)) {  
 			/*  ＜类型标识符＞＜标识符＞'['＜无符号整数＞']''['＜无符号整数＞']'='
 			{''{'＜常量＞{,＜常量＞}'}'{, '{'＜常量＞{,＜常量＞}'}'   }'}' */
+			int cnt1, cnt2;  // cnt1是第一维的大小，cnt2是第二维的大小
+
 			pop_sym();
-			UnsignedInt();
-			check(RBRACK); pop_sym();
+			declared_shape.push_back(UnsignedInt());
+			checkMissRbrack();
 			check(ASSIGN); pop_sym();
 			check(LBRACE); pop_sym();
 			check(LBRACE); pop_sym();
-			ConstValue(var_type);
-			RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+			ConstValue(value_type);
+			cnt2 = 1 + RepeatIfMark(&GrammerAnalyzer::ConstValue, value_type);
+			if (declared_shape[1] != cnt2) { addErrorInfor(ErrorType::IllegalArrayInit); }
 			check(RBRACE); pop_sym();
 
+			cnt1 = 1;
 			while (equal(symbolType::COMMA)) {   // {,  '{'＜常量＞{,＜常量＞}'}'   }
 				pop_sym();
 				check(LBRACE); pop_sym();
-				ConstValue(var_type);
-				RepeatIfMark(&GrammerAnalyzer::ConstValue, var_type);
+				ConstValue(value_type);
+				cnt2 = 1 + RepeatIfMark(&GrammerAnalyzer::ConstValue, value_type);
+				if (declared_shape[1] != cnt2) { addErrorInfor(ErrorType::IllegalArrayInit); }
 				check(RBRACE); pop_sym();
+				cnt1++;
 			}
-			check(RBRACE); pop_sym();
+			check(RBRACE); 
+			if (declared_shape[0] != cnt1) { addErrorInfor(ErrorType::IllegalArrayInit); }
+			pop_sym();
 
 		} else { error(); }
 
 	} else { error(); }
+
+	sym_table_.add(VarEntry(value_type, var_name, declared_shape));
 
 	output_list_.push_back("<变量定义及初始化>");
 }
@@ -422,8 +473,7 @@ void GrammerAnalyzer::FuncDefineWithReturn() {
 	// 将函数项添加到符号表中
 	sym_table_.add(FunctionEntry(value_type, func_name, formal_param_list));
 
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
 	bool exsit_return = false;
@@ -451,7 +501,7 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	check(symbolType::IDENFR);
 	// 重名检查
 	string func_name = curr_sym_str();
-	if (!sym_table_.checkRedefine(curr_sym_str())) {
+	if (!sym_table_.checkDefine(curr_sym_str())) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
@@ -462,8 +512,7 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	// 将函数项添加到符号表中
 	sym_table_.add(FunctionEntry(ValueType::VOIDV, func_name, formal_param_list));
 
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
 
@@ -484,7 +533,7 @@ void GrammerAnalyzer::FuncDefineHead(string& func_name, ValueType& value_type) {
 	check(IDENFR);
 	func_name = curr_sym_str();
 	// 重名检查
-	if (!sym_table_.checkRedefine(curr_sym_str())) {
+	if (!sym_table_.checkDefine(curr_sym_str())) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
@@ -496,6 +545,7 @@ void GrammerAnalyzer::FuncDefineHead(string& func_name, ValueType& value_type) {
 ＜类型标识符＞      ::=  int | char  
 */
 void GrammerAnalyzer::ParameterList(vector<ValueType>& formal_param_list) {
+	// 因为参数表可以为空，这个地方必须用if inttk or chartk,而不能用check(inttk, chartk)
 	if (equal(INTTK, CHARTK)) {
 		ValueType value_type = (curr_sym_type() == INTTK) ? ValueType::INTV : ValueType::CHARV;
 		formal_param_list.push_back(value_type);
@@ -525,8 +575,7 @@ void GrammerAnalyzer::Main() {
 	pop_sym();
 	check(symbolType::LPARENT);
 	pop_sym();
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
 	bool exsit_return;
@@ -538,31 +587,50 @@ void GrammerAnalyzer::Main() {
 
 /**
 ＜表达式＞    ::= ［＋｜－］＜项＞{＜加法运算符＞＜项＞}
+
+
+表达式类型为char型有以下三种情况：
+
+		 1）表达式由<标识符>、＜标识符＞'['＜表达式＞']和＜标识符＞'['＜表达式＞']''['＜表达式＞']'构成，
+			且<标识符>的类型为char，即char类型的常量和变量、char类型的一维、二维数组元素。
+		 2）表达式仅由一个<字符>构成，即字符字面量。
+		 3）表达式仅由一个有返回值的函数调用构成，且该被调用的函数返回值为char型
 */
-void GrammerAnalyzer::Expr() {
+ValueType GrammerAnalyzer::Expr() {
+	bool exist_cal; // 存在加减运算的flag
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
+		exist_cal = true;
 		pop_sym();
-		Item();
-	} else {
-		Item();
 	}
+	ValueType item1_value_type = Item();
 	while (equal(symbolType::PLUS, symbolType::MINU)) {
+		exist_cal = true;
 		pop_sym();
 		Item();
 	}
 	output_list_.push_back("<表达式>");
+
+	if (exist_cal) {
+		return ValueType::INTV;
+	} else {
+		return item1_value_type;
+	}
 }
 
 /**
 ＜项＞     ::= ＜因子＞{＜乘法运算符＞＜因子＞}
 */
-void GrammerAnalyzer::Item() {
-	Factor();
+ValueType GrammerAnalyzer::Item() {
+	ValueType item_value_type;
+	item_value_type = Factor();
 	while (equal(symbolType::MULT, symbolType::DIV)) {
+		// 由+-运算，则一定转化为INT
+		item_value_type = ValueType::INTV;
 		pop_sym();
 		Factor();
 	}
 	output_list_.push_back("<项>");
+	return item_value_type;
 }
 
 
@@ -582,29 +650,33 @@ void GrammerAnalyzer::Item() {
 
 2.单个＜标识符＞不包括数组名，即数组不能整体参加运算，数组元素可以参加运算
 */
-void GrammerAnalyzer::Factor() {
+ValueType GrammerAnalyzer::Factor() {
+	ValueType factor_value_type = ValueType::INTV;   // 默认为INT，除非碰到那三种情况才赋值为CHAR
+
 	if (equal(symbolType::IDENFR)) {
 		string identifier = curr_sym_str();
-		checkUndefine();
-
-		if (this->peek_sym_type()  == symbolType::LBRACK) {
+		auto p_entry = checkUndefine();
+		if (!p_entry) { // 如果标识符有定义
+			factor_value_type = p_entry->entry_value_type();
+		} else {
+			factor_value_type = ValueType::UNKNOWN;
+		}
+		if (this->peek_sym_type() == symbolType::LBRACK) {
 			pop_sym();  // pop identifier
 			pop_sym();  // pop '['
-			Expr();
-			check(symbolType::RBRACK);
-			pop_sym();
+			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+			checkMissRbrack();
 			if (equal(symbolType::LBRACK)) {									// ＜标识符＞'['＜表达式＞']''['＜表达式＞']'
 				pop_sym();
-				Expr();
-				check(symbolType::RBRACK);
-				pop_sym();
+				if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+				checkMissRbrack();
 
 			} else {															// ＜标识符＞'['＜表达式＞']'
 
 			}
 
 		} else if (this->peek_sym_type() == symbolType::LPARENT) {				// 有返回值函数调用
-			TableEntry* p_entry = sym_table_.find(identifier);
+			TableEntry* p_entry = sym_table_.checkReference(identifier);
 			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->entry_value_type() == ValueType::VOIDV) {
 				error();
 			}
@@ -612,19 +684,22 @@ void GrammerAnalyzer::Factor() {
 		} else {																// ＜标识符＞
 			pop_sym();	 // pop identifier
 		}
+		
 
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
 		pop_sym();
 		Expr();
-		check(RPARENT);
-		pop_sym();
+		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
+		factor_value_type = ValueType::CHARV;
 		pop_sym();
 	} else if (equal(symbolType::PLUS, symbolType(MINU)) || equal(symbolType::INTCON)) {	// ＜整数＞
 		Int();
 	} else { error(); }
 	output_list_.push_back("<因子>");
+
+	return factor_value_type;
 }
 
 /**
@@ -674,8 +749,7 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 		// 函数调用语句| 赋值语句
 		if (peek_sym_type(1) == symbolType::ASSIGN || peek_sym_type() == symbolType::LBRACK) {
 			AssignStatement();
-			check(symbolType::SEMICN);
-			pop_sym();
+			checkMissSemi();
 		} else if(peek_sym_type() == symbolType::LPARENT) {
 			CallFunc();
 			check(symbolType::SEMICN);
@@ -684,13 +758,11 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 		break;
 	case symbolType::SCANFTK:
 		ReadStatement();
-		check(symbolType::SEMICN);
-		pop_sym();
+		checkMissSemi();
 		break;
 	case symbolType::PRINTFTK:
 		WriteStatement();
-		check(symbolType::SEMICN);
-		pop_sym();
+		checkMissSemi();
 		break;
 	case symbolType::SWITCHTK:
 		SwitchStatement(p_exsit_return, return_value_type);
@@ -700,8 +772,7 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 		break;
 	case symbolType::RETURNTK:
 		ReturnStatement(p_exsit_return, return_value_type);
-		check(symbolType::SEMICN);
-		pop_sym();
+		checkMissSemi();
 		break;
 	case symbolType::LBRACE:
 		pop_sym();
@@ -725,21 +796,25 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 */
 void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::IDENFR);
-	checkUndefine();
+	TableEntry* p_entry = checkUndefine();
 	pop_sym();
 	if (equal(symbolType::LBRACK)) {
 		pop_sym();
-		Expr();
-		check(symbolType::RBRACK);
-		pop_sym();
+		if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+		checkMissRbrack();
 		if (equal(symbolType::LBRACK)) {
 			pop_sym();
-			Expr();
-			check(symbolType::RBRACK);
-			pop_sym();
+			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+			checkMissRbrack();
 		}
 	}
 	check(symbolType::ASSIGN);
+
+	// 不能改变常量的值
+	if (p_entry->entry_type() == EntryType::CONST) {
+		addErrorInfor(ErrorType::IllegalAssignmentToConst);
+	}
+
 	pop_sym();
 	Expr();
 	output_list_.push_back("<赋值语句>");
@@ -754,8 +829,7 @@ void GrammerAnalyzer::ConditionalStatement(bool* p_exsit_return, ValueType retur
 	check(symbolType::LPARENT);
 	pop_sym();
 	Condition();
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 	Statement(p_exsit_return, return_value_type);
 	if (equal(symbolType::ELSETK)) {
 		pop_sym();
@@ -792,8 +866,7 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		check(LPARENT);
 		pop_sym();
 		Condition();
-		check(RPARENT);
-		pop_sym();
+		checkMissRparent();
 		Statement(p_exsit_return, return_value_type);
 
 	} else if (equal(FORTK)) {
@@ -807,11 +880,9 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		check(ASSIGN);
 		pop_sym();
 		Expr();
-		check(SEMICN);
-		pop_sym();
+		checkMissSemi();
 		Condition();
-		check(SEMICN);
-		pop_sym();
+		checkMissSemi();
 		check(IDENFR);
 		checkUndefine();
 		pop_sym();
@@ -822,8 +893,7 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		check(PLUS, MINU);
 		pop_sym();
 		Step();
-		check(RPARENT);
-		pop_sym();
+		checkMissRparent();
 		Statement(p_exsit_return, return_value_type);
 
 	} else { error(); }
@@ -850,13 +920,19 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	pop_sym();
 	check(symbolType::LPARENT);
 	pop_sym();
-	Expr();
-	check(symbolType::RPARENT);
-	pop_sym();
+	ValueType switch_value_type = Expr();
+	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
-	CaseList(p_exsit_return, return_value_type);
-	SwitchDefault(p_exsit_return, return_value_type);
+	CaseList(p_exsit_return, return_value_type, switch_value_type);
+
+	// 检查是否缺少缺省语句
+	if (equal(symbolType::DEFAULTTK)) {
+		SwitchDefault(p_exsit_return, return_value_type);
+	}
+	else {
+		addErrorInfor(ErrorType::MissDefault);
+	}
 	check(symbolType::RBRACE);
 	pop_sym();
 	output_list_.push_back("<情况语句>");
@@ -865,10 +941,10 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 /**
 ＜情况表＞   ::=  ＜情况子语句＞{＜情况子语句＞}
 */
-void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type) {
-	CaseStatement(p_exsit_return, return_value_type);
+void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type) {
+	CaseStatement(p_exsit_return, return_value_type, switch_value_type);
 	while (equal(symbolType::CASETK)) {
-		CaseStatement(p_exsit_return, return_value_type);
+		CaseStatement(p_exsit_return, return_value_type, switch_value_type);
 	}
 	output_list_.push_back("<情况表>");
 }
@@ -877,11 +953,10 @@ void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type
 ＜情况子语句＞  ::=  case＜常量＞：＜语句＞
 ＜常量＞   ::=  ＜整数＞|＜字符＞
 */
-void GrammerAnalyzer::CaseStatement(bool* p_exsit_return, ValueType return_value_type) {
-	// TODO: 检查常量与switch类型是否匹配
+void GrammerAnalyzer::CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type) {
 	check(symbolType::CASETK);
 	pop_sym();
-	ConstValue();
+	ConstValue(switch_value_type);
 	check(symbolType::COLON);
 	pop_sym();
 	Statement(p_exsit_return, return_value_type);
@@ -903,7 +978,7 @@ void GrammerAnalyzer::SwitchDefault(bool* p_exsit_return, ValueType return_value
 void GrammerAnalyzer::CallFunc() {
 	check(symbolType::IDENFR);
 	string& func_name = curr_sym_str();
-	TableEntry* p_entry = sym_table_.find(func_name);
+	TableEntry* p_entry = sym_table_.checkReference(func_name);
 	// 按照助教的解释，不会出现未定义的函数调用。避免了未知返回值类型、参数表等多项可能会产生歧义的错误。
 	// 但是还是进行一下函数名是否定义的检查。
 	if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION) {
@@ -928,8 +1003,7 @@ void GrammerAnalyzer::CallWithReturn(FunctionEntry* p_entry) {
 	check(symbolType::LPARENT);
 	pop_sym();
 	ValueParameterList(p_entry);
-	check(RPARENT);
-	pop_sym();
+	checkMissRparent();
 	output_list_.push_back("<有返回值函数调用语句>");
 }
 
@@ -942,8 +1016,7 @@ void GrammerAnalyzer::CallNoReturn(FunctionEntry* p_entry) {
 	check(symbolType::LPARENT);
 	pop_sym();
 	ValueParameterList(p_entry);
-	check(RPARENT);
-	pop_sym();
+	checkMissRparent();
 	output_list_.push_back("<无返回值函数调用语句>");
 }
 
@@ -988,10 +1061,15 @@ void GrammerAnalyzer::ReadStatement() {
 	check(symbolType::LPARENT);
 	pop_sym();
 	check(symbolType::IDENFR);
-	checkUndefine();
+	auto p_entry = checkUndefine();
+
+	// 不能给常量赋值
+	if (p_entry->entry_type() == EntryType::CONST) {
+		addErrorInfor(ErrorType::IllegalAssignmentToConst);
+	}
+
 	pop_sym();
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 
 	output_list_.push_back("<读语句>");
 }
@@ -1018,8 +1096,7 @@ void GrammerAnalyzer::WriteStatement() {
 	} else {
 		Expr();
 	}
-	check(symbolType::RPARENT);
-	pop_sym();
+	checkMissRparent();
 	
 	output_list_.push_back("<写语句>");
 }
@@ -1053,8 +1130,7 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 		} else {   // 或有形如return();的语句；
 			addErrorInfor(ErrorType::ReturnErrorInNonvoidFunc);
 		}
-		check(symbolType::RPARENT);
-		pop_sym();
+		checkMissRparent();
 	} else if (return_value_type != ValueType::VOIDV) {  // 有返回值的函数有形如return;的语句；
 		addErrorInfor(ErrorType::ReturnErrorInNonvoidFunc);
 	}

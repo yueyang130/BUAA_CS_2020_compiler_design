@@ -58,6 +58,7 @@ enum ValueType {
 	INTV,
 	CHARV,
 	VOIDV,
+	UNKNOWN, // 出现了未定义的标识符等，导致ValueType无法确定
 };
 
 

@@ -101,7 +101,7 @@ void LexicalAnalyzer::nextSym() {
 			nextChar();
 			// isInStr('\"')结果是False，所以下面的判断包含了空字符串的情况
 			if (isInStr()) { catToken(); }
-			else { error(); }
+			else if (chrCurr != '\"') { error(); }
 		} while (chrCurr != '\"');
 
 		symType = STRCON;

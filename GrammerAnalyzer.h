@@ -26,14 +26,13 @@ private:
 	int tk_idx_;
 	/*存储词法分析结果的列表*/
 	vector<SymInfor>& sym_infor_list_;
+	/*错误信息列表*/
+	vector<ErrorInfor>& error_infor_list_;
 	/*词法分析器*/
 	LexicalAnalyzer& lexical_analyzer_;
 
 	/*输出结果列表*/
 	vector<string> output_list_;
-
-	/*错误信息列表*/
-	vector<ErrorInfor>& error_infor_list_;
 
 	/*符号表*/
 	SymbolTable& sym_table_;
@@ -59,8 +58,8 @@ private:
 	inline bool equal(symbolType ref) { return curr_sym_type() == ref; }
 	inline bool equal(symbolType ref1, symbolType ref2) { return curr_sym_type() == ref1 || curr_sym_type() == ref2; }
 
-	inline void addErrorInfor(ErrorType error_type) {
-		ErrorInfor error_infor = { curr_sym_row(), error_type, curr_sym_str() };
+	inline void addErrorInfor(ErrorType error_type, int adjust_row = 0) {
+		ErrorInfor error_infor = { curr_sym_row() + adjust_row, error_type, curr_sym_str() };
 		error_infor_list_.push_back(error_infor);
 	}
 	
@@ -72,14 +71,16 @@ private:
 	inline void check(symbolType ref1, symbolType ref2) {
 		if (!equal(ref1, ref2)) { error(); }
 	}
-
-	void checkUndefine();
+	TableEntry* checkUndefine();
+	void checkMissSemi(); /*如果是分号，pop_sym; 否则加入错误信息列表*/
+	void checkMissRparent();
+	void checkMissRbrack(); 
 
 	/*非终结符的分析函数*/
 	void String();
 	void Program();
 
-	void RepeatIfMark(void (GrammerAnalyzer::*handler)(symbolType), symbolType var_type, symbolType mark = COMMA);
+	int RepeatIfMark(void (GrammerAnalyzer::*handler)(ValueType), ValueType var_type, symbolType mark = COMMA);
 	//void RepeatIfMark(void (GrammerAnalyzer::*handler)(void), symbolType mark = COMMA);
 	//void RepeatIfMark(symbolType, symbolType mark = COMMA);
 
@@ -88,11 +89,11 @@ private:
 	void ConstDefine();
 	void ConstDefineForInt();
 	void ConstDefineForChar();
-	void UnsignedInt();
-	void Int();
+	int UnsignedInt();
+	int Int();
 	void Identifier();
 
-	void ConstValue(symbolType vartype);   // 用于<变量定义及初始化>和<情况子语句>
+	void ConstValue(ValueType vartype);   // 用于<变量定义及初始化>和<情况子语句>
 	void ConstValue();   // 暂时不用进行类型匹配检查时使用的函数
 
 	void VarDeclare();
@@ -107,9 +108,9 @@ private:
 	void ParameterList(vector<ValueType>& formal_param_list);
 
 	void Main();
-	void Expr();
-	void Item();
-	void Factor();
+	ValueType Expr();
+	ValueType Item();
+	ValueType Factor();
 
 	void CompoundStatement(bool* p_exist_return, ValueType return_value_type);
 	void StatetmentList(bool* p_exist_return, ValueType return_value_type);
@@ -120,8 +121,8 @@ private:
 	void LoopStatement(bool* p_exsit_return, ValueType return_value_type);
 	void Step();
 	void SwitchStatement(bool* p_exsit_return, ValueType return_value_type);
-	void CaseList(bool* p_exsit_return, ValueType return_value_type);
-	void CaseStatement(bool* p_exsit_return, ValueType return_value_type);
+	void CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
+	void CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
 	void SwitchDefault(bool* p_exsit_return, ValueType return_value_type);
 	void CallFunc();
 	void CallWithReturn(FunctionEntry* p_entry);

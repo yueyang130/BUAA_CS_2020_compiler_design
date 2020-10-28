@@ -29,8 +29,12 @@ public:
 
 class VarEntry : public TableEntry {
 public:
-	VarEntry(ValueType entry_value_type, string identifier) :
-		TableEntry(EntryType::VAR, entry_value_type, identifier) {};
+	VarEntry(ValueType entry_value_type, string identifier, vector<int>& shape) :
+		TableEntry(EntryType::VAR, entry_value_type, identifier),shape_(shape)  {};
+	bool checkSize(vector<int> assign_shape);
+private:
+	vector<int> shape_;
+
 };
 
 class FunctionEntry : public TableEntry {
@@ -51,11 +55,11 @@ public:
 	void set();							// 定位操作
 	bool add(TableEntry entry);			// 添加表项
 	void reset();						// 重定位操作
-	bool checkRedefine(string& sym);    // 检查名字重定义
-	TableEntry* find(string identifier); // 查找引用时是否已定义此标识符
+	bool checkDefine(string& sym);    // 检查名字重定义
+	TableEntry* checkReference(string identifier); // 查找引用时是否已定义此标识符
 
 private:
-	SymbolTable(int init_capability);
+	SymbolTable(int init_capability = 4096);
 	vector<TableEntry> stack_table_; // 栈式列表;
 	vector<TableEntry>::size_type curr_block_head; // 指向当前作用域的第一个元素
 };

@@ -13,22 +13,24 @@ enum ErrorType {
 	ReturnErrorInVoidFunc,
 	ReturnErrorInNonvoidFunc,
 	IllegalArrayIndexType,
-	IllegalAssignmentForConst,
+	IllegalAssignmentToConst,
 	MissSemi,
 	MissRparent,
-	MissRbrace,
+	MissRbrack,
 	IllegalArrayInit,
 	UnmatchedConstType,
 	MissDefault,
 };
 
-typedef struct {
+struct ErrorInfor{
 	int row; // 错误所在行
 	ErrorType error_type; // 错误类型
 	std::string sym;  // 额外的词法信息，帮助我们更快定位错误
-	bool operator < (const ErrorInfor& o) { return row < o.row; }
+	bool operator<(ErrorInfor& o) { return row < o.row; }
 
-} ErrorInfor;
+} ;
+
+
 
 #endif // !
 

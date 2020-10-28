@@ -25,6 +25,14 @@
 		(void(GrammerAnalyzer::*handler)(symbolType) = &GrammerAnalyzer::ConstValue;  // 取函数指针 
 		(obj/this->*handler)(var_type); // 使用函数指针
 4. 与Java不同，使用类的静态方法时，不能使用.运算符，要使用::运算符。
+5.在C语言中，定义结构体:
+	typedef strcut {
+		...
+	} A;
+而在C++中，不需要使用typedef,而且将结构体名放在前面。
+	struct A {
+		...
+	};
 
 ## 调试技巧
 1. 在调试状态下，调试->windows->调用堆栈，可以查看函数调用层次
