@@ -46,6 +46,7 @@ private:
 	inline string& curr_sym_str() { return sym_infor_list_[tk_idx_].sym; }
 	inline int curr_sym_row() { return sym_infor_list_[tk_idx_].row; }
 	inline symbolType peek_sym_type(int offset = 1) { return sym_infor_list_[tk_idx_ + offset].type; }
+	inline int peek_sym_row(int offset = 1) { return sym_infor_list_[tk_idx_ + offset].row; }
 
 	inline bool isFunctionWithReturn() { 
 		return (curr_sym_type() == symbolType::INTTK || curr_sym_type() == symbolType::CHARTK)
@@ -58,8 +59,13 @@ private:
 	inline bool equal(symbolType ref) { return curr_sym_type() == ref; }
 	inline bool equal(symbolType ref1, symbolType ref2) { return curr_sym_type() == ref1 || curr_sym_type() == ref2; }
 
-	inline void addErrorInfor(ErrorType error_type, int adjust_row = 0) {
-		ErrorInfor error_infor = { curr_sym_row() + adjust_row, error_type, curr_sym_str() };
+	inline void addErrorInfor(ErrorType error_type, int adjust_row) {
+		ErrorInfor error_infor = {  adjust_row, error_type, curr_sym_str() };
+		error_infor_list_.push_back(error_infor);
+	}
+
+	inline void addErrorInfor(ErrorType error_type) {
+		ErrorInfor error_infor = { curr_sym_row(), error_type, curr_sym_str() };
 		error_infor_list_.push_back(error_infor);
 	}
 	
@@ -71,7 +77,7 @@ private:
 	inline void check(symbolType ref1, symbolType ref2) {
 		if (!equal(ref1, ref2)) { error(); }
 	}
-	TableEntry* checkUndefine();
+	shared_ptr<TableEntry> checkUndefine();
 	void checkMissSemi(); /*如果是分号，pop_sym; 否则加入错误信息列表*/
 	void checkMissRparent();
 	void checkMissRbrack(); 
@@ -125,9 +131,9 @@ private:
 	void CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
 	void SwitchDefault(bool* p_exsit_return, ValueType return_value_type);
 	void CallFunc();
-	void CallWithReturn(FunctionEntry* p_entry);
-	void CallNoReturn(FunctionEntry* p_entry);
-	void ValueParameterList(FunctionEntry* p_entry);
+	void CallWithReturn(shared_ptr<FunctionEntry> p_entry);
+	void CallNoReturn(shared_ptr<FunctionEntry> p_entry);
+	void ValueParameterList(shared_ptr<FunctionEntry> p_entry);
 	void ReadStatement();
 	void WriteStatement();
 	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);

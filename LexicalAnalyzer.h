@@ -75,8 +75,8 @@ private:
 	* 1. 将错误信息加入error_infor_list_
 	* 2. 将当前出错的字符加入sym
 	*/
-	inline void error() {
-		ErrorInfor new_error_infor = { rowCnt, ErrorType::IllegalLexis, symCurr};
+	inline void error(string extra_infor = "") {
+		ErrorInfor new_error_infor = { rowCnt, ErrorType::IllegalLexis, extra_infor};
 		error_infor_list_.push_back(new_error_infor);
 		catToken();
 	}

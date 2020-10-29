@@ -12,7 +12,13 @@ TableEntry::TableEntry(EntryType entry_type, ValueType entry_value_type, string 
 * 换言之，进行此检查的前提是形参实参的个数一致
 */
 bool FunctionEntry::checkParamList(vector<ValueType>& actual_param_list) {
-	return actual_param_list == formal_param_list_;
+	
+	for (int i = 0; i < actual_param_list.size(); i++) {
+		if (actual_param_list[i] != ValueType::UNKNOWN && actual_param_list[i] != formal_param_list_[i]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 bool VarEntry::checkSize(vector<int> assign_shape) {
@@ -44,9 +50,9 @@ void SymbolTable::set() {
 * 1.如果在作用域内有重名错误,返回False,否则返回true
 * 2.为了即使出现错误仍能继续编译，无论是否出现重名错误，都要将输入项添加到符号表中
 */
-bool SymbolTable::add(TableEntry entry) {
-	bool success_add = checkDefine(entry.identifier());
-	stack_table_.push_back(entry);
+bool SymbolTable::add(shared_ptr<TableEntry> p_entry) {
+	bool success_add = checkDefine(p_entry->identifier());
+	stack_table_.push_back(p_entry);
 	return success_add;
 }
 
@@ -62,7 +68,7 @@ void SymbolTable::reset() {
 bool SymbolTable::checkDefine(string& sym) {
 	// 检查重名错误只在当前作用域查找
 	for (int i = stack_table_.size() - 1; i >= curr_block_head; i--) {
-		if (stack_table_[i].identifier() == sym) {
+		if (stack_table_[i]->identifier() == sym) {
 			return false;
 		}
 	}
@@ -72,14 +78,14 @@ bool SymbolTable::checkDefine(string& sym) {
 
 
 /*检查元素在全局可见范围内是否定义过*/
-TableEntry* SymbolTable::checkReference(string identifier) {
+shared_ptr<TableEntry> SymbolTable::checkReference(string identifier) {
 	// 检查元素是否定义过需要在当前和全局作用域都查找，也就是整个符号表
 	// 逆序查找，先找局部作用域，再找全局作用域
 	for (auto top = stack_table_.rbegin(), bottom = stack_table_.rend(); top != bottom; top++) {
-		if (top->identifier() == identifier) {
-			return &(*top);
+		if ((*top)->identifier() == identifier) {
+			return *top;
 		}
 	}
-	return NULL;
+	return shared_ptr<TableEntry>();
 }
 

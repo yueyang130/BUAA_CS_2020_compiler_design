@@ -7,7 +7,7 @@ LexicalAnalyzer::LexicalAnalyzer(istream& inFile)
 	:fin(inFile)
 {
 	/*
-	´æ´¢¶ÔifstreamµÄÒıÓÃµ½fin£¬±ØĞëÔÚ³õÊ¼»¯ÁĞ±íÖĞ³õÊ¼»¯fin,ÔÚ¹¹Ôìº¯ÊıÖĞµÄ³õÊ¼»¯ÎŞĞ§
+	å­˜å‚¨å¯¹ifstreamçš„å¼•ç”¨åˆ°finï¼Œå¿…é¡»åœ¨åˆå§‹åŒ–åˆ—è¡¨ä¸­åˆå§‹åŒ–fin,åœ¨æ„é€ å‡½æ•°ä¸­çš„åˆå§‹åŒ–æ— æ•ˆ
 	*/
 	sym_infor_list_.reserve(INIT_LENGTH);
 	 
@@ -16,7 +16,7 @@ LexicalAnalyzer::LexicalAnalyzer(istream& inFile)
 	symCurr = "";
 	needRetract = false;
 
-	// ³õÊ¼»¯keywords
+	// åˆå§‹åŒ–keywords
 	reserverMap.insert(make_pair("const", CONSTTK));
 	reserverMap.insert(make_pair("int", INTTK));
 	reserverMap.insert(make_pair("char", CHARTK));
@@ -42,36 +42,36 @@ LexicalAnalyzer& LexicalAnalyzer::getInstance(istream &fin)
 
 void LexicalAnalyzer::nextChar() {
 	if (!needRetract) {
-		chrCurr = fin.get();   // fin.get(chr)ÎŞ·¨½«EOF£¨-1£©¶ÁÈëchrÖĞ£¬±ØĞëÊ¹ÓÃchr = fin.get()
+		chrCurr = fin.get();   // fin.get(chr)æ— æ³•å°†EOFï¼ˆ-1ï¼‰è¯»å…¥chrä¸­ï¼Œå¿…é¡»ä½¿ç”¨chr = fin.get()
 		if (chrCurr == '\n') {
 			rowCnt++;
 			colCnt = 0;
 		}
 	} else {
-		// ĞèÒª»ØÍËÊ±£¬½«Ïàµ±ÓÚÏÂ´Î¶ÁÈ¡µÄ×Ö·û»¹ÊÇcurrChar
+		// éœ€è¦å›é€€æ—¶ï¼Œå°†ç›¸å½“äºä¸‹æ¬¡è¯»å–çš„å­—ç¬¦è¿˜æ˜¯currChar
 		needRetract = false;
 	}
 }
 
 
 void LexicalAnalyzer::nextSym() {
-	symCurr = ""; // Çå¿Õsym×Ö·û´®
+	symCurr = ""; // æ¸…ç©ºsymå­—ç¬¦ä¸²
 
-	while (isspace(chrCurr)) {  // Ìø¹ı¿Õ°×
+	while (isspace(chrCurr)) {  // è·³è¿‡ç©ºç™½
 		nextChar();
 	} 
-	if (isLetter()) {	// ¿ªÍ·ÊÇ×ÖÄ¸£¬ÔòÖ»ÄÜÊÇ±£Áô×Ö»ò±êÊ¶·û
+	if (isLetter()) {	// å¼€å¤´æ˜¯å­—æ¯ï¼Œåˆ™åªèƒ½æ˜¯ä¿ç•™å­—æˆ–æ ‡è¯†ç¬¦
 		while (isLetter()||isdigit(chrCurr)) {
 			catToken();
 			nextChar();
 		}
 		retract();
-		if (!isReserver()) {  // ÈôÊÇ±£Áô×Ö£¬ÔÚº¯ÊıÖĞÒÑ¾­ÎªsymTypeÉèÖÃÁËÕıÈ·µÄÖµ 
+		if (!isReserver()) {  // è‹¥æ˜¯ä¿ç•™å­—ï¼Œåœ¨å‡½æ•°ä¸­å·²ç»ä¸ºsymTypeè®¾ç½®äº†æ­£ç¡®çš„å€¼ 
 			symType = IDENFR;
 		}
 	}
 
-	else if (isdigit(chrCurr)) {		// ÅĞ¶ÏÊÇ·ñÊÇÕûĞÎ³£Á¿
+	else if (isdigit(chrCurr)) {		// åˆ¤æ–­æ˜¯å¦æ˜¯æ•´å½¢å¸¸é‡
 		while (isdigit(chrCurr)) {
 			catToken();
 			nextChar();
@@ -80,7 +80,7 @@ void LexicalAnalyzer::nextSym() {
 		symType = INTCON;
 	}
 
-	else if (chrCurr == '\'') {   // ÅĞ¶ÏÊÇ·ñÊÇ×Ö·û³£Á¿
+	else if (chrCurr == '\'') {   // åˆ¤æ–­æ˜¯å¦æ˜¯å­—ç¬¦å¸¸é‡
 		
 		nextChar();
 		if (isChr()) { catToken(); }
@@ -96,13 +96,14 @@ void LexicalAnalyzer::nextSym() {
 		}
 	}
 
-	else if (chrCurr == '\"') { // ÅĞ¶ÏÊÇ·ñÊÇ×Ö·û´®
+	else if (chrCurr == '\"') { // åˆ¤æ–­æ˜¯å¦æ˜¯å­—ç¬¦ä¸²
+		int str_len = 0;
 		do {
 			nextChar();
-			// isInStr('\"')½á¹ûÊÇFalse£¬ËùÒÔÏÂÃæµÄÅĞ¶Ï°üº¬ÁË¿Õ×Ö·û´®µÄÇé¿ö
-			if (isInStr()) { catToken(); }
-			else if (chrCurr != '\"') { error(); }
+			if (isInStr()) { catToken(); str_len++; }
+			else if (chrCurr != '\"') { error("å­—ç¬¦ä¸²ä¸­æœ‰éæ³•å­—ç¬¦"); str_len++; }
 		} while (chrCurr != '\"');
+		if (str_len == 0) { error("ç©ºå­—ç¬¦ä¸²"); }
 
 		symType = STRCON;
 	}
@@ -170,7 +171,7 @@ void LexicalAnalyzer::nextSym() {
 	else if (chrCurr == EOF) { return; }
 	else { error();  }
 	
-	// µ±Ã»ÓĞÖĞÍ¾·µ»Ø£¬ËµÃ÷¶ÁÈ¡sym³É¹¦£¬¼ÇÂ¼µ½ÁĞ±íÖĞ
+	// å½“æ²¡æœ‰ä¸­é€”è¿”å›ï¼Œè¯´æ˜è¯»å–symæˆåŠŸï¼Œè®°å½•åˆ°åˆ—è¡¨ä¸­
 	addInfo();
 
 }
@@ -188,8 +189,8 @@ bool LexicalAnalyzer::isReserver() {
 }
 
 void LexicalAnalyzer::analyzeLexis() {
-	nextChar();  // Ô¤¶ÁÒ»¸ö×Ö·û
-	while (fin) {  // cin.getÎŞ·¨¶ÁÈ¡EOFµ½chrCurr£¬µ«ÊÇbool£¨cin£©¿ÉÒÔ±íÊ¾ÊÇ·ñÄÜ¼ÌĞø¶ÁÈ¡ 
+	nextChar();  // é¢„è¯»ä¸€ä¸ªå­—ç¬¦
+	while (fin) {  // cin.getæ— æ³•è¯»å–EOFåˆ°chrCurrï¼Œä½†æ˜¯boolï¼ˆcinï¼‰å¯ä»¥è¡¨ç¤ºæ˜¯å¦èƒ½ç»§ç»­è¯»å– 
 		// TODO: continue to add exception handler
 		nextSym();
 		nextChar();
