@@ -260,6 +260,11 @@ void GrammerAnalyzer::ConstValue(ValueType left_value_type) {
 		Int();
 		right_value_type = ValueType::INTV;
 	}
+	/*
+	cout << "In line " << curr_sym_row() << endl;
+	cout << "left value is " << left_value_type << ", right value is " << right_value_type << endl;
+	*/
+
 	if (left_value_type != right_value_type) {
 		addErrorInfor(ErrorType::UnmatchedConstType);
 	}
@@ -640,7 +645,7 @@ void GrammerAnalyzer::Main() {
 		 3）表达式仅由一个有返回值的函数调用构成，且该被调用的函数返回值为char型
 */
 ValueType GrammerAnalyzer::Expr() {
-	bool exist_cal; // 存在加减运算的flag
+	bool exist_cal = false; // 存在加减运算的flag
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
 		exist_cal = true;
 		pop_sym();
@@ -699,11 +704,13 @@ ValueType GrammerAnalyzer::Factor() {
 	if (equal(symbolType::IDENFR)) {
 		string identifier = curr_sym_str();
 		auto p_entry = checkUndefine();
+
 		if (p_entry) { // 如果标识符有定义
 			factor_value_type = p_entry->entry_value_type();
 		} else {
 			factor_value_type = ValueType::UNKNOWN;
 		}
+
 		if (this->peek_sym_type() == symbolType::LBRACK) {
 			pop_sym();  // pop identifier
 			pop_sym();  // pop '['
@@ -717,7 +724,6 @@ ValueType GrammerAnalyzer::Factor() {
 			} else {															// ＜标识符＞'['＜表达式＞']'
 
 			}
-
 		} else if (this->peek_sym_type() == symbolType::LPARENT) {				// 有返回值函数调用
 			shared_ptr<TableEntry> p_entry = sym_table_.checkReference(identifier);
 			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->entry_value_type() == ValueType::VOIDV) {
@@ -727,16 +733,14 @@ ValueType GrammerAnalyzer::Factor() {
 		} else {																// ＜标识符＞
 			pop_sym();	 // pop identifier
 		}
-		
-
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
 		pop_sym();
 		Expr();
 		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
-		factor_value_type = ValueType::CHARV;
 		pop_sym();
+		factor_value_type = ValueType::CHARV;
 	} else if (equal(symbolType::PLUS, symbolType(MINU)) || equal(symbolType::INTCON)) {	// ＜整数＞
 		Int();
 	} else { error(); }
@@ -853,7 +857,7 @@ void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::ASSIGN);
 
 	// 不能改变常量的值
-	if (p_entry->entry_type() == EntryType::CONST) {
+	if (p_entry && p_entry->entry_type() == EntryType::CONST) {
 		addErrorInfor(ErrorType::IllegalAssignmentToConst);
 	}
 

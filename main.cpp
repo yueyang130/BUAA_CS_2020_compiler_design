@@ -13,7 +13,7 @@ const string ERRFILE = "error.txt";
 int main() {
 
 	ifstream fin(INFIFE);
-	ofstream fout(OUTFILE);
+	//ofstream fout(OUTFILE);
 	ofstream ferror(ERRFILE);
 
 	if (!fin.is_open()) {
@@ -25,11 +25,11 @@ int main() {
 
 	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer);
 	myGrammerAnalyzer.analyzeGrammer();
-	myGrammerAnalyzer.show(fout);
+	//myGrammerAnalyzer.show(fout);
 	myGrammerAnalyzer.showError(ferror);
 
 	fin.close();
-	fout.close();
+	//fout.close();
 	ferror.close();
 
 	return 0;
