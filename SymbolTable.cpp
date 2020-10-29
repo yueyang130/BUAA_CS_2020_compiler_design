@@ -1,4 +1,5 @@
 #include "SymbolTable.h"
+#include "tools.h"
 
 TableEntry::TableEntry(EntryType entry_type, ValueType entry_value_type, string identifier) {
 	this->entry_type_ = entry_type;
@@ -66,9 +67,10 @@ void SymbolTable::reset() {
 
 /* 在作用域内未定义过，返回true; 否则返回False */
 bool SymbolTable::checkDefine(string& sym) {
+	
 	// 检查重名错误只在当前作用域查找
 	for (int i = stack_table_.size() - 1; i >= curr_block_head; i--) {
-		if (stack_table_[i]->identifier() == sym) {
+		if (strcmp_wo_case(stack_table_[i]->identifier(),sym)) {
 			return false;
 		}
 	}
@@ -82,7 +84,7 @@ shared_ptr<TableEntry> SymbolTable::checkReference(string identifier) {
 	// 检查元素是否定义过需要在当前和全局作用域都查找，也就是整个符号表
 	// 逆序查找，先找局部作用域，再找全局作用域
 	for (auto top = stack_table_.rbegin(), bottom = stack_table_.rend(); top != bottom; top++) {
-		if ((*top)->identifier() == identifier) {
+		if (strcmp_wo_case((*top)->identifier(), identifier)) {
 			return *top;
 		}
 	}

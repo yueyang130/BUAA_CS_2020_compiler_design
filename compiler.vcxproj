@@ -147,12 +147,14 @@
     <ClCompile Include="LexicalAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="error.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
     <ClInclude Include="LexicalAnalyzer.h" />
     <ClInclude Include="SymbolTable.h" />
+    <ClInclude Include="tools.h" />
     <ClInclude Include="type.h" />
   </ItemGroup>
   <ItemGroup>

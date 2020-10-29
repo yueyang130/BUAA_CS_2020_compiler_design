@@ -55,6 +55,7 @@ private:
 	inline bool isFunctionNoReturn() {
 		return curr_sym_type() == symbolType::VOIDTK && peek_sym_type(1) == symbolType::IDENFR;
 	}
+	inline bool isExpr() { return equal(PLUS, MINU) || equal(IDENFR) || equal(LPARENT) || equal(INTCON) || equal(CHARCON);  }
 
 	inline bool equal(symbolType ref) { return curr_sym_type() == ref; }
 	inline bool equal(symbolType ref1, symbolType ref2) { return curr_sym_type() == ref1 || curr_sym_type() == ref2; }

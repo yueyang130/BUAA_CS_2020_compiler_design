@@ -1077,7 +1077,9 @@ void GrammerAnalyzer::CallNoReturn(shared_ptr<FunctionEntry> p_entry) {
 */
 void GrammerAnalyzer::ValueParameterList(shared_ptr<FunctionEntry> p_entry) {
 	vector<ValueType> actual_param_list;
-	if (!equal(symbolType::RPARENT)) {
+	// 可能')'缺失，所以不能用')'来判断是否为空参数表
+	//if (!equal(symbolType::RPARENT) ) {
+	if (isExpr()) {
 		ValueType value_type;
 		value_type = Expr();
 		actual_param_list.push_back(value_type);
@@ -1171,7 +1173,9 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 		if (equal(LPARENT)) {								// 无返回值的函数中若出现了形如return(表达式);或return();的语句
 			addErrorInfor(ErrorType::ReturnErrorInVoidFunc);
 			pop_sym();
-			if (!equal(symbolType::RPARENT)) {
+			// 例: return(; 会进入Expr()，之后就可能产生未知错误。
+			//if (!equal(symbolType::RPARENT)) {
+			if (isExpr()) {
 				Expr();
 			}
 			checkMissRparent();
