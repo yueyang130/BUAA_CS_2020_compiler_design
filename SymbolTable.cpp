@@ -1,11 +1,41 @@
 #include "SymbolTable.h"
 #include "tools.h"
+#include "assert.h"
+#include<sstream>
+
+
+/******************************************** TableEntry ********************************************************/
 
 TableEntry::TableEntry(EntryType entry_type, ValueType entry_value_type, string identifier) {
 	this->entry_type_ = entry_type;
 	this->entry_value_type_ = entry_value_type;
 	this->identifier_ = identifier;
 }
+
+/******************************************** ConstEntry ********************************************************/
+//string ConstEntry::getValue() {
+//	stringstream ss;
+//	if (this->shape_.empty()) {
+//		return this->value_[0];
+//	}
+//	else if (this->shape_.size() == 1) {
+//	}
+//	else if (this->shape_.size() == 2) {
+//		int d1 = this->shape_[0];
+//		int d2 = this->shape_[1];
+//		for (int i = 0; i < d1; i++) {
+//			ss << "{";
+//
+//		}
+//
+//	} else {
+//		ss << "error dimension of the const array";
+//	}
+//
+//}
+
+
+/******************************************** FunctionEntry ******************************************************/
 
 /**
 * 检查形参与实参的类型是否匹配
@@ -22,9 +52,34 @@ bool FunctionEntry::checkParamList(vector<ValueType>& actual_param_list) {
 	return true;
 }
 
+/******************************************** VarEntry *************************************************************/
+
 bool VarEntry::checkSize(vector<int> assign_shape) {
 	return assign_shape == shape_;
 }
+
+/******************************************** ImmediateEntry ********************************************************/
+
+/**
+* 单值立即数可能会在表达式中用到，将它的字符常量视为identifier
+*/
+string& ImmediateEntry::identifier() {
+	assert(this->shape_.empty());
+	return value_[0];
+}
+
+//int ImmediateEntry::getIntValue() {
+//	assert(value_type() == ValueType::INTV);
+//	return stoi(value_);
+//}
+//
+//char ImmediateEntry::getCharValue() {
+//	assert(value_type() == ValueType::CHARV);
+//	return value_[0];
+//}
+//
+
+
 
 
 /************************************* method definition for SymbolTable *************************************************/
@@ -52,7 +107,11 @@ void SymbolTable::set() {
 * 2.为了即使出现错误仍能继续编译，无论是否出现重名错误，都要将输入项添加到符号表中
 */
 bool SymbolTable::add(shared_ptr<TableEntry> p_entry) {
-	bool success_add = checkDefine(p_entry->identifier());
+	EntryType type = p_entry->entry_type();
+	bool success_add = true;
+	if (type == EntryType::CONST || type == EntryType::FUNCTION || type == EntryType::VAR) {
+		success_add = checkDefine(p_entry->identifier());
+	}
 	stack_table_.push_back(p_entry);
 	return success_add;
 }
@@ -67,7 +126,7 @@ void SymbolTable::reset() {
 
 /* 在作用域内未定义过，返回true; 否则返回False */
 bool SymbolTable::checkDefine(string& sym) {
-	
+	assert(sym != "");
 	// 检查重名错误只在当前作用域查找
 	for (int i = stack_table_.size() - 1; i >= curr_block_head; i--) {
 		if (strcmp_wo_case(stack_table_[i]->identifier(),sym)) {
@@ -81,6 +140,7 @@ bool SymbolTable::checkDefine(string& sym) {
 
 /*检查元素在全局可见范围内是否定义过*/
 shared_ptr<TableEntry> SymbolTable::checkReference(string identifier) {
+	assert(identifier != "");
 	// 检查元素是否定义过需要在当前和全局作用域都查找，也就是整个符号表
 	// 逆序查找，先找局部作用域，再找全局作用域
 	for (auto top = stack_table_.rbegin(), bottom = stack_table_.rend(); top != bottom; top++) {
@@ -91,3 +151,11 @@ shared_ptr<TableEntry> SymbolTable::checkReference(string identifier) {
 	return shared_ptr<TableEntry>();
 }
 
+string SymbolTable::getUnsedName() {
+	for (int i = 0; ; i++) {
+		string name = string("i") + to_string(i);
+		if (checkDefine(name)) {
+			return name;
+		}
+	}
+}

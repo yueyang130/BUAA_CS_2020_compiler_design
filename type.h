@@ -50,7 +50,10 @@ enum symbolType
 enum EntryType {
 	CONST,
 	VAR,
-	FUNCTION
+	FUNCTION,
+	LABEL,
+	IMMEDIATE,   // 立即数常量，如123, 'a'
+	TEMP,		 // 临时变量，如t1,t2
 };
 
 /*符号表中每一项标识符值的类型*/

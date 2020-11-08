@@ -3,18 +3,23 @@
 #include <string>
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
+#include "Block.h"
 
 using namespace std;
 
 const string INFIFE = "testfile.txt";
 const string OUTFILE = "output.txt";
 const string ERRFILE = "error.txt";
+const string IRFILE = "IMCode.txt";
+const string TARGETFILE = "mips.txt";
 
 int main() {
 
 	ifstream fin(INFIFE);
 	//ofstream fout(OUTFILE);
-	ofstream ferror(ERRFILE);
+	//ofstream ferror(ERRFILE);
+	ofstream f_ircode(IRFILE);
+	ofstream f_targetcode(TARGETFILE);
 
 	if (!fin.is_open()) {
 		cout << "Could not open " << INFIFE << endl;
@@ -23,14 +28,18 @@ int main() {
 	LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(fin);
 	myLexicalAnalyzer.analyzeLexis();
 
+	IMCode& myIMCode = IMCode::getInstance(f_ircode);
+
 	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer);
 	myGrammerAnalyzer.analyzeGrammer();
 	//myGrammerAnalyzer.show(fout);
-	myGrammerAnalyzer.showError(ferror);
+	//myGrammerAnalyzer.showError(ferror);
 
 	fin.close();
 	//fout.close();
-	ferror.close();
+	//ferror.close();
+	f_ircode.close();
+	f_targetcode.close();
 
 	return 0;
 }

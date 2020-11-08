@@ -3,6 +3,7 @@
 
 #include "LexicalAnalyzer.h"
 #include "SymbolTable.h"
+#include "Block.h"
 #include <iostream>
 using namespace std;
 
@@ -11,7 +12,7 @@ using namespace std;
 class GrammerAnalyzer {
 
 public:
-	static GrammerAnalyzer& getInstance(LexicalAnalyzer&);
+	static GrammerAnalyzer& getInstance(LexicalAnalyzer&, IMCode&);
 	void analyzeGrammer();
 
 	/*输出函数*/
@@ -20,7 +21,7 @@ public:
 
 
 private:
-	GrammerAnalyzer(LexicalAnalyzer&);
+	GrammerAnalyzer(LexicalAnalyzer&, IMCode&);
 
 	/*指向当前要进行语法分析的sym*/
 	int tk_idx_;
@@ -30,6 +31,8 @@ private:
 	vector<ErrorInfor>& error_infor_list_;
 	/*词法分析器*/
 	LexicalAnalyzer& lexical_analyzer_;
+	/*中间代码生成器*/
+	IMCode& im_coder_;
 
 	/*输出结果列表*/
 	vector<string> output_list_;
@@ -55,7 +58,7 @@ private:
 	inline bool isFunctionNoReturn() {
 		return curr_sym_type() == symbolType::VOIDTK && peek_sym_type(1) == symbolType::IDENFR;
 	}
-	inline bool isExpr() { return equal(PLUS, MINU) || equal(IDENFR) || equal(LPARENT) || equal(INTCON) || equal(CHARCON);  }
+	inline bool isExpr() { return equal(PLUS, MINU) || equal(IDENFR) || equal(LPARENT) || equal(INTCON) || equal(CHARCON);   }
 
 	inline bool equal(symbolType ref) { return curr_sym_type() == ref; }
 	inline bool equal(symbolType ref1, symbolType ref2) { return curr_sym_type() == ref1 || curr_sym_type() == ref2; }
@@ -139,6 +142,7 @@ private:
 	void WriteStatement();
 	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);
 
+	
 
 };
 

@@ -7,6 +7,10 @@
 #include<memory>
 using namespace std;
 
+/**
+* TableEntry	Const		Var		Function		Label		immediate(int/char/string)
+*/
+
 class TableEntry {
 
 private:
@@ -15,10 +19,10 @@ private:
 	string identifier_;
 
 public:
-	TableEntry(EntryType entry_type, ValueType entry_value_type, string identifier);
+	TableEntry(EntryType entry_type, ValueType entry_value_type, string identifier="");
 	EntryType entry_type() { return entry_type_; }
-	ValueType entry_value_type() { return entry_value_type_; }
-	string& identifier() { return identifier_; }
+	ValueType value_type() { return entry_value_type_; }
+	virtual string& identifier() { return identifier_; }
 	/*
 	dynamic_cast can only be used in the case of a pointer or reference cast,
 	and in addition to the compile time check, it does an additional run time check that the cast is legal.
@@ -29,17 +33,27 @@ public:
 
 };
 
+
 class ConstEntry : public TableEntry {
 public:
-	ConstEntry(ValueType entry_value_type, string identifier) :
-		TableEntry(EntryType::CONST, entry_value_type, identifier) {};
+	/*常量不能是数组*/
+	ConstEntry(ValueType entry_value_type, string identifier, string value = "") :
+		TableEntry(EntryType::CONST, entry_value_type, identifier), value_(value) {};
+	
+	void setValue(string value) { value_ = value;  }
+	string& getValue() { return value_;  }
+private:
+	string value_;
 };
 
+
+/*不同于constEntry记录了value，变量的初始化依赖于ImmediateEntry*/
 class VarEntry : public TableEntry {
 public:
+	/*单个变量的构造函数*/
 	VarEntry(ValueType entry_value_type, string identifier) :
 		TableEntry(EntryType::VAR, entry_value_type, identifier) {};
-
+	/*数组变量的构造函数*/
 	VarEntry(ValueType entry_value_type, string identifier, vector<int>& shape) :
 		TableEntry(EntryType::VAR, entry_value_type, identifier),shape_(shape)  {};
 
@@ -48,6 +62,7 @@ private:
 	vector<int> shape_;
 
 };
+
 
 class FunctionEntry : public TableEntry {
 public:
@@ -58,7 +73,6 @@ public:
 
 	FunctionEntry(ValueType entry_value_type, string identifier) :
 		TableEntry(EntryType::FUNCTION, entry_value_type, identifier) {};
-
 	inline int formal_param_num() { return formal_param_list_.size(); }
 	inline void setParamList(vector<ValueType>& formal_param_list) { this->formal_param_list_ = formal_param_list;  }
 	bool checkParamList(vector<ValueType>& actual_param_list);
@@ -68,6 +82,47 @@ private:
 
 };
 
+
+class LabelEntry : public TableEntry {
+public:
+	LabelEntry(string label_name) :
+		TableEntry(EntryType::LABEL, (ValueType)NULL, label_name) {};
+
+private:
+
+};
+
+
+/*ImmediateEntry*/
+class ImmediateEntry : public TableEntry{
+public:
+	/*单值立即数的构造函数*/
+	ImmediateEntry(ValueType value_type, string value) :
+		TableEntry(EntryType::IMMEDIATE, value_type, ""), value_{ value } {};
+	/*数组立即数的构造函数*/
+	ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
+		TableEntry(EntryType::IMMEDIATE, value_type, ""),  shape_(shape), value_(value) {};
+	/*返回常值的字符串形式*/
+	virtual string& identifier();
+
+private:
+	vector<int> shape_;
+	vector<string> value_;
+};
+
+
+/*临时变量项*/
+class TempEntry : public TableEntry {
+public:
+	TempEntry(string identifier, ValueType value_type = ValueType::INTV) :
+		TableEntry(EntryType::TEMP, value_type, identifier) {
+	};
+
+private:
+
+};
+
+
 class SymbolTable {
 public:
 	static SymbolTable& getInstance();
@@ -76,6 +131,7 @@ public:
 	void reset();										// 重定位操作
 	bool checkDefine(string& sym);						// 检查名字重定义
 	shared_ptr<TableEntry> checkReference(string identifier);		// 查找引用时是否已定义此标识符
+	string getUnsedName();  // 返回一个在当前定义域没有使用过的变量名，作为临时变量的名字
 
 private:
 	SymbolTable(int init_capability = 4096);

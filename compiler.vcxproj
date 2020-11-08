@@ -143,15 +143,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Block.cpp" />
+    <ClCompile Include="ExprTransformer.cpp" />
     <ClCompile Include="GrammerAnalyzer.cpp" />
+    <ClCompile Include="MipsGenerator.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="LexicalAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="ExprTransformer.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
+    <ClInclude Include="MipsGenerator.h" />
+    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="LexicalAnalyzer.h" />
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="tools.h" />

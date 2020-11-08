@@ -3,19 +3,20 @@
 #include "error.h"
 #include <algorithm>
 
-GrammerAnalyzer::GrammerAnalyzer(LexicalAnalyzer& my_lexical_analyzer):
+GrammerAnalyzer::GrammerAnalyzer(LexicalAnalyzer& my_lexical_analyzer, IMCode& im_code):
 	sym_infor_list_(my_lexical_analyzer.sym_infor_list_), 
 	error_infor_list_(my_lexical_analyzer.error_infor_list_),
 	lexical_analyzer_(my_lexical_analyzer),
-	sym_table_(SymbolTable::getInstance())
+	sym_table_(SymbolTable::getInstance()),
+	im_coder_(im_code)
 {
 	tk_idx_ = 0;
 	error_infor_list_.reserve(INIT_LENGTH / 4);
 	output_list_.reserve(INIT_LENGTH);
 }
 
-GrammerAnalyzer& GrammerAnalyzer::getInstance(LexicalAnalyzer& my_lexical_analyzer) {
-	static GrammerAnalyzer instance(my_lexical_analyzer);
+GrammerAnalyzer& GrammerAnalyzer::getInstance(LexicalAnalyzer& my_lexical_analyzer, IMCode& im_code) {
+	static GrammerAnalyzer instance(my_lexical_analyzer, im_code);
 	return instance;
 }
 
@@ -98,7 +99,7 @@ void GrammerAnalyzer::Program() {
 	if (sym_infor_list_.size() == 0) {
 		return;
 	}
-	
+
 	if (equal(symbolType::CONSTTK)) {
 		ConstDeclare();
 	}
@@ -189,13 +190,18 @@ void GrammerAnalyzer::ConstDefine() {
 void GrammerAnalyzer::ConstDefineForInt() {
 	check(symbolType::IDENFR);
 	// 重名检查
-	if (!sym_table_.add(make_shared<ConstEntry>(ValueType::INTV, curr_sym_str()))) {
+	auto p_entry = make_shared<ConstEntry>(ValueType::INTV, curr_sym_str());
+	if (!sym_table_.add(p_entry)) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
 	check(symbolType::ASSIGN);
 	pop_sym();
-	Int();
+	int value = Int();
+	p_entry->setValue(to_string(value));
+
+	// 四元式生成
+	im_coder_.addQuater(QuaternionFactory::ConstDeclare(p_entry));
 }
 
 /**
@@ -204,14 +210,19 @@ void GrammerAnalyzer::ConstDefineForInt() {
 void GrammerAnalyzer::ConstDefineForChar() {
 	check(symbolType::IDENFR);
 	// 重名检查
-	if (!sym_table_.add(make_shared<ConstEntry>(ValueType::CHARV, curr_sym_str()))) {
+	auto p_entry = make_shared<ConstEntry>(ValueType::CHARV, curr_sym_str());
+	if (!sym_table_.add(p_entry)) {
 		addErrorInfor(ErrorType::Redefine);
 	}
 	pop_sym();
 	check(symbolType::ASSIGN);
 	pop_sym();
 	check(symbolType::CHARCON);
+	p_entry->setValue(curr_sym_str());
 	pop_sym();
+
+	//四元式生成
+	im_coder_.addQuater(QuaternionFactory::ConstDeclare(p_entry));
 }
 
 
@@ -446,7 +457,7 @@ void GrammerAnalyzer::VarDefineWithInit() {
 			check(RBRACE); 
 			if (declared_shape[0] != cnt1) { addErrorInfor(ErrorType::IllegalArrayInit); }
 			pop_sym();
-
+			  
 		} else { error(); }
 
 	} else { error(); }
@@ -478,9 +489,16 @@ void GrammerAnalyzer::FuncDefineWithReturn() {
 	// 将函数项添加到符号表中
 	auto p_entry = make_shared<FunctionEntry>(value_type, func_name);
 	sym_table_.add(p_entry);
-
+	
 	// 将函数项添加到符号表中后才能进行定位操作
 	sym_table_.set();
+
+	// 添加四元式
+	im_coder_.addFunc(func_name);
+	auto bblock = make_shared<BasicBlock>();
+	im_coder_.addBBlock(bblock);
+	im_coder_.addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
+
 
 	// 将形参加入符号表
 	check(symbolType::LPARENT);
@@ -536,6 +554,12 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	// 将函数项添加到符号表中后才能进行定位操作
 	sym_table_.set();
 
+	// 添加四元式
+	im_coder_.addFunc(func_name);
+	auto bblock = make_shared<BasicBlock>();
+	im_coder_.addBBlock(bblock);
+	im_coder_.addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
+
 	// 将形参加入符号表
 	check(symbolType::LPARENT);
 	pop_sym();
@@ -588,7 +612,10 @@ void GrammerAnalyzer::ParameterList(vector<ValueType>& formal_param_list) {
 		pop_sym();
 		check(symbolType::IDENFR);
 		// 将形参加入符号表
-		sym_table_.add(make_shared<VarEntry>(value_type, curr_sym_str()));
+		auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str());
+		sym_table_.add(var_entry);
+		// 生成四元式
+		im_coder_.addQuater(QuaternionFactory::FuncFormalParam(var_entry));
 		pop_sym();
 		while (equal(symbolType::COMMA)) {
 			pop_sym();
@@ -598,7 +625,10 @@ void GrammerAnalyzer::ParameterList(vector<ValueType>& formal_param_list) {
 			pop_sym();
 			check(symbolType::IDENFR);
 			// 将形参加入符号表
-			sym_table_.add(make_shared<VarEntry>(value_type, curr_sym_str()));
+			auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str());
+			sym_table_.add(var_entry);
+			// 生成四元式
+			im_coder_.addQuater(QuaternionFactory::FuncFormalParam(var_entry));
 			pop_sym();
 		}
 	}
@@ -612,18 +642,30 @@ void GrammerAnalyzer::Main() {
 	check(symbolType::VOIDTK);
 	pop_sym();
 	check(symbolType::MAINTK);
+	string func_name = curr_sym_str();
 	pop_sym();
 	check(symbolType::LPARENT);
 	pop_sym();
 	checkMissRparent();
 
+	// 将函数项添加到符号表中
+	auto p_entry = make_shared<FunctionEntry>(ValueType::VOIDV, func_name);
+	sym_table_.add(p_entry);
+
 	// 将函数项添加到符号表中后才能进行定位操作
 	sym_table_.set();
+
+	// 生成四元式
+	auto func = make_shared<Function>(curr_sym_str());
+	im_coder_.setMain(func);
+	auto bblock = make_shared<BasicBlock>();
+	func->addBBlock(bblock);
+	bblock->addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
 
 	check(symbolType::LBRACE);
 	pop_sym();
 	bool exsit_return;
-	CompoundStatement(&exsit_return ,ValueType::VOIDV);
+	CompoundStatement(&exsit_return ,ValueType::VOIDV, bblock);
 	check(symbolType::RBRACE);
 	pop_sym();
 
@@ -653,6 +695,7 @@ ValueType GrammerAnalyzer::Expr() {
 	ValueType item1_value_type = Item();
 	while (equal(symbolType::PLUS, symbolType::MINU)) {
 		exist_cal = true;
+
 		pop_sym();
 		Item();
 	}
@@ -706,7 +749,7 @@ ValueType GrammerAnalyzer::Factor() {
 		auto p_entry = checkUndefine();
 
 		if (p_entry) { // 如果标识符有定义
-			factor_value_type = p_entry->entry_value_type();
+			factor_value_type = p_entry->value_type();
 		} else {
 			factor_value_type = ValueType::UNKNOWN;
 		}
@@ -726,7 +769,7 @@ ValueType GrammerAnalyzer::Factor() {
 			}
 		} else if (this->peek_sym_type() == symbolType::LPARENT) {				// 有返回值函数调用
 			shared_ptr<TableEntry> p_entry = sym_table_.checkReference(identifier);
-			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->entry_value_type() == ValueType::VOIDV) {
+			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->value_type() == ValueType::VOIDV) {
 				error();
 			}
 			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry));
@@ -753,6 +796,11 @@ ValueType GrammerAnalyzer::Factor() {
 ＜复合语句＞   ::=  ［＜常量说明＞］［＜变量说明＞］＜语句列＞
 */
 void GrammerAnalyzer::CompoundStatement(bool* p_exsit_return, ValueType return_value_type) {
+
+	// 添加四元式
+	auto bblock = make_shared<BasicBlock>();
+	im_coder_.addBBlock(bblock);
+
 	if (equal(symbolType::CONSTTK)) {
 		ConstDeclare();
 	}
@@ -908,6 +956,8 @@ void GrammerAnalyzer::Condition() {
 */
 void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value_type) {
 	if (equal(WHILETK)) {
+
+
 		pop_sym();
 		check(LPARENT);
 		pop_sym();
@@ -1025,7 +1075,7 @@ void GrammerAnalyzer::CallFunc() {
 	check(symbolType::IDENFR);
 	shared_ptr<TableEntry> p_entry = checkUndefine();
 	if (p_entry) {
-		if (p_entry->entry_value_type() == ValueType::VOIDV) {
+		if (p_entry->value_type() == ValueType::VOIDV) {
 			CallNoReturn(dynamic_pointer_cast<FunctionEntry>(p_entry));
 		}
 		else {
