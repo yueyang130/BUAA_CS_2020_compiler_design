@@ -55,6 +55,7 @@ class Quaternion {
 public:
 	Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	string toString();
+	string toMips();
 
 private:
 	QuaternionType quater_type_;
@@ -107,11 +108,6 @@ public:
 
 /*Ö§³Öº¯Êý*/
 string ValuetypeToString(ValueType value_type);
-
-
-
-
-
 
 
 

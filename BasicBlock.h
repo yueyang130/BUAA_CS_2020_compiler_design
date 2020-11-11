@@ -6,6 +6,7 @@
 #include<set>
 #include"Quaternion.h"
 #include<iostream>
+#include"MipsGenerator.h"
 
 using namespace std;
 
@@ -47,6 +48,7 @@ private:
 
 /*整个源代码的四元式中间代码*/
 class IMCode {
+	friend class MipsGenerator;
 public:
 	static IMCode& getInstance(ostream& f_imcode);
 
