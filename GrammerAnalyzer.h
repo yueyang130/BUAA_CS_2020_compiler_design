@@ -3,7 +3,8 @@
 
 #include "LexicalAnalyzer.h"
 #include "SymbolTable.h"
-#include "Block.h"
+#include "BasicBlock.h"
+#include "ExprTransformer.h"
 #include <iostream>
 using namespace std;
 
@@ -33,7 +34,11 @@ private:
 	LexicalAnalyzer& lexical_analyzer_;
 	/*中间代码生成器*/
 	IMCode& im_coder_;
-
+	/*表达式转四元式器*/
+	/*只实现了对二元运算符+-* /()[]的转化 */
+	/*对于a + fun(exp1)等，需要z在计算expr1时用新的解析器代替旧的，
+	解析完后再替换回来*/
+	shared_ptr<ExprTransformer> expr_trsf;
 	/*输出结果列表*/
 	vector<string> output_list_;
 
@@ -90,7 +95,7 @@ private:
 	void String();
 	void Program();
 
-	int RepeatIfMark(void (GrammerAnalyzer::*handler)(ValueType), ValueType var_type, symbolType mark = COMMA);
+	int RepeatIfMark(string (GrammerAnalyzer::*handler)(ValueType), ValueType var_type, symbolType mark = COMMA, vector<string>* ptr_elems = nullptr);
 	//void RepeatIfMark(void (GrammerAnalyzer::*handler)(void), symbolType mark = COMMA);
 	//void RepeatIfMark(symbolType, symbolType mark = COMMA);
 
@@ -103,8 +108,8 @@ private:
 	int Int();
 	void Identifier();
 
-	void ConstValue(ValueType vartype);   // 用于<变量定义及初始化>和<情况子语句>
-	void ConstValue();   // 暂时不用进行类型匹配检查时使用的函数
+	string ConstValue(ValueType vartype);   // 用于<变量定义及初始化>和<情况子语句>
+	string ConstValue();   // 暂时不用进行类型匹配检查时使用的函数
 
 	void VarDeclare();
 	void VarDefine();
@@ -126,10 +131,10 @@ private:
 	void StatetmentList(bool* p_exist_return, ValueType return_value_type);
 	void Statement(bool* p_exist_return, ValueType return_value_type);
 	void AssignStatement();
-	void ConditionalStatement(bool* p_exsit_return, ValueType return_value_type);
-	void Condition();
+	void IfStatement(bool* p_exsit_return, ValueType return_value_type);
+	void Condition(symbolType jump_type, shared_ptr<LabelEntry> label_entry);
 	void LoopStatement(bool* p_exsit_return, ValueType return_value_type);
-	void Step();
+	int Step();
 	void SwitchStatement(bool* p_exsit_return, ValueType return_value_type);
 	void CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
 	void CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
@@ -142,9 +147,17 @@ private:
 	void WriteStatement();
 	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);
 
-	
-
+	/*中间代码生成支持函数*/
+	void transformNestedExpr(ValueType* p_type, shared_ptr<TableEntry>* p_entry_ptr);
+	/*根据跳转类型(条件为真跳转/条件为假跳转)和条件类型(==,!=,>,...)生成跳转的四元式*/
+	shared_ptr<Quaternion> jump(symbolType jump_type, symbolType condition_type, 
+		shared_ptr<LabelEntry> p_label, shared_ptr<TableEntry> expr1, shared_ptr<TableEntry>expr2);
+	/*获得一个没有用过的标签名*/
+	int label_cnt = 0;
+	string new_label() { return "label" + to_string(++label_cnt); }
 };
+
+
 
 #endif // !GRAMMER_ANALYZER_H_
 

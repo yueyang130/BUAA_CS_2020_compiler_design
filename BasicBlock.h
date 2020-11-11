@@ -50,11 +50,13 @@ class IMCode {
 public:
 	static IMCode& getInstance(ostream& f_imcode);
 
+	/*添加函数定义，会自动区分main函数和其他函数*/
 	void addFunc(string& func);
 	/*向当前Function中添加BBlock, 并设为curr_bblock*/
 	void addBBlock(shared_ptr<BasicBlock> bblock);
 	/*向curr_bblock中添加四元式*/
-	void addQuater(shared_ptr<Quaternion> quater) { curr_bblock->addQuater(quater); }
+	void addQuater(shared_ptr<Quaternion> quater) { curr_bblock_->addQuater(quater); }
+	shared_ptr<BasicBlock> curr_bblock() { return curr_bblock_; }
 	void show_quaters();
 
 private:
@@ -64,11 +66,13 @@ private:
 	/*声明全局变量和全局常量的基本块*/
 	const shared_ptr<BasicBlock> global_bblock_;
 	/*指向main函数的Function指针*/
-	const shared_ptr<Function> main_;
+	shared_ptr<Function> main_;
 	/*所有Function指针的列表（不包含main）*/
 	vector<shared_ptr<Function>> func_list_;
 	/*正在添加四元式的基本块*/
-	shared_ptr<BasicBlock> curr_bblock;
+	shared_ptr<BasicBlock> curr_bblock_;
+	/*正在添加基本块的函数*/
+	shared_ptr<Function> curr_func_;
 	/*输出文件流*/
 	ostream& f_imcode_;
 

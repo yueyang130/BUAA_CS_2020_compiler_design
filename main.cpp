@@ -3,7 +3,7 @@
 #include <string>
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
-#include "Block.h"
+#include "BasicBlock.h"
 
 using namespace std;
 
@@ -30,10 +30,11 @@ int main() {
 
 	IMCode& myIMCode = IMCode::getInstance(f_ircode);
 
-	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer);
+	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer, myIMCode);
 	myGrammerAnalyzer.analyzeGrammer();
 	//myGrammerAnalyzer.show(fout);
 	//myGrammerAnalyzer.showError(ferror);
+	myIMCode.show_quaters();
 
 	fin.close();
 	//fout.close();

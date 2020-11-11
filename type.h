@@ -58,6 +58,7 @@ enum EntryType {
 
 /*符号表中每一项标识符值的类型*/
 enum ValueType {
+	STRINGV,
 	INTV,
 	CHARV,
 	VOIDV,

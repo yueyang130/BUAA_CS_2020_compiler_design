@@ -24,21 +24,29 @@ enum QuaternionType {
 	// 表达式
 	Expr,					//		var							var/const/i					var/const/i
 	// 条件和跳转
-	Condition,				//									var/const/i					var/const/i
+	BEQ,					//		label						var/const/i					var/const/i
+	BNE,
+	BLT,
+	BLE,
+	BGT,
+	BGE,
 	Goto,					//									label
-	Bnz,					//									label
-	Bz,						//									label
 	// 设置标签
 	Label,					//		label
 	// 数组
 	GetArrayElem,			//		var							var	(array）			   var/const/i (index)
 	SetArrayELem,			//		var（array)					var/const/i(index)		   var/const/i
 	// 算术
-	AddOp,					//		tmp/var						var/const/i/tmp      var/const/i/tmp
+	AddOp,					//		tmp/var						var/const/i/tmp			   var/const/i/tmp
 	SubOp,				
 	MulOp,
 	DivOp,
 	Neg,					//		tmp/var						var/const/i/tmp
+	// 赋值
+	Assign,					//		var								temp/var
+	// 读写
+	Read,					//		var								
+	Write,					//									i(字符串）/null		  tmp(整数或字符型表达式)/ null			   		
 };
 
 
@@ -71,11 +79,16 @@ public:
 	static shared_ptr<Quaternion> VarDecalre(shared_ptr<TableEntry> var, shared_ptr<TableEntry> immediate = nullptr);
 	static shared_ptr<Quaternion> ConstDeclare(shared_ptr<TableEntry> con);
 	static shared_ptr<Quaternion> Expr(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
-	static shared_ptr<Quaternion> Condition(shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BEQ(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BNE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BLT(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BLE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BGT(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+	static shared_ptr<Quaternion> BGE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	
 	static shared_ptr<Quaternion> Goto(shared_ptr<TableEntry> label);
-	static shared_ptr<Quaternion> Bnz(shared_ptr<TableEntry> label);
-	static shared_ptr<Quaternion> Bz(shared_ptr<TableEntry> label);
+	//static shared_ptr<Quaternion> Bnz(shared_ptr<TableEntry> label);
+	//static shared_ptr<Quaternion> Bz(shared_ptr<TableEntry> label);
 
 	static shared_ptr<Quaternion> Label(shared_ptr<TableEntry> label);
 
@@ -87,21 +100,16 @@ public:
 	static shared_ptr<Quaternion> Mul(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	static shared_ptr<Quaternion> Div(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	static shared_ptr<Quaternion> Neg(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left);
+	static shared_ptr<Quaternion> Assign(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left);
+	static shared_ptr<Quaternion> Read(shared_ptr<TableEntry>result);
+	static shared_ptr<Quaternion> Write(shared_ptr<TableEntry>left, shared_ptr<TableEntry> right);
 };
 
 /*支持函数*/
-inline string ValuetypeToString(ValueType value_type) {
-	switch (value_type) {
-	case ValueType::CHARV:
-		return "char";
-	case ValueType::INTV:
-		return "int";
-	case ValueType::VOIDV:
-		return "void";
-	default:
-		return "unknown";
-	}
-}
+string ValuetypeToString(ValueType value_type);
+
+
+
 
 
 

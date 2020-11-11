@@ -37,6 +37,9 @@ public:
 class ConstEntry : public TableEntry {
 public:
 	/*常量不能是数组*/
+	/*＜常量定义＞   ::=   int＜标识符＞＝＜整数＞{,＜标识符＞＝＜整数＞}  
+                  | char＜标识符＞＝＜字符＞{,＜标识符＞＝＜字符＞}  
+	*/
 	ConstEntry(ValueType entry_value_type, string identifier, string value = "") :
 		TableEntry(EntryType::CONST, entry_value_type, identifier), value_(value) {};
 	
@@ -98,12 +101,14 @@ class ImmediateEntry : public TableEntry{
 public:
 	/*单值立即数的构造函数*/
 	ImmediateEntry(ValueType value_type, string value) :
-		TableEntry(EntryType::IMMEDIATE, value_type, ""), value_{ value } {};
+		TableEntry(EntryType::IMMEDIATE, value_type, "") {value_.push_back(value); }
 	/*数组立即数的构造函数*/
 	ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
-		TableEntry(EntryType::IMMEDIATE, value_type, ""),  shape_(shape), value_(value) {};
+		TableEntry(EntryType::IMMEDIATE, value_type, ""),  shape_(shape), value_(value) {}
 	/*返回常值的字符串形式*/
 	virtual string& identifier();
+	/*返回用于变量初始化时的花括号列表*/
+	//string& initializingList();
 
 private:
 	vector<int> shape_;

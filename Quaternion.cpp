@@ -1,7 +1,10 @@
-#include"Block.h"
+#include"BasicBlock.h"
+#include"Quaternion.h"
 #include<sstream>
 
-Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right):
+	quater_type_(quater_type), result_(result), left_(left), right_(right)
+{
 }
 
 string Quaternion::toString() {
@@ -41,18 +44,33 @@ string Quaternion::toString() {
 	case QuaternionType::Expr:
 		ss << result_->identifier() << " = " << left_->identifier() << " + " << right_->identifier();
 		break;
-	case QuaternionType::Condition:
-		ss << left_->identifier() << " == " << right_->identifier();
+	case QuaternionType::BEQ:
+		ss << left_->identifier() << " == " << right_->identifier() << ", GOTO " << result_->identifier();
+		break;
+	case QuaternionType::BNE:
+		ss << left_->identifier() << " != " << right_->identifier() << ", GOTO " << result_->identifier();
+		break;
+	case QuaternionType::BLT:
+		ss << left_->identifier() << " < " << right_->identifier() << ", GOTO " << result_->identifier();
+		break;
+	case QuaternionType::BLE:
+		ss << left_->identifier() << " <= " << right_->identifier() << ", GOTO " << result_->identifier();
+		break;
+	case QuaternionType::BGT:
+		ss << left_->identifier() << " > " << right_->identifier() << ", GOTO " << result_->identifier();
+		break;
+	case QuaternionType::BGE:
+		ss << left_->identifier() << " >= " << right_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::Goto:
 		ss << "GOTO " << left_->identifier();
 		break;
-	case QuaternionType::Bnz:
-		ss << "BNZ " << left_->identifier();
-		break;
-	case QuaternionType::Bz:
-		ss << "BZ " << left_->identifier();
-		break;
+	//case QuaternionType::Bnz:
+	//	ss << "BNZ " << left_->identifier();
+	//	break;
+	//case QuaternionType::Bz:
+	//	ss << "BZ " << left_->identifier();
+	//	break;
 	case QuaternionType::Label:
 		ss << result_->identifier() << " :";
 		break;
@@ -76,6 +94,21 @@ string Quaternion::toString() {
 		break;
 	case QuaternionType::Neg:
 		ss << result_->identifier() << " =  - " << left_->identifier();
+		break;
+	case QuaternionType::Assign:
+		ss << result_->identifier() << " = " << left_->identifier();
+		break;
+	case QuaternionType::Read:
+		ss << "scanf " << result_->identifier();
+		break;
+	case QuaternionType::Write:
+		ss << "print ";
+		if (left_) {
+			ss << "\"" << left_->identifier() << "\"" << " ";
+		}
+		if (right_) {
+			ss << right_->identifier();
+		}
 		break;
 	default:
 		ss << "Some error occur in Quaternion::string";
@@ -121,21 +154,41 @@ shared_ptr<Quaternion> QuaternionFactory::Expr(shared_ptr<TableEntry> result, sh
 	return make_shared<Quaternion>(QuaternionType::Expr, result, left, right);
 }
 
-shared_ptr<Quaternion> QuaternionFactory::Condition(shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
-	return make_shared<Quaternion>(QuaternionType::Condition, nullptr, left, right);
+shared_ptr<Quaternion> QuaternionFactory::BEQ(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BEQ, result, left, right);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::BNE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BNE, result, left, right);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::BLT(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BLT, result, left, right);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::BLE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BLE, result, left, right);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::BGT(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BGT, result, left, right);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::BGE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::BGE, result, left, right);
 }
 
 shared_ptr<Quaternion> QuaternionFactory::Goto(shared_ptr<TableEntry> label) {
 	return make_shared<Quaternion>(QuaternionType::Goto, nullptr, label, nullptr);
 }
 
-shared_ptr<Quaternion> QuaternionFactory::Bnz(shared_ptr<TableEntry> label) {
-	return make_shared<Quaternion>(QuaternionType::Bnz, nullptr, label, nullptr);
-}
-
-shared_ptr<Quaternion> QuaternionFactory::Bz(shared_ptr<TableEntry> label) {
-	return make_shared<Quaternion>(QuaternionType::Bz, nullptr, label, nullptr);
-}
+//shared_ptr<Quaternion> QuaternionFactory::Bnz(shared_ptr<TableEntry> label) {
+//	return make_shared<Quaternion>(QuaternionType::Bnz, nullptr, label, nullptr);
+//}
+//
+//shared_ptr<Quaternion> QuaternionFactory::Bz(shared_ptr<TableEntry> label) {
+//	return make_shared<Quaternion>(QuaternionType::Bz, nullptr, label, nullptr);
+//}
 
 shared_ptr<Quaternion> QuaternionFactory::Label(shared_ptr<TableEntry> label) {
 	return make_shared<Quaternion>(QuaternionType::Label, label, nullptr, nullptr);
@@ -167,4 +220,29 @@ shared_ptr<Quaternion> QuaternionFactory::Div(shared_ptr<TableEntry> result, sha
 
 shared_ptr<Quaternion> QuaternionFactory::Neg(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left) {
 	return make_shared<Quaternion>(QuaternionType::Neg, result, left, nullptr);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::Assign(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left) {
+	return make_shared<Quaternion>(QuaternionType::Assign, result, left, nullptr);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::Read(shared_ptr<TableEntry> result) {
+	return make_shared<Quaternion>(QuaternionType::Read, result, nullptr, nullptr);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::Write(shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
+	return make_shared<Quaternion>(QuaternionType::Write, nullptr, left, right);
+}
+
+string ValuetypeToString(ValueType value_type) {
+	switch (value_type) {
+	case ValueType::CHARV:
+		return "char";
+	case ValueType::INTV:
+		return "int";
+	case ValueType::VOIDV:
+		return "void";
+	default:
+		return "unknown";
+	}
 }
