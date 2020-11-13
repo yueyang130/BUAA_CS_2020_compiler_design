@@ -58,14 +58,54 @@ bool VarEntry::checkSize(vector<int> assign_shape) {
 	return assign_shape == shape_;
 }
 
+bool VarEntry::isArray() {
+	return shape_.size() > 0;
+}
+
+int VarEntry::ByteSize() {
+	int cnt = 1;
+	for (int x : this->shape_) {
+		cnt *= x;
+	}
+	if (this->value_type() == ValueType::INTV) {
+		return cnt * 4;
+	} 
+	return cnt;
+}
+
 /******************************************** ImmediateEntry ********************************************************/
+
+ImmediateEntry::ImmediateEntry(ValueType value_type, string value)
+	: TableEntry(EntryType::IMMEDIATE, value_type, "")
+{
+	value_.push_back(value);
+	str_name = string("#str" + to_string(++str_cnt));
+}
+
+ImmediateEntry::ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
+	TableEntry(EntryType::IMMEDIATE, value_type, ""), shape_(shape), value_(value)
+{
+	str_name = string("#str" + to_string(++str_cnt));
+}
 
 /**
 * 单值立即数可能会在表达式中用到，将它的字符常量视为identifier
 */
 string& ImmediateEntry::identifier() {
 	assert(this->shape_.empty());
+	if (this->value_type() == ValueType::STRINGV) {
+		return str_name;
+	}
 	return value_[0];
+}
+
+string& ImmediateEntry::getValue() {
+	assert(this->shape_.empty());
+	return value_[0];
+}
+
+const vector<string>& ImmediateEntry::initializingList() {
+	return this->value_;
 }
 
 //int ImmediateEntry::getIntValue() {

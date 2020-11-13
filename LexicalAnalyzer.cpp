@@ -191,7 +191,6 @@ bool LexicalAnalyzer::isReserver() {
 void LexicalAnalyzer::analyzeLexis() {
 	nextChar();  // 预读一个字符
 	while (fin) {  // cin.get无法读取EOF到chrCurr，但是bool（cin）可以表示是否能继续读取 
-		// TODO: continue to add exception handler
 		nextSym();
 		nextChar();
 	}  

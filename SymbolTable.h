@@ -61,6 +61,9 @@ public:
 		TableEntry(EntryType::VAR, entry_value_type, identifier),shape_(shape)  {};
 
 	bool checkSize(vector<int> assign_shape);
+	bool isArray();
+	/*在内存空间中要占用多少自己*/
+	int ByteSize();
 private:
 	vector<int> shape_;
 
@@ -98,22 +101,29 @@ private:
 
 /*ImmediateEntry*/
 class ImmediateEntry : public TableEntry{
+	static int str_cnt;
 public:
 	/*单值立即数的构造函数*/
-	ImmediateEntry(ValueType value_type, string value) :
-		TableEntry(EntryType::IMMEDIATE, value_type, "") {value_.push_back(value); }
+	ImmediateEntry(ValueType value_type, string value);
 	/*数组立即数的构造函数*/
-	ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
-		TableEntry(EntryType::IMMEDIATE, value_type, ""),  shape_(shape), value_(value) {}
-	/*返回常值的字符串形式*/
+	ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value);
+	/*
+	对于int和char,返回常值的字符串形式; 
+	对于str,返回#str{str_cnt};
+	对于Array，断言错误
+	*/
 	virtual string& identifier();
+	string& getValue();
 	/*返回用于变量初始化时的花括号列表*/
-	//string& initializingList();
+	const vector<string>& initializingList();
 
 private:
+	string str_name;
 	vector<int> shape_;
 	vector<string> value_;
 };
+
+int ImmediateEntry::str_cnt = 0;
 
 
 /*临时变量项*/

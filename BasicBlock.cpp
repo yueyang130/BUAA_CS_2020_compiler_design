@@ -1,22 +1,30 @@
 #include "BasicBlock.h"
 #include"tools.h"
 
-void BasicBlock::show_quaters(ostream& f) {
-	for (auto quater : this->quater_seq_) {
-		f << quater->toString() << endl;
-	}
+
+const vector<shared_ptr<Quaternion>>& BasicBlock::get_quater_list() {
+	return quater_list_;
 }
 
 
-void Function::show_quaters(ostream& f) {
-	for (auto bblock : this->bblock_list_) {
-		bblock->show_quaters(f);
+const vector<shared_ptr<Quaternion>>& Function::get_quater_list() {
+	if (this->quater_list_.size() == 0) {
+		for (auto bblock : this->bblock_list_) {
+			const auto& sub_list = bblock->get_quater_list();
+			quater_list_.insert(quater_list_.end(), sub_list.begin(), sub_list.end());
+		}
 	}
+	return quater_list_;
 }
 
 
-IMCode& IMCode::getInstance(ostream& f_imcode) {
-	static IMCode im_cooder(f_imcode);
+IMCode::IMCode() : global_bblock_(new BasicBlock()) {
+	curr_bblock_ = global_bblock_;
+}
+
+
+IMCode& IMCode::getInstance() {
+	static IMCode im_cooder;
 	return im_cooder;
 }
 
@@ -39,19 +47,28 @@ void IMCode::setCurrBblock(shared_ptr<BasicBlock> bblock) {
 	curr_bblock_ = bblock;
 }
 
-void IMCode::show_quaters() {
-	global_bblock_->show_quaters(f_imcode_);
-	main_->show_quaters(f_imcode_);
-	for (auto func : this->func_list_) {
-		func->show_quaters(f_imcode_);
+const vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
+	if (quater_list_.size() == 0) {
+		const auto& gb_list = this->global_bblock_->get_quater_list();
+		// global var and const decalre
+		quater_list_.insert(quater_list_.end(), gb_list.begin(), gb_list.end());
+		// main
+		const auto& main_list = this->main_->get_quater_list();
+		quater_list_.insert(quater_list_.end(), main_list.begin(), main_list.end());
+		// ·Çmainº¯Êý
+		for (auto func : this->func_list_) {
+			const auto& func_list = func->get_quater_list();
+			quater_list_.insert(quater_list_.end(), func_list.begin(), func_list.end());
+		}
 	}
+	return quater_list_;
 }
 
-IMCode::IMCode(ostream& f_imcode): 
-	global_bblock_(new BasicBlock()), f_imcode_(f_imcode) {
-	curr_bblock_ = global_bblock_;
+void IMCode::show_quaters(ostream& fout) {
+	for (auto quater : this->get_quater_list()) {
+		fout << quater->toString() << endl;
+	}
 }
 
 IMCode::~IMCode() {
 }
-

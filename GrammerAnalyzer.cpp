@@ -326,9 +326,8 @@ void GrammerAnalyzer::VarDeclare() {
 /**
 * ＜变量定义＞ ::= ＜变量定义无初始化＞|＜变量定义及初始化＞
 * 
-* version1：通过在分号前是否出现等号判断是否初始化
-* TODO: 如果这一行缺失分号，可能导致意想不到的结果。
-* 考虑到错误处理中同样会出现却少 ]等情况，所以决定以 int|char|void的最近的一个为结束符（其实就是换行）
+* version1：通过在分号前是否出现等号判断是否初始化，如果这一行缺失分号，可能导致意想不到的结果。
+* version2：考虑到错误处理中同样会出现却少 ]等情况，所以决定以 int|char|void的最近的一个为结束符（其实就是换行）
 *   
 */
 void GrammerAnalyzer::VarDefine() {
@@ -998,7 +997,6 @@ void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_t
 */
 void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> label_entry) {
 	symbolType condition_type = symbolType::EQL;
-	// TODO: 表达式需均为整数类型才能进行比较
 	ValueType value_type1 = Expr();
 	auto expr1 = expr_trsf->pop(); 
 	if (equal(LSS, LEQ) || equal(GRE, GEQ) || equal(NEQ, EQL)) {

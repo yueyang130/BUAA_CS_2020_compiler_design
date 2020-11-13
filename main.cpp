@@ -3,7 +3,9 @@
 #include <string>
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
-#include "BasicBlock.h"
+#include "BasicBlock.h"  // ImCoder
+#include "MipsGenerator.h"
+
 
 using namespace std;
 
@@ -25,16 +27,20 @@ int main() {
 		cout << "Could not open " << INFIFE << endl;
 		exit(EXIT_FAILURE);
 	}
+
 	LexicalAnalyzer& myLexicalAnalyzer = LexicalAnalyzer::getInstance(fin);
-	myLexicalAnalyzer.analyzeLexis();
-
-	IMCode& myIMCode = IMCode::getInstance(f_ircode);
-
+	IMCode& myIMCode = IMCode::getInstance();
 	GrammerAnalyzer& myGrammerAnalyzer = GrammerAnalyzer::getInstance(myLexicalAnalyzer, myIMCode);
+	MipsGenerator& myMipsGenerator = MipsGenerator::getInstance(myIMCode);
+
+	myLexicalAnalyzer.analyzeLexis();
+	//myLexicalAnalyzer.show();
 	myGrammerAnalyzer.analyzeGrammer();
 	//myGrammerAnalyzer.show(fout);
 	//myGrammerAnalyzer.showError(ferror);
-	myIMCode.show_quaters();
+	myIMCode.show_quaters(f_ircode);
+	myMipsGenerator.generateMipsCode();
+	myMipsGenerator.showMipsCode(f_targetcode);
 
 	fin.close();
 	//fout.close();

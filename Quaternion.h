@@ -55,14 +55,12 @@ class Quaternion {
 public:
 	Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	string toString();
-	string toMips();
-
-private:
-	QuaternionType quater_type_;
+	const QuaternionType quater_type_;
 	/*直接使用符号表项作为操作数和结果*/
-	shared_ptr<TableEntry> result_;
-	shared_ptr<TableEntry> left_;
-	shared_ptr<TableEntry> right_;
+	const shared_ptr<TableEntry> result_;
+	const shared_ptr<TableEntry> left_;
+	const shared_ptr<TableEntry> right_;
+	
 };
 
 
