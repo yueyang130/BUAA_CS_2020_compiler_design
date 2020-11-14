@@ -1,8 +1,9 @@
-#include "MipsGenerator.h"
-#include "mips_code_tools.h"
+#include "SimpleMipsGenerator.h"
+#include "simple_mips_code_tools.h"
 
-const unsigned int MAXLEN = 100;
-char buf[MAXLEN];
+// 将此全局变量作用域局限在本文件中
+static const unsigned int MAXLEN = 100;
+static char buf[MAXLEN];
 
 MipsGenerator::MipsGenerator(IMCode& im_code): im_code_(im_code)
 {
@@ -21,11 +22,11 @@ void MipsGenerator::showMipsCode(ostream& fout) {
 }
 
 void MipsGenerator::generateMipsCode() {
-	dump_data_segment();
+	dump_global_and_strcon();
 	dump_main();
 }
 
-void MipsGenerator::dump_data_segment() {
+void MipsGenerator::dump_global_and_strcon() {
 	vector<string> small_var_list;
 	vector<string> big_var_list;
 	vector<string> str_list;
@@ -37,7 +38,7 @@ void MipsGenerator::dump_data_segment() {
 			if (var.isArray()) {
 				big_var_list.push_back(load_global_big_var(*quater));
 			} else {
-				auto instrs = load_global_small_var(*quater, this->gb_var_offset_map_, &_pglobal, GP_ADDR);
+				auto instrs = load_global_small_var(*quater, this->gb_small_var_offset_map_, &_pglobal, GP_ADDR);
 				small_var_list.insert(small_var_list.end(), instrs.begin(), instrs.end());
 			}
 		}
@@ -46,8 +47,8 @@ void MipsGenerator::dump_data_segment() {
 	// string
 	for (auto& quater : im_code_.get_quater_list()) {
 		dump_strcon(quater->result_, str_list);
-		dump_strcon(quater->left_, str_list);
-		dump_strcon(quater->right_, str_list);
+		dump_strcon(quater->opA_, str_list);
+		dump_strcon(quater->opB_, str_list);
 	}
 
 	// add to mips_list
@@ -63,7 +64,7 @@ void MipsGenerator::dump_data_segment() {
 }
 
 void MipsGenerator::dump_main() {
-
+	SimpleMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);;
 }
 
 void dump_strcon(shared_ptr<TableEntry> p_entry, vector<string>& instr_list) {

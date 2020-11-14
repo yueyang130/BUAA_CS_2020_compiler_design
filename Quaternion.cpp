@@ -2,7 +2,7 @@
 #include<sstream>
 
 Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right):
-	quater_type_(quater_type), result_(result), left_(left), right_(right)
+	quater_type_(quater_type), result_(result), opA_(left), opB_(right)
 {
 }
 
@@ -17,13 +17,13 @@ string Quaternion::toString() {
 		ss << "para " << ValuetypeToString(result_->value_type()) << " " << result_->identifier();
 		break;
 	case QuaternionType::FuncReturn:
-		ss << "return " << left_->identifier();
+		ss << "return " << opA_->identifier();
 		break;
 	case QuaternionType::FuncParamPush:
-		ss << "push " << left_->identifier();
+		ss << "push " << opA_->identifier();
 		break;
 	case QuaternionType::FuncCall:
-		ss << "call " << left_->identifier();
+		ss << "call " << opA_->identifier();
 		break;
 	case QuaternionType:: RetAssign:
 		ss << result_->identifier() << " = RET";
@@ -40,29 +40,26 @@ string Quaternion::toString() {
 		ss << "const " << ValuetypeToString(result_->value_type()) << " " << result_->identifier() << " = " << val;
 		break;
 	}
-	case QuaternionType::Expr:
-		ss << result_->identifier() << " = " << left_->identifier() << " + " << right_->identifier();
-		break;
 	case QuaternionType::BEQ:
-		ss << left_->identifier() << " == " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " == " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::BNE:
-		ss << left_->identifier() << " != " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " != " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::BLT:
-		ss << left_->identifier() << " < " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " < " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::BLE:
-		ss << left_->identifier() << " <= " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " <= " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::BGT:
-		ss << left_->identifier() << " > " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " > " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::BGE:
-		ss << left_->identifier() << " >= " << right_->identifier() << ", GOTO " << result_->identifier();
+		ss << opA_->identifier() << " >= " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::Goto:
-		ss << "GOTO " << left_->identifier();
+		ss << "GOTO " << opA_->identifier();
 		break;
 	//case QuaternionType::Bnz:
 	//	ss << "BNZ " << left_->identifier();
@@ -74,39 +71,39 @@ string Quaternion::toString() {
 		ss << result_->identifier() << " :";
 		break;
 	case QuaternionType::GetArrayElem:
-		ss << result_->identifier() << " = " << left_->identifier() << "[" << right_->identifier() << "]";
+		ss << result_->identifier() << " = " << opA_->identifier() << "[" << opB_->identifier() << "]";
 		break;
 	case QuaternionType::SetArrayELem:
-		ss << result_->identifier() << "[" << left_->identifier() << "]" << " = " << right_->identifier();
+		ss << result_->identifier() << "[" << opA_->identifier() << "]" << " = " << opB_->identifier();
 		break;
 	case QuaternionType::AddOp:
-		ss << result_->identifier() << " = " << left_->identifier() << " + " << right_->identifier();
+		ss << result_->identifier() << " = " << opA_->identifier() << " + " << opB_->identifier();
 		break;	
 	case QuaternionType::SubOp:
-		ss << result_->identifier() << " = " << left_->identifier() << " - " << right_->identifier();
+		ss << result_->identifier() << " = " << opA_->identifier() << " - " << opB_->identifier();
 		break;	
 	case QuaternionType::MulOp:
-		ss << result_->identifier() << " = " << left_->identifier() << " * " << right_->identifier();
+		ss << result_->identifier() << " = " << opA_->identifier() << " * " << opB_->identifier();
 		break;	
 	case QuaternionType::DivOp:
-		ss << result_->identifier() << " = " << left_->identifier() << " / " << right_->identifier();
+		ss << result_->identifier() << " = " << opA_->identifier() << " / " << opB_->identifier();
 		break;
 	case QuaternionType::Neg:
-		ss << result_->identifier() << " =  - " << left_->identifier();
+		ss << result_->identifier() << " =  - " << opA_->identifier();
 		break;
 	case QuaternionType::Assign:
-		ss << result_->identifier() << " = " << left_->identifier();
+		ss << result_->identifier() << " = " << opA_->identifier();
 		break;
 	case QuaternionType::Read:
 		ss << "scanf " << result_->identifier();
 		break;
 	case QuaternionType::Write:
 		ss << "print ";
-		if (left_) {
-			ss << "\"" << left_->identifier() << "\"" << " ";
+		if (opA_) {
+			ss << "\"" << opA_->identifier() << "\"" << " ";
 		}
-		if (right_) {
-			ss << right_->identifier();
+		if (opB_) {
+			ss << opB_->identifier();
 		}
 		break;
 	default:
@@ -149,9 +146,6 @@ shared_ptr<Quaternion> QuaternionFactory::ConstDeclare(shared_ptr<TableEntry> co
 	return make_shared<Quaternion>(QuaternionType::ConstDecalre, con, nullptr, nullptr);
 }
 
-shared_ptr<Quaternion> QuaternionFactory::Expr(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
-	return make_shared<Quaternion>(QuaternionType::Expr, result, left, right);
-}
 
 shared_ptr<Quaternion> QuaternionFactory::BEQ(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
 	return make_shared<Quaternion>(QuaternionType::BEQ, result, left, right);

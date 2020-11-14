@@ -146,13 +146,13 @@
     <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="ExprTransformer.cpp" />
     <ClCompile Include="GrammerAnalyzer.cpp" />
-    <ClCompile Include="MipsFunctionGenerator.cpp" />
-    <ClCompile Include="MipsGenerator.cpp" />
-    <ClCompile Include="mips_code_tools.cpp" />
+    <ClCompile Include="SimpleMipsFunctionGenerator.cpp" />
+    <ClCompile Include="SimpleMipsGenerator.cpp" />
+    <ClCompile Include="simple_mips_code_tools.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="LexicalAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Register.cpp" />
+    <ClCompile Include="RegisterPool.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
@@ -161,12 +161,13 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="ExprTransformer.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
-    <ClInclude Include="MipsFunctionGenerator.h" />
-    <ClInclude Include="MipsGenerator.h" />
-    <ClInclude Include="mips_code_tools.h" />
+    <ClInclude Include="OptMipsFunctionGenerator.h" />
+    <ClInclude Include="SimpleMipsFunctionGenerator.h" />
+    <ClInclude Include="SimpleMipsGenerator.h" />
+    <ClInclude Include="simple_mips_code_tools.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="LexicalAnalyzer.h" />
-    <ClInclude Include="Register.h" />
+    <ClInclude Include="RegisterPool.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="tools.h" />

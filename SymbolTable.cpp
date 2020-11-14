@@ -75,6 +75,8 @@ int VarEntry::ByteSize() {
 
 /******************************************** ImmediateEntry ********************************************************/
 
+int ImmediateEntry::str_cnt = 0;
+
 ImmediateEntry::ImmediateEntry(ValueType value_type, string value)
 	: TableEntry(EntryType::IMMEDIATE, value_type, "")
 {
@@ -99,7 +101,7 @@ string& ImmediateEntry::identifier() {
 	return value_[0];
 }
 
-string& ImmediateEntry::getValue() {
+string ImmediateEntry::getValue() {
 	assert(this->shape_.empty());
 	return value_[0];
 }

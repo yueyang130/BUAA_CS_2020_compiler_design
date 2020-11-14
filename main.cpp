@@ -4,7 +4,7 @@
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
 #include "BasicBlock.h"  // ImCoder
-#include "MipsGenerator.h"
+#include "SimpleMipsGenerator.h"
 
 
 using namespace std;

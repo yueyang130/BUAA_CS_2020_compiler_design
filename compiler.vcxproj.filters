@@ -33,22 +33,22 @@
     <ClCompile Include="Quaternion.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="MipsGenerator.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ExprTransformer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="BasicBlock.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="MipsFunctionGenerator.cpp">
+    <ClCompile Include="RegisterPool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mips_code_tools.cpp">
-      <Filter>头文件</Filter>
+    <ClCompile Include="SimpleMipsFunctionGenerator.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Register.cpp">
+    <ClCompile Include="SimpleMipsGenerator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_mips_code_tools.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,25 +74,28 @@
     <ClInclude Include="Quaternion.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MipsGenerator.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ExprTransformer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="BasicBlock.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MipsFunctionGenerator.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="mips_code_tools.h">
+    <ClInclude Include="RegisterPool.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Register.h">
+    <ClInclude Include="SimpleMipsFunctionGenerator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMipsGenerator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_mips_code_tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OptMipsFunctionGenerator.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

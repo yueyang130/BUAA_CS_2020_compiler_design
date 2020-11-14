@@ -23,6 +23,7 @@ public:
 	EntryType entry_type() { return entry_type_; }
 	ValueType value_type() { return entry_value_type_; }
 	virtual string& identifier() { return identifier_; }
+	virtual string getValue() { return ""; }
 	/*
 	dynamic_cast can only be used in the case of a pointer or reference cast,
 	and in addition to the compile time check, it does an additional run time check that the cast is legal.
@@ -44,7 +45,7 @@ public:
 		TableEntry(EntryType::CONST, entry_value_type, identifier), value_(value) {};
 	
 	void setValue(string value) { value_ = value;  }
-	string& getValue() { return value_;  }
+	virtual string getValue() { return value_;  }
 private:
 	string value_;
 };
@@ -62,7 +63,7 @@ public:
 
 	bool checkSize(vector<int> assign_shape);
 	bool isArray();
-	/*在内存空间中要占用多少自己*/
+	/*在内存空间中要占用多少字节； 对于数组和单个变量都适用的方法*/
 	int ByteSize();
 private:
 	vector<int> shape_;
@@ -100,8 +101,8 @@ private:
 
 
 /*ImmediateEntry*/
+
 class ImmediateEntry : public TableEntry{
-	static int str_cnt;
 public:
 	/*单值立即数的构造函数*/
 	ImmediateEntry(ValueType value_type, string value);
@@ -113,17 +114,17 @@ public:
 	对于Array，断言错误
 	*/
 	virtual string& identifier();
-	string& getValue();
+	virtual string getValue();
 	/*返回用于变量初始化时的花括号列表*/
 	const vector<string>& initializingList();
 
 private:
+	static int str_cnt;
 	string str_name;
 	vector<int> shape_;
 	vector<string> value_;
 };
 
-int ImmediateEntry::str_cnt = 0;
 
 
 /*临时变量项*/

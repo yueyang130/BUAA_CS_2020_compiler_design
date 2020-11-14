@@ -65,6 +65,7 @@ public:
 	const vector<shared_ptr<Quaternion>>& get_quater_list();
 	void show_quaters(ostream& fout);
 	BasicBlock& global_bblock() { return *global_bblock_;  }
+	Function& main() { return *main_;  }
 
 private:
 	IMCode();
