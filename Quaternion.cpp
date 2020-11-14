@@ -100,7 +100,7 @@ string Quaternion::toString() {
 	case QuaternionType::Write:
 		ss << "print ";
 		if (opA_) {
-			ss << "\"" << opA_->identifier() << "\"" << " ";
+			ss << "\"" << opA_->getValue() << "\"" << " ";
 		}
 		if (opB_) {
 			ss << opB_->identifier();

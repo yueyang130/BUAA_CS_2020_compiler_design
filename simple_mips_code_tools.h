@@ -10,11 +10,11 @@ class SimpleMipsFunctionGenerator;
 
 /*dump global var and strcon*/
 /*load global samll var, 需要手动管理offset和align*/
-vector<string> load_global_small_var(Quaternion& quater, map<shared_ptr<VarEntry>, int>& var_offset_map,
+vector<string> load_global_small_var(Quaternion& quater, map<VarEntry*, int>& var_offset_map,
 	unsigned int* p_addr, const unsigned int base_addr);
-/*load global big var, MIPS自动管理word align*/
+/*load global big var, MIPS自动管理地址*/
 string load_global_big_var(Quaternion& quater);
-/*load str*/
+/*load str, MIPS自动管理地址*/
 string load_strcon(ImmediateEntry& inum);
 
 

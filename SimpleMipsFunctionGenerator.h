@@ -14,22 +14,22 @@ simple dump:
 每次要使用变量时load,完成运算后立刻写回内存空间地址
 */
 
-const string reg0 = "$a0";
-const string reg1 = "$a1";
-const string reg2 = "$a2";
+const string reg0 = "$s0";
+const string reg1 = "$s1";
+const string reg2 = "$s2";
 
 class SimpleMipsFunctionGenerator {
 private:
 	// input and output
 	Function& func_;
-	map<shared_ptr<VarEntry>, int>& global_var_offset_map_;
+	map<VarEntry*, int>& global_var_offset_map_;
 	unsigned int* sp;
 	vector<string>& mips_list_;
 
 	/*偏移量*/
 	int offset = 0;
 	/*局部变量和临时变量相对于sp的偏移*/
-	map<shared_ptr<TableEntry>, int> func_var_offset_map_;
+	map<TableEntry*, int> func_var_offset_map_;
 
 	/* 处理局部变量声明，为局部变量在栈中分配内存空间地址 */
 	void map_local_var();
@@ -42,7 +42,7 @@ private:
 	void store_var(shared_ptr<TableEntry> var, string reg);
 
 public:
-	SimpleMipsFunctionGenerator(Function& func, map<shared_ptr<VarEntry>, int>& gb_var_map, vector<string>& mips_list_);
+	SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_);
 	vector<string>& getMipsCode() { return mips_list_; }
 
 };

@@ -5,7 +5,7 @@
 static const int MAXLEN = 1000;
 static char buf[MAXLEN];
 
-vector<string> load_global_small_var(Quaternion& quater, map<shared_ptr<VarEntry>, int>& var_offset_map,
+vector<string> load_global_small_var(Quaternion& quater, map<VarEntry*, int>& var_offset_map,
 	unsigned int * p_addr, const unsigned int base_addr) {
 
 	assert(quater.quater_type_ == QuaternionType::VarDeclare);
@@ -25,13 +25,13 @@ vector<string> load_global_small_var(Quaternion& quater, map<shared_ptr<VarEntry
 				rets.push_back(".align 2");
 			}
 			load_instr += ":.word " + inum.identifier();
-			var_offset_map[p_var] = *p_addr - base_addr;
+			var_offset_map[p_var.get()] = *p_addr - base_addr;
 			*p_addr += 4;
 
 		} else {
 			// byte分配不用对齐
 			load_instr += ":.byte \'" + inum.identifier() + "\'";
-			var_offset_map[p_var] = *p_addr - base_addr;
+			var_offset_map[p_var.get()] = *p_addr - base_addr;
 			*p_addr += 1;
 		}
 
@@ -44,13 +44,13 @@ vector<string> load_global_small_var(Quaternion& quater, map<shared_ptr<VarEntry
 				rets.push_back(".align 2");
 			}
 			load_instr += ":.space 4";
-			var_offset_map[p_var] = *p_addr - base_addr;
+			var_offset_map[p_var.get()] = *p_addr - base_addr;
 			*p_addr += 4;
 
 		} else {
 			// byte分配不用对齐
 			load_instr += ":.space 1";
-			var_offset_map[p_var] = *p_addr - base_addr;
+			var_offset_map[p_var.get()] = *p_addr - base_addr;
 			*p_addr += 1;
 		}
 	}
@@ -138,17 +138,17 @@ void conditional_jump(string reg1, string reg2, string label, QuaternionType typ
 	string instr;
 	switch (type) {
 	case QuaternionType::BEQ:
-		instr = "beq";
+		instr = "beq"; break;
 	case QuaternionType::BNE:
-		instr = "bne";
+		instr = "bne"; break;
 	case QuaternionType::BLT:
-		instr = "blt";
+		instr = "blt"; break;
 	case QuaternionType::BLE:
-		instr = "ble";
+		instr = "ble"; break;
 	case QuaternionType::BGT:
-		instr = "bgt";
+		instr = "bgt"; break;
 	case QuaternionType::BGE:
-		instr = "bge";
+		instr = "bge"; break;
 	default:
 		instr = "error";
 	}
@@ -221,6 +221,6 @@ void write_expr(ValueType type, vector<string>& mips_list) {
 
 void write_lf(vector<string>& mips_list) {
 	mips_list.push_back("la $v0, 11");
-	mips_list.push_back("la $a0, \'\n\'");
+	mips_list.push_back("la $a0, \'\\n\'");
 	mips_list.push_back("syscall");
 }

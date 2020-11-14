@@ -42,7 +42,7 @@ private:
 	vector<string> MipsCode_list_;
 	
 	/*int,char类型的全局变量相对于$gp的偏移*/
-	map<shared_ptr<VarEntry>, int> gb_small_var_offset_map_;
+	map<VarEntry*, int> gb_small_var_offset_map_;
 	/*samll global var的分配地址*/
 	unsigned int _pglobal = GP_ADDR;
 	/*array类型的全局变量和String常量的绝对地址无需我们管理，MIPS自动管理*/

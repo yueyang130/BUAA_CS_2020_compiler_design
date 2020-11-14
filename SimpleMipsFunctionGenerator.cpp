@@ -4,7 +4,6 @@ void SimpleMipsFunctionGenerator::map_local_var() {
 	for (auto& quater : func_.get_quater_list()) {
 		if (quater->quater_type_ == QuaternionType::VarDeclare) {
 			auto entry = dynamic_pointer_cast<VarEntry>(quater->result_);
-			func_var_offset_map_[entry] = offset;
 			
 			if (quater->opA_.get()) {  // 是否有初始化
 				auto inum = dynamic_pointer_cast<ImmediateEntry>(quater->opA_);
@@ -24,6 +23,9 @@ void SimpleMipsFunctionGenerator::map_local_var() {
 			// 无论有没有初始化，都要在偏移量中加上数组的字节大小
 			// ,因此不能通过初始化循环来计算byte_size
 			offset += entry->ByteSize();
+			// 先把当前变量的size加入offset，再map var to offset
+			func_var_offset_map_[entry.get()] = offset;
+
 		}
 	}
 }
@@ -33,8 +35,8 @@ void SimpleMipsFunctionGenerator::map_temp_var() {
 		// 目前只考虑出现在左值的临时编变量
 		auto entry = quater->result_;
 		if (isTempVar(entry)) {
-			func_var_offset_map_[entry] = offset;
 			offset += (entry->value_type() == ValueType::INTV) ? 4 : 1;
+			func_var_offset_map_[entry.get()] = offset;
 		}
 	}
 }
@@ -42,14 +44,14 @@ void SimpleMipsFunctionGenerator::map_temp_var() {
 void SimpleMipsFunctionGenerator::load_var(shared_ptr<TableEntry> var, string reg) {
 	EntryType type = var->entry_type();
 	if (type == EntryType::TEMP || type == EntryType::VAR) {
-		auto it = func_var_offset_map_.find(var);
+		auto it = func_var_offset_map_.find(var.get());
 		if (it != func_var_offset_map_.end()) {
 			int offset = it->second;
 			mips_load_mem(reg, "$sp", -offset, mips_list_);
 			return;
 		}
 
-		auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var));
+		auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 		if (it2 != global_var_offset_map_.end()) {
 			int offset = it->second;
 			mips_load_mem(reg, "$gp", offset, mips_list_);
@@ -63,26 +65,27 @@ void SimpleMipsFunctionGenerator::load_var(shared_ptr<TableEntry> var, string re
 }
 
 void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string reg) {
-	auto it = func_var_offset_map_.find(var);
+	auto it = func_var_offset_map_.find(var.get());
 	if (it != func_var_offset_map_.end()) {
 		int offset = it->second;
 		mips_store(reg, "$sp", -offset, mips_list_);
 		return;
 	}
 
-	auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var));
+	auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 	if (it2 != global_var_offset_map_.end()) {
 		int offset = it->second;
 		mips_store(reg, "$gp", offset, mips_list_);
 		return;
 	}
-
-	exit(1);
+	
+	cout << "the variable can not be found in global and local var map";
+	exit(EXIT_FAILURE);
 
 }
 
 
-SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<shared_ptr<VarEntry>, int>& gb_var_map, vector<string>& mips_list) :
+SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list) :
 	func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list)
 {
 	map_local_var();
@@ -112,8 +115,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<sha
 		case BLE: case BGT: case BGE:
 			this->load_var(opA, reg1);
 			this->load_var(opB, reg2);
-			alu(reg0, reg1, reg2, quater_type, mips_list_);
-			this->store_var(result, reg0);
+			conditional_jump(reg1, reg2, result->identifier(), quater_type, mips_list_);
 			break;
 		case Goto:
 			j(*quater, mips_list_);
@@ -140,8 +142,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<sha
 			break;
 
 		case Assign:
-			this->load_var(opA, reg1);
-			mips_load_reg(reg0, reg1, mips_list_);
+			this->load_var(opA, reg0);
 			this->store_var(result, reg0);
 			break;
 

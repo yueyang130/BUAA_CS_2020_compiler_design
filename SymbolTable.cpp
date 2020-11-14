@@ -81,13 +81,17 @@ ImmediateEntry::ImmediateEntry(ValueType value_type, string value)
 	: TableEntry(EntryType::IMMEDIATE, value_type, "")
 {
 	value_.push_back(value);
-	str_name = string("#str" + to_string(++str_cnt));
+	if (value_type == ValueType::STRINGV) {
+		str_name = string("#str" + to_string(++str_cnt));
+	}
 }
 
 ImmediateEntry::ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
 	TableEntry(EntryType::IMMEDIATE, value_type, ""), shape_(shape), value_(value)
 {
-	str_name = string("#str" + to_string(++str_cnt));
+	if (value_type == ValueType::STRINGV) {
+		str_name = string("#str" + to_string(++str_cnt));
+	}
 }
 
 /**
