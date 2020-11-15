@@ -2,7 +2,7 @@
 #include"tools.h"
 
 
-const vector<shared_ptr<Quaternion>>& BasicBlock::get_quater_list() {
+vector<shared_ptr<Quaternion>>& BasicBlock::get_quater_list() {
 	return quater_list_;
 }
 

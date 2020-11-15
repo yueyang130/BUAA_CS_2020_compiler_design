@@ -107,7 +107,12 @@ void ExprTransformer::calulate(char op) {
 	auto temp = make_shared<TempEntry>(t_name);
 	switch (op) {
 	case '+':
-		if (left == nullptr) { return; }
+		//if (left == nullptr) { return; }
+		if (left == nullptr) {
+			// 首先要把弹出opB给压栈回去
+			this->value_stack_.push_back(right);
+			return;
+		}
 		quater = QuaternionFactory::Add(temp, left, right);
 		break;
 	case '-':

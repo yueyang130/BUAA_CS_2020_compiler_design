@@ -1117,19 +1117,47 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	pop_sym();
 	check(symbolType::LPARENT);
 	pop_sym();
+
 	ValueType switch_value_type = Expr();
+	auto expr = expr_trsf->pop();
 	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
-	CaseList(p_exsit_return, return_value_type, switch_value_type);
+
+	vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>> case_list;
+	auto& quater_list = im_coder_.curr_bblock()->get_quater_list();
+	// 向顺序容器插入元素可能会使所有指向容器的迭代器，引用和指针失效； 参见PrimerC++ P315
+	//auto iter = quater_list.end();
+	auto& back_elem = quater_list.back();
+
+	auto endswitch_label = make_shared<LabelEntry>(this->new_label());
+
+	CaseList(p_exsit_return, return_value_type, switch_value_type, case_list, endswitch_label);
+
+	// 插入多个跳转语句的中间代码
+	vector<shared_ptr<Quaternion>> jump_list;
+	for (auto it : case_list) {
+		jump_list.push_back(QuaternionFactory::BEQ(it.first,expr ,it.second));
+	}
+	auto default_label = make_shared<LabelEntry>(this->new_label());
+	jump_list.push_back(QuaternionFactory::Goto(default_label));
+	auto it = quater_list.begin();
+	for (; (*it).get() != back_elem.get(); it++) {}
+	quater_list.insert(it + 1, jump_list.begin(), jump_list.end());
 
 	// 检查是否缺少缺省语句
 	if (equal(symbolType::DEFAULTTK)) {
+		im_coder_.addQuater(QuaternionFactory::Label(default_label));
 		SwitchDefault(p_exsit_return, return_value_type);
 	}
 	else {
 		addErrorInfor(ErrorType::MissDefault);
 	}
+
+	// 生成结束标签
+	im_coder_.addQuater(QuaternionFactory::Label(endswitch_label));
+
+
 	check(symbolType::RBRACE);
 	pop_sym();
 	output_list_.push_back("<情况语句>");
@@ -1138,10 +1166,11 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 /**
 ＜情况表＞   ::=  ＜情况子语句＞{＜情况子语句＞}
 */
-void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type) {
-	CaseStatement(p_exsit_return, return_value_type, switch_value_type);
+void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type
+		, vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>>& case_list, shared_ptr<LabelEntry> endswitch_label) {
+	CaseStatement(p_exsit_return, return_value_type, switch_value_type, case_list, endswitch_label);
 	while (equal(symbolType::CASETK)) {
-		CaseStatement(p_exsit_return, return_value_type, switch_value_type);
+		CaseStatement(p_exsit_return, return_value_type, switch_value_type, case_list, endswitch_label);
 	}
 	output_list_.push_back("<情况表>");
 }
@@ -1150,14 +1179,25 @@ void GrammerAnalyzer::CaseList(bool* p_exsit_return, ValueType return_value_type
 ＜情况子语句＞  ::=  case＜常量＞：＜语句＞
 ＜常量＞   ::=  ＜整数＞|＜字符＞
 */
-void GrammerAnalyzer::CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type) {
+void GrammerAnalyzer::CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type
+		, vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>>& case_list, shared_ptr<LabelEntry> endswitch_label) {
 	check(symbolType::CASETK);
 	pop_sym();
-	ConstValue(switch_value_type);
+	string value = ConstValue(switch_value_type);
+
+	// 生成case分支标签的中间代码
+	auto label_entry = make_shared<LabelEntry>(this->new_label());
+	auto inum_entry = make_shared<ImmediateEntry>(switch_value_type, value);
+	im_coder_.addQuater(QuaternionFactory::Label(label_entry));
+	case_list.push_back(make_pair(label_entry, inum_entry));
+
 	check(symbolType::COLON);
 	pop_sym();
 	Statement(p_exsit_return, return_value_type);
 	output_list_.push_back("<情况子语句>");
+
+	// 生成跳转到switch end的goto中间代码
+	im_coder_.addQuater(QuaternionFactory::Goto(endswitch_label));
 }
 
 /**
@@ -1188,8 +1228,6 @@ void GrammerAnalyzer::CallFunc() {
 			pop_sym();
 		}
 	}
-	
-
 }
 
 /**

@@ -79,19 +79,27 @@ int ImmediateEntry::str_cnt = 0;
 
 ImmediateEntry::ImmediateEntry(ValueType value_type, string value)
 	: TableEntry(EntryType::IMMEDIATE, value_type, "")
-{
-	value_.push_back(value);
+{	
 	if (value_type == ValueType::STRINGV) {
 		str_name = string(".str" + to_string(++str_cnt));
 	}
+	if (this->value_type() == ValueType::CHARV) {
+		value =  "\'" + value + "\'";
+	}
+	value_.push_back(value);
+
 }
 
 ImmediateEntry::ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value) :
-	TableEntry(EntryType::IMMEDIATE, value_type, ""), shape_(shape), value_(value)
+	TableEntry(EntryType::IMMEDIATE, value_type, ""), shape_(shape)
 {
 	if (value_type == ValueType::STRINGV) {
 		str_name = string(".str" + to_string(++str_cnt));
 	}
+	if (this->value_type() == ValueType::CHARV) {
+		value[0] = "\'" + value[0] + "\'";
+	}
+	value_ = value;
 }
 
 /**
@@ -107,9 +115,6 @@ string& ImmediateEntry::identifier() {
 
 string ImmediateEntry::getValue() {
 	assert(this->shape_.empty());
-	if (this->value_type() == ValueType::CHARV) {
-		return "\'" + value_[0] + "\'";
-	}
 	return value_[0];
 }
 

@@ -136,8 +136,10 @@ private:
 	void LoopStatement(bool* p_exsit_return, ValueType return_value_type);
 	int Step();
 	void SwitchStatement(bool* p_exsit_return, ValueType return_value_type);
-	void CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
-	void CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type);
+	void CaseList(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type
+			, vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>>& case_list, shared_ptr<LabelEntry> endswitch_label);
+	void CaseStatement(bool* p_exsit_return, ValueType return_value_type, ValueType switch_value_type
+			, vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>>& case_list, shared_ptr<LabelEntry> endswitch_label);
 	void SwitchDefault(bool* p_exsit_return, ValueType return_value_type);
 	void CallFunc();
 	void CallWithReturn(shared_ptr<FunctionEntry> p_entry);
@@ -148,6 +150,9 @@ private:
 	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);
 
 	/*中间代码生成支持函数*/
+	/*将当前的this->expr_transformer指向new expr_transformer,计算完表达式后，再切换为原来的transfomer*/
+	/*用于表达式嵌套的情形如表达式中存在带参数的函数调用，而参数又是表达式*/
+	/*对于简单的括号嵌套，expr_transfomer本身就可以处理，不需要用到此函数*/
 	void transformNestedExpr(ValueType* p_type, shared_ptr<TableEntry>* p_entry_ptr);
 	/*根据跳转类型(条件为真跳转/条件为假跳转)和条件类型(==,!=,>,...)生成跳转的四元式*/
 	shared_ptr<Quaternion> jump(symbolType jump_type, symbolType condition_type, 

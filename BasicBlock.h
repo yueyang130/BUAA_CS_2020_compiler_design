@@ -24,7 +24,7 @@ public:
 	void addPrevSet(shared_ptr<BasicBlock> bblock) { pre_set_.insert(bblock);  }
 	void addNextSet(shared_ptr<BasicBlock> bblock) { next_set_.insert(bblock); }
 	void addQuater(shared_ptr<Quaternion> quater) { quater_list_.push_back(quater); }
-	const vector<shared_ptr<Quaternion>>& get_quater_list();
+	vector<shared_ptr<Quaternion>>& get_quater_list();
 
 private:
 	set<shared_ptr<BasicBlock>> pre_set_;
@@ -63,10 +63,13 @@ public:
 	/*向curr_bblock中添加四元式*/
 	void addQuater(shared_ptr<Quaternion> quater) { curr_bblock_->addQuater(quater); }
 	shared_ptr<BasicBlock> curr_bblock() { return curr_bblock_; }
+	BasicBlock& global_bblock() { return *global_bblock_; }
+	Function& main() { return *main_; }
+
+	/*在整个文件的中间代码全部生成完毕后，才能调用此函数返回一个完整的列表*/
 	const vector<shared_ptr<Quaternion>>& get_quater_list();
 	void show_quaters(ostream& fout);
-	BasicBlock& global_bblock() { return *global_bblock_;  }
-	Function& main() { return *main_;  }
+	
 
 private:
 	IMCode();
