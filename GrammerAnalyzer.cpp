@@ -693,6 +693,7 @@ void GrammerAnalyzer::Main() {
 	check(symbolType::RBRACE);
 	pop_sym();
 
+
 	// 重定位操作
 	sym_table_.reset();
 
@@ -968,24 +969,31 @@ void GrammerAnalyzer::AssignStatement() {
 ＜条件语句＞  ::= if '('＜条件＞')'＜语句＞［else＜语句＞］
 */
 void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_type) {
-	auto label_entry = make_shared<LabelEntry>(this->new_label());
+	auto label_entry1 = make_shared<LabelEntry>(this->new_label());
 	
 	check(symbolType::IFTK);
 	pop_sym();
 	check(symbolType::LPARENT);
 	pop_sym();
 	// 在Condition中生成跳转四元式
-	Condition(IFTK, label_entry);
+	Condition(IFTK, label_entry1);
 	checkMissRparent();
 
 	Statement(p_exsit_return, return_value_type);
 
-	// 生成标签四元式
-	im_coder_.addQuater(QuaternionFactory::Label(label_entry));
 
 	if (equal(symbolType::ELSETK)) {
+		auto label_entry2 = make_shared<LabelEntry>(this->new_label());
+		im_coder_.addQuater(QuaternionFactory::Goto(label_entry2));
+		// 生成标签四元式
+		im_coder_.addQuater(QuaternionFactory::Label(label_entry1));
 		pop_sym();
 		Statement(p_exsit_return, return_value_type);
+		// 生成标签四元式
+		im_coder_.addQuater(QuaternionFactory::Label(label_entry2));
+	} else {
+		// 生成标签四元式
+		im_coder_.addQuater(QuaternionFactory::Label(label_entry1));
 	}
 	output_list_.push_back("<条件语句>");
 }
@@ -1044,11 +1052,14 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		pop_sym();
 		// ＜标识符＞＝＜表达式＞
 		check(IDENFR);
-		checkUndefine();
+		shared_ptr<TableEntry> p_entry = checkUndefine();
+		expr_trsf->push_value(p_entry);
 		pop_sym();
 		check(ASSIGN);
+		expr_trsf->push_op('=');
 		pop_sym();
 		Expr();
+		expr_trsf->pop();
 		checkMissSemi();
 		// 生成 设置循环体开始标签的四元式
 		im_coder_.addQuater(QuaternionFactory::Label(begin_label));
@@ -1364,6 +1375,10 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 			checkMissRparent();
 		}
 	}
+
+	// 生成四元式
+	im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
+
 	output_list_.push_back("<返回语句>");
 }
 

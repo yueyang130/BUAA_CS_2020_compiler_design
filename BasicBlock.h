@@ -40,6 +40,7 @@ public:
 
 	void addBBlock(shared_ptr<BasicBlock>& bblock) { bblock_list_.push_back(bblock); }
 	const vector<shared_ptr<Quaternion>>& get_quater_list();
+	string name() { return func_name_;  }
 
 private:
 	string func_name_;

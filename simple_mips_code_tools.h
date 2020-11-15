@@ -19,14 +19,14 @@ string load_strcon(ImmediateEntry& inum);
 
 
 /*memory load and store*/
-// lw reg1, offset(reg2)
-void mips_load_mem(string reg1, string reg2, int offset, vector<string>& mips_list);
+// lw reg1, offset(reg2) | lb
+void mips_load_mem(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list);
 // la reg1, inum || la reg1, label
 void mips_load_num(string reg1, string source, vector<string>& mips_list);
 // move reg1, reg2
 void mips_load_reg(string reg1, string reg2, vector<string>& mips_list);
-// sw reg1, offset(reg2)
-void mips_store(string reg1, string reg2, int offset, vector<string>& mips_list);
+// sw reg1, offset(reg2) | sb
+void mips_store(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list);
 
 
 /*label and jump*/
@@ -53,6 +53,10 @@ void write_str(string str_name, vector<string>& mips_list);
 void write_expr(ValueType type, vector<string>& mips_list);
 // Êä³ö»»ÐÐ
 void write_lf(vector<string>& mips_list);
+
+/*function*/
+void mips_return(bool ismain, vector<string>& mips_list);
+
 
 #endif // !MIPS_CODE_TOOLS
 

@@ -52,10 +52,10 @@ void MipsGenerator::dump_global_and_strcon() {
 	}
 
 	// add to mips_list
-	sprintf(buf, ".data %08x", GP_ADDR);
+	sprintf(buf, ".data 0x%08x", GP_ADDR);
 	MipsCode_list_.push_back(buf);
 	MipsCode_list_.insert(MipsCode_list_.end(), small_var_list.begin(), small_var_list.end());
-	sprintf(buf, ".data %08x", DATA_ADDR);
+	sprintf(buf, ".data 0x%08x", DATA_ADDR);
 	MipsCode_list_.push_back(buf);
 	MipsCode_list_.insert(MipsCode_list_.end(), big_var_list.begin(), big_var_list.end());
 	MipsCode_list_.insert(MipsCode_list_.end(), str_list.begin(), str_list.end());
@@ -64,7 +64,10 @@ void MipsGenerator::dump_global_and_strcon() {
 }
 
 void MipsGenerator::dump_main() {
-	SimpleMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);;
+	SimpleMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);
+	MipsCode_list_.push_back(".exit:");
+	MipsCode_list_.push_back("li $v0, 10");
+	MipsCode_list_.push_back("syscall");
 }
 
 void dump_strcon(shared_ptr<TableEntry> p_entry, vector<string>& instr_list) {

@@ -13,7 +13,7 @@ enum QuaternionType {
 	// 函数声明
 	FuncDeclareHead,		//		func
 	FuncFormalParam,		//		var
-	FuncReturn,				//									var
+	FuncReturn,				//		var/ null
 	// 函数调用
 	FuncParamPush,			//								var/const/i
 	FuncCall,				//									func
@@ -28,7 +28,7 @@ enum QuaternionType {
 	BLE,
 	BGT,
 	BGE,
-	Goto,					//									label
+	Goto,					//		label
 	// 设置标签
 	Label,					//		label
 	// 数组

@@ -1,30 +1,42 @@
 #include "SimpleMipsFunctionGenerator.h"
+#include "tools.h"
 
 void SimpleMipsFunctionGenerator::map_local_var() {
 	for (auto& quater : func_.get_quater_list()) {
 		if (quater->quater_type_ == QuaternionType::VarDeclare) {
 			auto entry = dynamic_pointer_cast<VarEntry>(quater->result_);
+			ValueType value_type = entry->value_type();
 			
+			// 无论有没有初始化，都要在偏移量中加上数组的字节大小
+				// ,因此不能通过初始化循环来计算byte_size
+			offset += entry->ByteSize();
+			// int要字对齐
+			if (entry->value_type() == ValueType::INTV) {
+				int ret = offset % 4;
+				if (ret != 0) {
+					offset = offset - ret + 4;
+				}
+			}
+			// 先把当前变量的size加入offset，再map var to offset
+			func_var_offset_map_[entry.get()] = offset;
+
 			if (quater->opA_.get()) {  // 是否有初始化
 				auto inum = dynamic_pointer_cast<ImmediateEntry>(quater->opA_);
 				int unit_byte = (entry->value_type() == ValueType::INTV) ? 4 : 1;
+
 				if (entry->isArray()) {
 					int a_off = 0;
 					for (string value : inum->initializingList()) {
 						mips_load_num(reg0, value, mips_list_);
-						mips_store(reg0, "$sp", -(offset + a_off), mips_list_);
+						mips_store(reg0, "$sp", -offset + a_off, value_type, mips_list_);
 						a_off += unit_byte;
 					}
 				} else {
 					mips_load_num(reg0, inum->getValue(), mips_list_);
-					mips_store(reg0, "$sp", -offset, mips_list_);
+					mips_store(reg0, "$sp", -offset, value_type, mips_list_);
 				}
 			}
-			// 无论有没有初始化，都要在偏移量中加上数组的字节大小
-			// ,因此不能通过初始化循环来计算byte_size
-			offset += entry->ByteSize();
-			// 先把当前变量的size加入offset，再map var to offset
-			func_var_offset_map_[entry.get()] = offset;
+			
 
 		}
 	}
@@ -36,46 +48,54 @@ void SimpleMipsFunctionGenerator::map_temp_var() {
 		auto entry = quater->result_;
 		if (isTempVar(entry)) {
 			offset += (entry->value_type() == ValueType::INTV) ? 4 : 1;
+			if (entry->value_type() == ValueType::INTV) {
+				int ret = offset % 4;
+				if (ret != 0) {
+					offset = offset - ret + 4;
+				}
+			}
 			func_var_offset_map_[entry.get()] = offset;
 		}
 	}
 }
 
 void SimpleMipsFunctionGenerator::load_var(shared_ptr<TableEntry> var, string reg) {
-	EntryType type = var->entry_type();
-	if (type == EntryType::TEMP || type == EntryType::VAR) {
+	EntryType entry_type = var->entry_type();
+	ValueType value_type = var->value_type();
+	if (entry_type == EntryType::TEMP || entry_type == EntryType::VAR) {
 		auto it = func_var_offset_map_.find(var.get());
 		if (it != func_var_offset_map_.end()) {
 			int offset = it->second;
-			mips_load_mem(reg, "$sp", -offset, mips_list_);
+			mips_load_mem(reg, "$sp", -offset, value_type, mips_list_);
 			return;
 		}
 
 		auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 		if (it2 != global_var_offset_map_.end()) {
 			int offset = it->second;
-			mips_load_mem(reg, "$gp", offset, mips_list_);
+			mips_load_mem(reg, "$gp", offset, value_type,mips_list_);
 			return;
 		}
 	}
-	else if (type == EntryType::CONST || type == EntryType::IMMEDIATE) {
+	else if (entry_type == EntryType::CONST || entry_type == EntryType::IMMEDIATE) {
 		string value = var->getValue();
 		mips_load_num(reg, value, mips_list_);
 	}
 }
 
 void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string reg) {
+	ValueType value_type = var->value_type();
 	auto it = func_var_offset_map_.find(var.get());
 	if (it != func_var_offset_map_.end()) {
 		int offset = it->second;
-		mips_store(reg, "$sp", -offset, mips_list_);
+		mips_store(reg, "$sp", -offset, value_type,mips_list_);
 		return;
 	}
 
 	auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 	if (it2 != global_var_offset_map_.end()) {
 		int offset = it->second;
-		mips_store(reg, "$gp", offset, mips_list_);
+		mips_store(reg, "$gp", offset, value_type,mips_list_);
 		return;
 	}
 	
@@ -104,7 +124,11 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		case FuncFormalParam:
 			break;
 		case FuncReturn:
+		{
+			bool ismain = strcmp_wo_case(func_.name(), "main");
+			mips_return(ismain, mips_list_);
 			break;
+		}
 		case FuncParamPush:
 			break;
 		case FuncCall:
@@ -149,6 +173,10 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		case Read:
 			read(result->value_type(), mips_list_);
 			this->store_var(result, "$v0");
+			// 如果是读取字符，还需要读取回车
+			if (result->value_type() == ValueType::CHARV) {
+				read(ValueType::CHARV, mips_list_);
+			}
 			break;
 
 		case Write:

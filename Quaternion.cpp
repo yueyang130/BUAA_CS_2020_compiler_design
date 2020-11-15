@@ -17,7 +17,8 @@ string Quaternion::toString() {
 		ss << "para " << ValuetypeToString(result_->value_type()) << " " << result_->identifier();
 		break;
 	case QuaternionType::FuncReturn:
-		ss << "return " << opA_->identifier();
+		//ss << "return " << opA_->identifier();
+		ss << "return ";
 		break;
 	case QuaternionType::FuncParamPush:
 		ss << "push " << opA_->identifier();
@@ -59,7 +60,7 @@ string Quaternion::toString() {
 		ss << opA_->identifier() << " >= " << opB_->identifier() << ", GOTO " << result_->identifier();
 		break;
 	case QuaternionType::Goto:
-		ss << "GOTO " << opA_->identifier();
+		ss << "GOTO " << result_->identifier();
 		break;
 	//case QuaternionType::Bnz:
 	//	ss << "BNZ " << left_->identifier();
@@ -123,7 +124,7 @@ shared_ptr<Quaternion> QuaternionFactory::FuncFormalParam(shared_ptr<TableEntry>
 }
 
 shared_ptr<Quaternion> QuaternionFactory::FuncReturn(shared_ptr<TableEntry> var) {
-	return make_shared<Quaternion>(QuaternionType::FuncReturn, nullptr, var, nullptr);
+	return make_shared<Quaternion>(QuaternionType::FuncReturn, var, nullptr, nullptr);
 }
 
 shared_ptr<Quaternion> QuaternionFactory::FuncParamPush(shared_ptr<TableEntry> var) {
@@ -172,7 +173,7 @@ shared_ptr<Quaternion> QuaternionFactory::BGE(shared_ptr<TableEntry>result, shar
 }
 
 shared_ptr<Quaternion> QuaternionFactory::Goto(shared_ptr<TableEntry> label) {
-	return make_shared<Quaternion>(QuaternionType::Goto, nullptr, label, nullptr);
+	return make_shared<Quaternion>(QuaternionType::Goto, label, nullptr, nullptr);
 }
 
 //shared_ptr<Quaternion> QuaternionFactory::Bnz(shared_ptr<TableEntry> label) {

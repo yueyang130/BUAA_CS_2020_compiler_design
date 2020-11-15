@@ -108,8 +108,12 @@ string load_strcon(ImmediateEntry& inum) {
 	return ret;
 }
 
-void mips_load_mem(string reg1, string reg2, int offset, vector<string>& mips_list) {
-	sprintf(buf, "lw %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+void mips_load_mem(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list) {
+	if (type == ValueType::INTV) {
+		sprintf(buf, "lw %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+	} else {
+		sprintf(buf, "lb %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+	}
 	mips_list.push_back(buf);
 }
 
@@ -123,8 +127,12 @@ void mips_load_reg(string reg1, string reg2, vector<string>& mips_list) {
 	mips_list.push_back(buf);
 }
 
-void mips_store(string reg1, string reg2, int offset, vector<string>& mips_list) {
-	sprintf(buf, "sw %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+void mips_store(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list) {
+	if (type == ValueType::INTV) {
+		sprintf(buf, "sw %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+	} else {
+		sprintf(buf, "sb %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+	}
 	mips_list.push_back(buf);
 }
 
@@ -195,10 +203,11 @@ void alu(string result, string left, string right, QuaternionType quater_type, v
 void read(ValueType type, vector<string>& mips_list) {
 	if (type == ValueType::INTV) {
 		mips_list.push_back("li $v0, 5");
+		mips_list.push_back("syscall");
 	} else {
 		mips_list.push_back("li $v0, 12");
+		mips_list.push_back("syscall");
 	}
-	mips_list.push_back("syscall");
 }
 
 void write_str(string str_name, vector<string>& mips_list) {
@@ -223,4 +232,10 @@ void write_lf(vector<string>& mips_list) {
 	mips_list.push_back("la $v0, 11");
 	mips_list.push_back("la $a0, \'\\n\'");
 	mips_list.push_back("syscall");
+}
+
+void mips_return(bool ismain, vector<string>& mips_list) {
+	if (ismain) {
+		mips_list.push_back("j .exit");
+	}
 }
