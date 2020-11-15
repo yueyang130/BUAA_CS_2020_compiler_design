@@ -30,7 +30,7 @@ vector<string> load_global_small_var(Quaternion& quater, map<VarEntry*, int>& va
 
 		} else {
 			// byte分配不用对齐
-			load_instr += ":.byte \'" + inum.identifier() + "\'";
+			load_instr += ":.byte " + inum.identifier();
 			var_offset_map[p_var.get()] = *p_addr - base_addr;
 			*p_addr += 1;
 		}

@@ -824,8 +824,8 @@ ValueType GrammerAnalyzer::Factor() {
 		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
-		pop_sym();
 		expr_trsf->push_value(make_shared<ImmediateEntry>(ValueType::CHARV, curr_sym_str()));
+		pop_sym();
 		factor_value_type = ValueType::CHARV;
 	} else if (equal(symbolType::PLUS, symbolType(MINU)) || equal(symbolType::INTCON)) {	// ＜整数＞
 		int int_value = Int();
@@ -1085,6 +1085,8 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		// 步长语句的四元式
 		if (op == symbolType::PLUS) {
 			im_coder_.addQuater(QuaternionFactory::Add(left_idenf, right_idenf, immediate));
+		} else if (op == symbolType::MINU) {
+			im_coder_.addQuater(QuaternionFactory::Sub(left_idenf, right_idenf, immediate));
 		}
 
 	} else { error(); }

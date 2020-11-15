@@ -160,7 +160,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 			break;
 
 		case Neg:
-			this->load_var(opB, reg2);
+			this->load_var(opA, reg2);
 			alu(reg0, "$zero", reg2, quater_type, mips_list_);
 			this->store_var(result, reg0);
 			break;
