@@ -72,7 +72,7 @@ void SimpleMipsFunctionGenerator::load_var(shared_ptr<TableEntry> var, string re
 
 		auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 		if (it2 != global_var_offset_map_.end()) {
-			int offset = it->second;
+			int offset = it2->second;
 			mips_load_mem(reg, "$gp", offset, value_type,mips_list_);
 			return;
 		}
@@ -94,7 +94,7 @@ void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string r
 
 	auto it2 = global_var_offset_map_.find(dynamic_pointer_cast<VarEntry>(var).get());
 	if (it2 != global_var_offset_map_.end()) {
-		int offset = it->second;
+		int offset = it2->second;
 		mips_store(reg, "$gp", offset, value_type,mips_list_);
 		return;
 	}

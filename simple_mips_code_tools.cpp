@@ -63,7 +63,8 @@ string load_global_big_var(Quaternion& quater) {
 	assert(quater.quater_type_ == QuaternionType::VarDeclare);
 	VarEntry& var = *dynamic_pointer_cast<VarEntry>(quater.result_);
 	ValueType type = var.value_type();
-	stringstream ret = stringstream(var.identifier());
+	stringstream ret = stringstream();
+	ret << var.identifier();
 	//int byte_size = 0;
 
 	// ÓÐ³õÊ¼»¯
@@ -79,7 +80,7 @@ string load_global_big_var(Quaternion& quater) {
 		} else {
 			ret << ":.byte ";
 			for (auto& x : inum.initializingList()) {
-				ret << "\'" << x << "\', ";
+				ret  << x << ", ";
 				//byte_size += 1;
 			}
 		}

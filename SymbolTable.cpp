@@ -13,6 +13,23 @@ TableEntry::TableEntry(EntryType entry_type, ValueType entry_value_type, string 
 }
 
 /******************************************** ConstEntry ********************************************************/
+ConstEntry::ConstEntry(ValueType entry_value_type, string identifier, string value):
+	TableEntry(EntryType::CONST, entry_value_type, identifier)  {
+
+	if (entry_value_type == ValueType::CHARV) {
+		value = "\'" + value + "\'";
+	}
+	value_ = value;
+}
+void ConstEntry::setValue(string value) {
+	if (this->value_type() == ValueType::CHARV) {
+		value = "\'" + value + "\'";
+	}
+	value_ = value;
+}
+
+
+
 //string ConstEntry::getValue() {
 //	stringstream ss;
 //	if (this->shape_.empty()) {
@@ -97,7 +114,9 @@ ImmediateEntry::ImmediateEntry(ValueType value_type, vector<int>& shape, vector<
 		str_name = string(".str" + to_string(++str_cnt));
 	}
 	if (this->value_type() == ValueType::CHARV) {
-		value[0] = "\'" + value[0] + "\'";
+		for (string& x : value) {
+			x = "\'" + x + "\'";
+		}
 	}
 	value_ = value;
 }
@@ -213,3 +232,4 @@ string SymbolTable::getUnsedName() {
 		}
 	}
 }
+

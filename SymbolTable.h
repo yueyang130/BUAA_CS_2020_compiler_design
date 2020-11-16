@@ -41,10 +41,10 @@ public:
 	/*＜常量定义＞   ::=   int＜标识符＞＝＜整数＞{,＜标识符＞＝＜整数＞}  
                   | char＜标识符＞＝＜字符＞{,＜标识符＞＝＜字符＞}  
 	*/
-	ConstEntry(ValueType entry_value_type, string identifier, string value = "") :
-		TableEntry(EntryType::CONST, entry_value_type, identifier), value_(value) {};
+	ConstEntry(ValueType entry_value_type, string identifier, string value = "");
+		
 	
-	void setValue(string value) { value_ = value;  }
+	void setValue(string value);
 	virtual string getValue() { return value_;  }
 private:
 	string value_;
