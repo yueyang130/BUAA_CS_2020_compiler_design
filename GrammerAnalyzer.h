@@ -34,11 +34,8 @@ private:
 	LexicalAnalyzer& lexical_analyzer_;
 	/*中间代码生成器*/
 	IMCode& im_coder_;
-	/*表达式转四元式器*/
-	/*只实现了对二元运算符+-* /()[]的转化 */
-	/*对于a + fun(exp1)等，需要z在计算expr1时用新的解析器代替旧的，
-	解析完后再替换回来*/
-	shared_ptr<ExprTransformer> expr_trsf;
+	/*栈式虚拟机*/
+	vector<shared_ptr<TableEntry>> stack_;
 	/*输出结果列表*/
 	vector<string> output_list_;
 
@@ -150,10 +147,13 @@ private:
 	void ReturnStatement(bool* p_exsit_return, ValueType return_value_type);
 
 	/*中间代码生成支持函数*/
-	/*将当前的this->expr_transformer指向new expr_transformer,计算完表达式后，再切换为原来的transfomer*/
-	/*用于表达式嵌套的情形如表达式中存在带参数的函数调用，而参数又是表达式*/
-	/*对于简单的括号嵌套，expr_transfomer本身就可以处理，不需要用到此函数*/
-	void transformNestedExpr(ValueType* p_type, shared_ptr<TableEntry>* p_entry_ptr);
+	// 对栈的操作
+	void stack_push(shared_ptr<TableEntry> opA);
+	shared_ptr<Quaternion> stack_alu(symbolType alu_type);
+
+	int temp_cnt = 0;
+	string new_temp() { return "@t" + to_string(temp_cnt++); }
+
 	/*根据跳转类型(条件为真跳转/条件为假跳转)和条件类型(==,!=,>,...)生成跳转的四元式*/
 	shared_ptr<Quaternion> jump(symbolType jump_type, symbolType condition_type, 
 		shared_ptr<LabelEntry> p_label, shared_ptr<TableEntry> expr1, shared_ptr<TableEntry>expr2);

@@ -32,8 +32,9 @@ enum QuaternionType {
 	// 设置标签
 	Label,					//		label
 	// 数组
-	GetArrayElem,			//		var							var	(array）			   var/const/i (index)
-	SetArrayELem,			//		var（array)					var/const/i(index)		   var/const/i
+	pushIndex,				//      var/const/i/temp (index)
+	GetArrayElem,			//		var							var	(array）			 
+	SetArrayELem,			//		var（array)					-var/const/i/temp
 	// 算术
 	AddOp,					//		tmp/var						var/const/i/tmp			   var/const/i/tmp
 	SubOp,				

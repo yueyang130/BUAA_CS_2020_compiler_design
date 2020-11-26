@@ -116,6 +116,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 	int param_num = 0;
 
 	for (auto& quater : func_.get_quater_list()) {
+		if (!quater) { continue; }
 		QuaternionType quater_type = quater->quater_type_;
 		auto result = quater->result_;
 		auto opA = quater->opA_;

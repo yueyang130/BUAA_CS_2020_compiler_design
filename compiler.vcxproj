@@ -144,7 +144,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BasicBlock.cpp" />
-    <ClCompile Include="ExprTransformer.cpp" />
     <ClCompile Include="GrammerAnalyzer.cpp" />
     <ClCompile Include="SimpleMipsFunctionGenerator.cpp" />
     <ClCompile Include="SimpleMipsGenerator.cpp" />
@@ -159,7 +158,6 @@
   <ItemGroup>
     <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="error.h" />
-    <ClInclude Include="ExprTransformer.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
     <ClInclude Include="OptMipsFunctionGenerator.h" />
     <ClInclude Include="SimpleMipsFunctionGenerator.h" />

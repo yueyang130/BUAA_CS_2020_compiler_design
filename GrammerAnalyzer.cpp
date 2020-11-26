@@ -8,7 +8,6 @@ GrammerAnalyzer::GrammerAnalyzer(LexicalAnalyzer& my_lexical_analyzer, IMCode& i
 	error_infor_list_(my_lexical_analyzer.error_infor_list_),
 	lexical_analyzer_(my_lexical_analyzer),
 	im_coder_(im_code),
-	expr_trsf(make_shared<ExprTransformer>(im_code)),
 	sym_table_(SymbolTable::getInstance())
 {
 	tk_idx_ = 0;
@@ -723,25 +722,29 @@ void GrammerAnalyzer::Main() {
 		 3）表达式仅由一个有返回值的函数调用构成，且该被调用的函数返回值为char型
 */
 ValueType GrammerAnalyzer::Expr() {
-
+	symbolType alu_type;
 	bool exist_cal = false; // 存在加减运算的flag
 	if (equal(symbolType::PLUS, symbolType::MINU)) {
 		exist_cal = true;
 		// 如果表达式开头是+/-,要补0（null)
-		expr_trsf->push_value(nullptr);
-		expr_trsf->push_op(curr_sym_str()[0]);
-
+		stack_push(nullptr);
+		alu_type = curr_sym_type();
 		pop_sym();
 		
 	}
 	ValueType item1_value_type = Item();
+	if (exist_cal) { 
+		auto quater = stack_alu(alu_type);
+		im_coder_.addQuater(quater);
+	}
+
 	while (equal(symbolType::PLUS, symbolType::MINU)) {
 		exist_cal = true;
-
-		expr_trsf->push_op(curr_sym_str()[0]);
-
+		alu_type = curr_sym_type();
 		pop_sym();
 		Item();
+		auto quater = stack_alu(alu_type);
+		im_coder_.addQuater(quater);
 	}
 	output_list_.push_back("<表达式>");
 
@@ -762,10 +765,11 @@ ValueType GrammerAnalyzer::Item() {
 		// 由+-运算，则一定转化为INT
 		item_value_type = ValueType::INTV;
 
-		expr_trsf->push_op(curr_sym_str()[0]);
-
+		auto alu_type = curr_sym_type();
 		pop_sym();
 		Factor();
+		auto quater = stack_alu(alu_type);
+		im_coder_.addQuater(quater);
 	}
 	output_list_.push_back("<项>");
 	return item_value_type;
@@ -1018,13 +1022,13 @@ void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_t
 void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> label_entry) {
 	symbolType condition_type = symbolType::EQL;
 	ValueType value_type1 = Expr();
-	auto expr1 = expr_trsf->pop(); 
+	auto  expr1 = stack_pop_value();
 	if (equal(LSS, LEQ) || equal(GRE, GEQ) || equal(NEQ, EQL)) {
 		condition_type = curr_sym_type();
 		pop_sym();
 	}else { error(); }
 	ValueType value_type2 = Expr();
-	auto expr2 = expr_trsf->pop();
+	auto expr2 = stack_pop_value();
 
 	//添加条件跳转四元式
 	auto quater = jump(jump_type, condition_type, label_entry,expr1, expr2);
@@ -1449,7 +1453,54 @@ void GrammerAnalyzer::transformNestedExpr(ValueType* p_type, shared_ptr<TableEnt
 
 }
 
-shared_ptr<Quaternion> GrammerAnalyzer::jump(symbolType jump_type, symbolType condition_type, 
+
+void GrammerAnalyzer::stack_push(shared_ptr<TableEntry> opA) {
+	this->stack_.push_back(opA);
+}
+
+shared_ptr<TableEntry> GrammerAnalyzer::stack_pop_value() {
+	auto top = stack_.back();
+	stack_.pop_back();
+	return top;
+}
+
+shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
+	auto result = make_shared<TempEntry>(new_temp());
+	shared_ptr<Quaternion> quater;
+	auto opB = stack_.back();
+	stack_.pop_back();
+	auto opA = stack_.back();
+	stack_.pop_back();
+	switch (alu_type) {
+	case symbolType::PLUS:
+		if (opA == nullptr) {
+			quater = nullptr;
+			stack_push(opB);
+		} else {
+			quater = QuaternionFactory::Add(result, opA, opB);
+		}
+		break;
+	case symbolType::MINU:
+		if (opA == nullptr) {
+			quater = QuaternionFactory::Neg(result, opB);
+		} else {
+			quater = QuaternionFactory::Sub(result, opA, opB);
+		}
+		break;
+	case symbolType::MULT:
+		quater = QuaternionFactory::Mul(result, opA, opB);
+		break;
+	case symbolType::DIV:
+		quater = QuaternionFactory::Div(result, opA, opB);
+		break;
+	default:
+		break;
+	}
+	stack_push(result);
+	return quater;
+}
+
+shared_ptr<Quaternion> GrammerAnalyzer::jump(symbolType jump_type, symbolType condition_type,
 	shared_ptr<LabelEntry> p_label, shared_ptr<TableEntry> expr1, shared_ptr<TableEntry>expr2) {
 
 	shared_ptr<Quaternion> quater;
