@@ -8,6 +8,7 @@ Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result
 
 string Quaternion::toString() {
 	stringstream ss;
+	vector<shared_ptr<TableEntry>> idxs;
 
 	switch (quater_type_) {
 	case QuaternionType::FuncDeclareHead:
@@ -74,12 +75,26 @@ string Quaternion::toString() {
 	case QuaternionType::Label:
 		ss << result_->identifier() << " :";
 		break;
+	case QuaternionType::PushArrayIndex:
+		idxs.push_back(result_);
+		break;
 	case QuaternionType::GetArrayElem:
-		ss << result_->identifier() << " = " << opA_->identifier() << "[" << opB_->identifier() << "]";
+		if (idxs.size() == 2) {
+			ss << result_->identifier() << " = " << opA_->identifier() << "[" << idxs[0]->identifier() << "]" << "[" << idxs[1]->identifier() << "]";
+		} else {
+			ss << result_->identifier() << " = " << opA_->identifier() << "[" << idxs[0]->identifier() << "]";
+		}
+		idxs.clear();
 		break;
 	case QuaternionType::SetArrayELem:
-		ss << result_->identifier() << "[" << opA_->identifier() << "]" << " = " << opB_->identifier();
+		if (idxs.size() == 2) {
+			ss << result_->identifier() << "[" << idxs[0]->identifier() << "]" << "[" << idxs[1]->identifier() << "]" << " = " << opA_->identifier();
+		} else {
+			ss << result_->identifier() << "[" << idxs[0]->identifier() << "]" << " = " << opA_->identifier();
+		}
+		idxs.clear();
 		break;
+
 	case QuaternionType::AddOp:
 		ss << result_->identifier() << " = " << opA_->identifier() << " + " << opB_->identifier();
 		break;	
@@ -191,12 +206,16 @@ shared_ptr<Quaternion> QuaternionFactory::Label(shared_ptr<TableEntry> label) {
 	return make_shared<Quaternion>(QuaternionType::Label, label, nullptr, nullptr);
 }
 
-shared_ptr<Quaternion> QuaternionFactory::getArrayElem(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
-	return make_shared<Quaternion>(QuaternionType::GetArrayElem, result, left, right);
+shared_ptr<Quaternion> QuaternionFactory::pushArrayIndex(shared_ptr<TableEntry> result) {
+	return make_shared<Quaternion>(QuaternionType::PushArrayIndex, result, nullptr, nullptr);
 }
 
-shared_ptr<Quaternion> QuaternionFactory::setArrayElem(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {
-	return make_shared<Quaternion>(QuaternionType::SetArrayELem, result, left, right);
+shared_ptr<Quaternion> QuaternionFactory::getArrayElem(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left) {
+	return make_shared<Quaternion>(QuaternionType::GetArrayElem, result, left, nullptr);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::setArrayElem(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left) {
+	return make_shared<Quaternion>(QuaternionType::SetArrayELem, result, left, nullptr);
 }
 
 shared_ptr<Quaternion> QuaternionFactory::Add(shared_ptr<TableEntry> result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right) {

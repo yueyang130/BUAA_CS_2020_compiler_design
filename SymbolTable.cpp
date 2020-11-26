@@ -91,6 +91,20 @@ int VarEntry::ByteSize() {
 	return cnt;
 }
 
+int VarEntry::getP(int i) {
+	int cnt;
+	if (shape_.size() == 2 && i == 0) {
+		cnt = shape_[1];
+	} else {
+		cnt = 1;
+	}
+	if (this->value_type() == ValueType::INTV) {
+		return cnt * 4;
+	}
+	return cnt;
+
+}
+
 /******************************************** ImmediateEntry ********************************************************/
 
 int ImmediateEntry::str_cnt = 0;

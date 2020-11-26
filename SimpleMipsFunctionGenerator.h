@@ -58,6 +58,10 @@ private:
 	void load_var(shared_ptr<TableEntry> var, string reg);
 	/* 将寄存器中的值存储到局部变量和临时变量对应的内存地址*/
 	void store_var(shared_ptr<TableEntry> var, string reg);
+	/*将内存中的数组元素加载到寄存器*/
+	void load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg);
+	/* 将寄存器中的值存储到数组元素对应的内存地址*/
+	void store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg);
 
 public:
 	SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_);

@@ -794,6 +794,7 @@ ValueType GrammerAnalyzer::Item() {
 */
 ValueType GrammerAnalyzer::Factor() {
 	ValueType factor_value_type = ValueType::INTV;   // 默认为INT，除非碰到那三种情况才赋值为CHAR
+	bool isArray = false;
 
 	if (equal(symbolType::IDENFR)) {
 		string identifier = curr_sym_str();
@@ -806,18 +807,17 @@ ValueType GrammerAnalyzer::Factor() {
 		}
 
 		if (this->peek_sym_type() == symbolType::LBRACK) {
+			isArray = true;
 			pop_sym();  // pop identifier
 			pop_sym();  // pop '['
-			expr_trsf->push_op('[');
 			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+			im_coder_.addQuater(QuaternionFactory::pushArrayIndex(stack_pop_value()));
 			checkMissRbrack();
-			expr_trsf->push_op(']');
 			if (equal(symbolType::LBRACK)) {									// ＜标识符＞'['＜表达式＞']''['＜表达式＞']'
-				expr_trsf->push_op('[');
 				pop_sym();
 				if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
+				im_coder_.addQuater(QuaternionFactory::pushArrayIndex(stack_pop_value()));
 				checkMissRbrack();
-				expr_trsf->push_op(']');
 			} else {															// ＜标识符＞'['＜表达式＞']'
 
 			}
@@ -828,25 +828,24 @@ ValueType GrammerAnalyzer::Factor() {
 			}
 			shared_ptr<TempEntry> ret;
 			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry), &ret);
-			expr_trsf->push_value(ret);
+			stack_push(ret);
 		} else {																// ＜标识符＞
-			expr_trsf->push_value(p_entry);
+			stack_push(p_entry);
 			pop_sym();	 // pop identifier
 		}
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
 		pop_sym();
-		expr_trsf->push_op('(');
 		Expr();
-		expr_trsf->push_op(')');
+		stack_pop_value();
 		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
-		expr_trsf->push_value(make_shared<ImmediateEntry>(ValueType::CHARV, curr_sym_str()));
+		stack_push(make_shared<ImmediateEntry>(ValueType::CHARV, curr_sym_str()));
 		pop_sym();
 		factor_value_type = ValueType::CHARV;
 	} else if (equal(symbolType::PLUS, symbolType(MINU)) || equal(symbolType::INTCON)) {	// ＜整数＞
 		int int_value = Int();
-		expr_trsf->push_value(make_shared<ImmediateEntry>(ValueType::INTV, to_string(int_value)));
+		stack_push(make_shared<ImmediateEntry>(ValueType::INTV, to_string(int_value)));
 	} else { error(); }
 	output_list_.push_back("<因子>");
 
@@ -949,25 +948,30 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 */
 void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::IDENFR);
+	bool isArray = false;
 	shared_ptr<TableEntry> p_entry = checkUndefine();
-	expr_trsf->push_value(p_entry);
 	pop_sym();
-	if (equal(symbolType::LBRACK)) {
-		expr_trsf->push_op('[');
+	if (equal(symbolType::LBRACK)) { 
+		isArray = true;
 		pop_sym();
 		if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-		expr_trsf->push_op(']');
+		auto quater = QuaternionFactory::pushArrayIndex(stack_pop_value());
+		im_coder_.addQuater(quater);
 		checkMissRbrack();
-		if (equal(symbolType::LBRACK)) {
-			expr_trsf->push_op('[');
+
+		if (equal(symbolType::LBRACK)) {  // ＜标识符＞'['＜表达式＞']''['＜表达式＞']'
 			pop_sym();
 			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-			expr_trsf->push_op(']');
+			auto quater = QuaternionFactory::pushArrayIndex(stack_pop_value());
+			im_coder_.addQuater(quater);
 			checkMissRbrack();
+		} else { // ＜标识符＞'['＜表达式＞']'
+
 		}
+	} else {  // ＜标识符＞
+
 	}
 	check(symbolType::ASSIGN);
-	expr_trsf->push_op('=');
 
 	// 不能改变常量的值
 	if (p_entry && p_entry->entry_type() == EntryType::CONST) {
@@ -976,7 +980,12 @@ void GrammerAnalyzer::AssignStatement() {
 
 	pop_sym();
 	Expr();
-	expr_trsf->pop();
+	auto right_value = stack_pop_value();
+	if (!isArray) {
+		im_coder_.addQuater(QuaternionFactory::Assign(p_entry, right_value));
+	} else {
+		im_coder_.addQuater(QuaternionFactory::setArrayElem(p_entry, right_value));
+	}
 
 	output_list_.push_back("<赋值语句>");
 }
@@ -1069,13 +1078,12 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		// ＜标识符＞＝＜表达式＞
 		check(IDENFR);
 		shared_ptr<TableEntry> p_entry = checkUndefine();
-		expr_trsf->push_value(p_entry);
+		stack_push(p_entry);
 		pop_sym();
 		check(ASSIGN);
-		expr_trsf->push_op('=');
 		pop_sym();
 		Expr();
-		expr_trsf->pop();
+		im_coder_.addQuater(stack_assign());
 		checkMissSemi();
 		// 生成 设置循环体开始标签的四元式
 		im_coder_.addQuater(QuaternionFactory::Label(begin_label));
@@ -1137,7 +1145,7 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	pop_sym();
 
 	ValueType switch_value_type = Expr();
-	auto expr = expr_trsf->pop();
+	auto expr = stack_pop_value();
 	checkMissRparent();
 	check(symbolType::LBRACE);
 	pop_sym();
@@ -1298,15 +1306,15 @@ void GrammerAnalyzer::ValueParameterList(shared_ptr<FunctionEntry> p_entry) {
 	// 可能')'缺失，所以不能用')'来判断是否为空参数表
 	//if (!equal(symbolType::RPARENT) ) {
 	if (isExpr()) {
-		ValueType value_type;
-		shared_ptr<TableEntry> out;
-		transformNestedExpr(&value_type, &out);   // Expr语法分析程序，并生成对应的四元式
+		ValueType value_type = Expr();
+		shared_ptr<TableEntry> out = stack_pop_value(); 
 		im_coder_.addQuater(QuaternionFactory::FuncParamPush(out));  // 四元式
 		actual_param_list.push_back(value_type);
 
 		while (equal(symbolType::COMMA)) {
 			pop_sym();
-			transformNestedExpr(&value_type, &out);  // Expr语法分析程序，并生成对应的四元式
+			value_type = Expr();
+			out = stack_pop_value();
 			im_coder_.addQuater(QuaternionFactory::FuncParamPush(out));  // 四元式
 			actual_param_list.push_back(value_type);
 		}
@@ -1374,11 +1382,11 @@ void GrammerAnalyzer::WriteStatement() {
 		if (equal(symbolType::COMMA)) {
 			pop_sym();
 			Expr();
-			p_expr_entry = expr_trsf->pop();
+			p_expr_entry = stack_pop_value();
 		}
 	} else {
 		Expr();
-		p_expr_entry = expr_trsf->pop();
+		p_expr_entry = stack_pop_value();
 	}
 	checkMissRparent();
 
@@ -1428,7 +1436,7 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 			if (!equal(RPARENT)) {
 				ValueType expr_value_type = Expr();
 				// 生成四元式
-				auto expr = expr_trsf->pop();
+				auto expr = stack_pop_value();
 				im_coder_.addQuater(QuaternionFactory::FuncReturn(expr));
 
 				if (expr_value_type != return_value_type) {   // return语句中表达式类型与返回值类型不一致
@@ -1444,21 +1452,11 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 	output_list_.push_back("<返回语句>");
 }
 
-void GrammerAnalyzer::transformNestedExpr(ValueType* p_type, shared_ptr<TableEntry>* p_entry_ptr) {
-	auto old_trsf = this->expr_trsf;
-	this->expr_trsf = make_shared<ExprTransformer>(im_coder_);
-	*p_type = Expr();
-	*p_entry_ptr = this->expr_trsf->pop();
-	this->expr_trsf = old_trsf;
-
-}
-
-
-void GrammerAnalyzer::stack_push(shared_ptr<TableEntry> opA) {
+void inline GrammerAnalyzer::stack_push(shared_ptr<TableEntry> opA) {
 	this->stack_.push_back(opA);
 }
 
-shared_ptr<TableEntry> GrammerAnalyzer::stack_pop_value() {
+shared_ptr<TableEntry> inline GrammerAnalyzer::stack_pop_value() {
 	auto top = stack_.back();
 	stack_.pop_back();
 	return top;
@@ -1467,9 +1465,8 @@ shared_ptr<TableEntry> GrammerAnalyzer::stack_pop_value() {
 shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
 	auto result = make_shared<TempEntry>(new_temp());
 	shared_ptr<Quaternion> quater;
-	auto opB = stack_.back();
-	stack_.pop_back();
-	auto opA = stack_.back();
+	auto opB = stack_pop_value();
+	auto opA = stack_pop_value();
 	stack_.pop_back();
 	switch (alu_type) {
 	case symbolType::PLUS:
@@ -1498,6 +1495,12 @@ shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
 	}
 	stack_push(result);
 	return quater;
+}
+
+shared_ptr<Quaternion> GrammerAnalyzer::stack_assign() {
+	auto opB = stack_pop_value();
+	auto opA = stack_pop_value();
+	return QuaternionFactory::Assign(opA, opB);
 }
 
 shared_ptr<Quaternion> GrammerAnalyzer::jump(symbolType jump_type, symbolType condition_type,

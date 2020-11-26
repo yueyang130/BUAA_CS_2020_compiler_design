@@ -4,7 +4,6 @@
 #include "LexicalAnalyzer.h"
 #include "SymbolTable.h"
 #include "BasicBlock.h"
-#include "ExprTransformer.h"
 #include <iostream>
 using namespace std;
 
@@ -148,8 +147,10 @@ private:
 
 	/*中间代码生成支持函数*/
 	// 对栈的操作
+	shared_ptr<TableEntry> stack_pop_value();
 	void stack_push(shared_ptr<TableEntry> opA);
 	shared_ptr<Quaternion> stack_alu(symbolType alu_type);
+	shared_ptr<Quaternion> stack_assign();
 
 	int temp_cnt = 0;
 	string new_temp() { return "@t" + to_string(temp_cnt++); }

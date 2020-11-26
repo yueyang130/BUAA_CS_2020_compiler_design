@@ -83,6 +83,7 @@ void SimpleMipsFunctionGenerator::load_var(shared_ptr<TableEntry> var, string re
 	}
 }
 
+
 void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string reg) {
 	ValueType value_type = var->value_type();
 	auto it = func_var_offset_map_.find(var.get());
@@ -104,6 +105,24 @@ void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string r
 
 }
 
+void SimpleMipsFunctionGenerator::load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg) {
+}
+
+void SimpleMipsFunctionGenerator::store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg) {
+	ValueType value_type = var->value_type();
+	auto it = func_var_offset_map_.find(var.get());
+	if (it != func_var_offset_map_.end()) {
+		int offset = it->second;
+		mips_alu(off_reg, off_reg, )
+		mips_store(source_reg, "$fp", offset, value_type, mips_list_);
+		return;
+	}
+	// global array
+	mips_store(source_reg, ,var->identifier(), value_type, mips_list_);
+		
+
+}
+
 
 SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list) :
 	func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list)
@@ -121,6 +140,9 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		auto result = quater->result_;
 		auto opA = quater->opA_;
 		auto opB = quater->opB_;
+		// 存有数组下标的寄存器
+		vector<string> reg_idxs{"$t0", "t1"};
+		int idx_cnt = 0;
 
 		switch (quater_type) {
 		case FuncDeclareHead:
@@ -182,9 +204,20 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		case Label:
 			set_label(*quater, mips_list_);
 			break;
+		case PushArrayIndex:
+			this->load_var(result, reg_idxs[idx_cnt++]);
+			break;
 		case GetArrayElem:
+			off_in_array(reg0, reg1, opA, reg_idxs, mips_list_);
+			idx_cnt = 0;
+			this->load_array(opA, reg0, reg1);
+			this->store_var(result, reg1);
 			break;
 		case SetArrayELem:
+			off_in_array(reg0, reg1, opA, reg_idxs, mips_list_);
+			idx_cnt = 0;
+			this->load_var(opA, reg1);
+			this->store_array(result, reg0, reg1);
 			break;
 		case AddOp: case SubOp:
 		case MulOp: case DivOp:

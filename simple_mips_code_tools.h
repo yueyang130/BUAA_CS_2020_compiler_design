@@ -41,8 +41,7 @@ void mips_jal(string func_name, vector<string>& mips_list);
 void mips_jr(bool ismain, vector<string>& mips_list);
 
 /*array*/
-void loadArrayElem(Quaternion& quater);
-void storeArrayElem(Quaternion& quater);
+void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list);
 
 
 /*ALU: result and right must be register; right can be a register or a immediate num*/

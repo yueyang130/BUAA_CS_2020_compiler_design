@@ -32,9 +32,9 @@ enum QuaternionType {
 	// 设置标签
 	Label,					//		label
 	// 数组
-	pushIndex,				//      var/const/i/temp (index)
+	PushArrayIndex,		    //	var/const/i/temp (index)
 	GetArrayElem,			//		var							var	(array）			 
-	SetArrayELem,			//		var（array)					-var/const/i/temp
+	SetArrayELem,			//		var（array)					var/const/i/temp
 	// 算术
 	AddOp,					//		tmp/var						var/const/i/tmp			   var/const/i/tmp
 	SubOp,				
@@ -89,8 +89,10 @@ public:
 
 	static shared_ptr<Quaternion> Label(shared_ptr<TableEntry> label);
 
-	static shared_ptr<Quaternion> getArrayElem(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
-	static shared_ptr<Quaternion> setArrayElem(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
+
+	static shared_ptr<Quaternion> pushArrayIndex(shared_ptr<TableEntry>result);
+	static shared_ptr<Quaternion> getArrayElem(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left);
+	static shared_ptr<Quaternion> setArrayElem(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left);
 
 	static shared_ptr<Quaternion> Add(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	static shared_ptr<Quaternion> Sub(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
