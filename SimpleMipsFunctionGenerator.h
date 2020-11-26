@@ -12,6 +12,25 @@ simple dump:
 为每一个局部变量和临时变量都分配一个内存空间地址，
 寄存器只使用$a0,$a1,$a2. 
 每次要使用变量时load,完成运算后立刻写回内存空间地址
+
+栈布局:
+	a,v,t   (如果要求函数调用前后保持一致，则由调用方保护,simple情况无需考虑这一点)
+	|
+	func param
+	|
+------  fp
+	|
+	ra
+	|
+	prev fp
+	|
+	s0-s7  (如果子函数使用，则必须保护,simple情况无需考虑这一点)
+	|
+	局部变量
+	|
+	临时变量
+	|
+------  sp
 */
 
 const string reg0 = "$s0";
@@ -23,12 +42,11 @@ private:
 	// input and output
 	Function& func_;
 	map<VarEntry*, int>& global_var_offset_map_;
-	unsigned int* sp;
 	vector<string>& mips_list_;
 
 	/*偏移量*/
 	int offset = 0;
-	/*局部变量和临时变量相对于sp的偏移*/
+	/*局部变量和临时变量相对于fp的偏移*/
 	map<TableEntry*, int> func_var_offset_map_;
 
 	/* 处理局部变量声明，为局部变量在栈中分配内存空间地址 */

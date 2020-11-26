@@ -13,7 +13,7 @@ enum QuaternionType {
 	// 函数声明
 	FuncDeclareHead,		//		func
 	FuncFormalParam,		//		var
-	FuncReturn,				//		var/ null
+	FuncReturn,				//		var/temp/c/i/ null
 	// 函数调用
 	FuncParamPush,			//								var/const/i
 	FuncCall,				//									func

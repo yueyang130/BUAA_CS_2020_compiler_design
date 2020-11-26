@@ -602,6 +602,11 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	check(symbolType::RBRACE);
 	pop_sym();
 
+	// 如果不存在返回语句，生成返回语句的中间代码
+	if (!exsit_return) {
+		im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
+	}
+
 	// 重定位操作
 	sym_table_.reset();
 
@@ -690,6 +695,12 @@ void GrammerAnalyzer::Main() {
 	pop_sym();
 	bool exsit_return;
 	CompoundStatement(&exsit_return ,ValueType::VOIDV);
+
+	// 如果不存在返回语句，生成返回语句的中间代码
+	if (!exsit_return) {
+		im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
+	}
+
 	check(symbolType::RBRACE);
 	pop_sym();
 
@@ -783,8 +794,7 @@ ValueType GrammerAnalyzer::Factor() {
 	if (equal(symbolType::IDENFR)) {
 		string identifier = curr_sym_str();
 		auto p_entry = checkUndefine();
-		expr_trsf->push_value(p_entry);
-
+	
 		if (p_entry) { // 如果标识符有定义
 			factor_value_type = p_entry->value_type();
 		} else {
@@ -812,8 +822,11 @@ ValueType GrammerAnalyzer::Factor() {
 			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->value_type() == ValueType::VOIDV) {
 				error();
 			}
-			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry));
+			shared_ptr<TempEntry> ret;
+			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry), &ret);
+			expr_trsf->push_value(ret);
 		} else {																// ＜标识符＞
+			expr_trsf->push_value(p_entry);
 			pop_sym();	 // pop identifier
 		}
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
@@ -959,7 +972,6 @@ void GrammerAnalyzer::AssignStatement() {
 
 	pop_sym();
 	Expr();
-
 	expr_trsf->pop();
 
 	output_list_.push_back("<赋值语句>");
@@ -1222,7 +1234,8 @@ void GrammerAnalyzer::CallFunc() {
 			CallNoReturn(dynamic_pointer_cast<FunctionEntry>(p_entry));
 		}
 		else {
-			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry));
+			shared_ptr<TempEntry> ret;
+			CallWithReturn(dynamic_pointer_cast<FunctionEntry>(p_entry), &ret);
 		}
 	}else {
 		// 本行出现未定义的函数调用，不会出现其它错误，直接跳到分号
@@ -1236,7 +1249,7 @@ void GrammerAnalyzer::CallFunc() {
 ＜有返回值函数调用语句＞ ::= ＜标识符＞'('＜值参数表＞')'
 函数调用时，只能调用在之前已经定义过的函数，对是否有返回值的函数都是如此
 */
-void GrammerAnalyzer::CallWithReturn(shared_ptr<FunctionEntry> p_entry) {
+void GrammerAnalyzer::CallWithReturn(shared_ptr<FunctionEntry> p_entry, shared_ptr<TempEntry>* ret) {
 	check(symbolType::IDENFR);
 	string func_name = curr_sym_str();
 	pop_sym();
@@ -1245,9 +1258,9 @@ void GrammerAnalyzer::CallWithReturn(shared_ptr<FunctionEntry> p_entry) {
 	ValueParameterList(p_entry);
 	checkMissRparent();
 
-	auto func_call = QuaternionFactory::FuncCall(p_entry);
-	im_coder_.addQuater(func_call);
-
+	*ret = make_shared<TempEntry>(string("temp_ret"));;
+	im_coder_.addQuater(QuaternionFactory::FuncCall(p_entry));
+	im_coder_.addQuater(QuaternionFactory::RetAssign(*ret));
 
 	output_list_.push_back("<有返回值函数调用语句>");
 }
@@ -1389,6 +1402,9 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 	pop_sym();
 
 	if (return_value_type == ValueType::VOIDV) {
+		// 生成四元式
+		im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
+
 		if (equal(LPARENT)) {								// 无返回值的函数中若出现了形如return(表达式);或return();的语句
 			addErrorInfor(ErrorType::ReturnErrorInVoidFunc);
 			pop_sym();
@@ -1399,6 +1415,7 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 			}
 			checkMissRparent();
 		}
+
 	}else {
 		if (!equal(LPARENT)) {								// 有返回值的函数有形如return;的语句；
 			addErrorInfor(ErrorType::ReturnErrorInNonvoidFunc);
@@ -1406,6 +1423,10 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 			pop_sym();
 			if (!equal(RPARENT)) {
 				ValueType expr_value_type = Expr();
+				// 生成四元式
+				auto expr = expr_trsf->pop();
+				im_coder_.addQuater(QuaternionFactory::FuncReturn(expr));
+
 				if (expr_value_type != return_value_type) {   // return语句中表达式类型与返回值类型不一致
 					addErrorInfor(ErrorType::ReturnErrorInNonvoidFunc);
 				}
@@ -1415,9 +1436,6 @@ void GrammerAnalyzer::ReturnStatement(bool* p_exsit_return, ValueType return_val
 			checkMissRparent();
 		}
 	}
-
-	// 生成四元式
-	im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
 
 	output_list_.push_back("<返回语句>");
 }

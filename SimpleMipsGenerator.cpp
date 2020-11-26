@@ -24,9 +24,16 @@ void MipsGenerator::showMipsCode(ostream& fout) {
 void MipsGenerator::generateMipsCode() {
 	dump_global_and_strcon();
 	dump_main();
+
+	for (auto func : im_code_.func_list()) {
+		MipsCode_list_.push_back("");
+		SimpleMipsFunctionGenerator func_generator(*func, gb_small_var_offset_map_, MipsCode_list_);
+	}
 }
 
+
 void MipsGenerator::dump_global_and_strcon() {
+
 	vector<string> small_var_list;
 	vector<string> big_var_list;
 	vector<string> str_list;
@@ -59,15 +66,18 @@ void MipsGenerator::dump_global_and_strcon() {
 	MipsCode_list_.push_back(buf);
 	MipsCode_list_.insert(MipsCode_list_.end(), big_var_list.begin(), big_var_list.end());
 	MipsCode_list_.insert(MipsCode_list_.end(), str_list.begin(), str_list.end());
-	MipsCode_list_.push_back(".text");
 
 }
 
 void MipsGenerator::dump_main() {
-	SimpleMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);
-	MipsCode_list_.push_back(".exit:");
+	MipsCode_list_.push_back("");
+	MipsCode_list_.push_back(".text");
+	MipsCode_list_.push_back("jal "+im_code_.main().name());
 	MipsCode_list_.push_back("li $v0, 10");
 	MipsCode_list_.push_back("syscall");
+	MipsCode_list_.push_back("");
+	SimpleMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);
+
 }
 
 void dump_strcon(shared_ptr<TableEntry> p_entry, vector<string>& instr_list) {

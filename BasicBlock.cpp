@@ -66,7 +66,11 @@ const vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
 
 void IMCode::show_quaters(ostream& fout) {
 	for (auto quater : this->get_quater_list()) {
-		fout << quater->toString() << endl;
+		if (quater) {
+			fout << quater->toString() << endl;
+		} else {
+			fout << endl;
+		}
 	}
 }
 

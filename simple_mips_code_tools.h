@@ -33,8 +33,12 @@ void mips_store(string reg1, string reg2, int offset, ValueType type, vector<str
 void set_label(Quaternion& quater, vector<string>& mips_list);
 // beq, bne, blt, ble, bgt, bge
 void conditional_jump(string reg1, string reg2, string label, QuaternionType type, vector<string>& mips_list);
-void j(Quaternion& quater, vector<string>& mips_list);
+void mips_j(Quaternion& quater, vector<string>& mips_list);
+//void mips_jr(vector<string>& mips_list);
 
+/*function*/
+void mips_jal(string func_name, vector<string>& mips_list);
+void mips_jr(bool ismain, vector<string>& mips_list);
 
 /*array*/
 void loadArrayElem(Quaternion& quater);
@@ -42,7 +46,7 @@ void storeArrayElem(Quaternion& quater);
 
 
 /*ALU: result and right must be register; right can be a register or a immediate num*/
-void alu(string result, string left, string right, QuaternionType type, vector<string>& mips_list);
+void mips_alu(string result, string left, string right, QuaternionType type, vector<string>& mips_list);
 
 
 /*read and write*/
@@ -54,8 +58,7 @@ void write_expr(ValueType type, vector<string>& mips_list);
 // Êä³ö»»ÐÐ
 void write_lf(vector<string>& mips_list);
 
-/*function*/
-void mips_return(bool ismain, vector<string>& mips_list);
+
 
 
 #endif // !MIPS_CODE_TOOLS

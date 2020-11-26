@@ -17,8 +17,11 @@ string Quaternion::toString() {
 		ss << "para " << ValuetypeToString(result_->value_type()) << " " << result_->identifier();
 		break;
 	case QuaternionType::FuncReturn:
-		//ss << "return " << opA_->identifier();
-		ss << "return ";
+		if (result_.get()) {
+			ss << "return " << result_->identifier();
+		} else {
+			ss << "return ";
+		}
 		break;
 	case QuaternionType::FuncParamPush:
 		ss << "push " << opA_->identifier();

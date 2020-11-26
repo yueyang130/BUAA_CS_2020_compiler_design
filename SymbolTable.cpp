@@ -21,6 +21,7 @@ ConstEntry::ConstEntry(ValueType entry_value_type, string identifier, string val
 	}
 	value_ = value;
 }
+
 void ConstEntry::setValue(string value) {
 	if (this->value_type() == ValueType::CHARV) {
 		value = "\'" + value + "\'";

@@ -65,6 +65,7 @@ public:
 	shared_ptr<BasicBlock> curr_bblock() { return curr_bblock_; }
 	BasicBlock& global_bblock() { return *global_bblock_; }
 	Function& main() { return *main_; }
+	vector<shared_ptr<Function>>& func_list() { return func_list_; }
 
 	/*在整个文件的中间代码全部生成完毕后，才能调用此函数返回一个完整的列表*/
 	const vector<shared_ptr<Quaternion>>& get_quater_list();

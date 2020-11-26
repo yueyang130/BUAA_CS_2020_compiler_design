@@ -138,7 +138,8 @@ void mips_store(string reg1, string reg2, int offset, ValueType type, vector<str
 }
 
 void set_label(Quaternion& quater, vector<string>& mips_list) {
-	assert(quater.quater_type_ == QuaternionType::Label);
+	assert(quater.quater_type_ == QuaternionType::Label || 
+		quater.quater_type_ == QuaternionType::FuncDeclareHead);
 	mips_list.push_back(quater.result_->identifier() + " :");
 }
 
@@ -166,8 +167,17 @@ void conditional_jump(string reg1, string reg2, string label, QuaternionType typ
 	mips_list.push_back(instr);
 }
 
-void j(Quaternion& quater, vector<string>& mips_list) {
+void mips_j(Quaternion& quater, vector<string>& mips_list) {
 	mips_list.push_back("j " + quater.result_->identifier());
+}
+
+void mips_jal(string func_name, vector<string>& mips_list) {
+	mips_list.push_back("jal " + func_name);
+}
+
+void mips_jr(bool ismain, vector<string>& mips_list) {
+
+	mips_list.push_back("jr $ra");
 }
 
 void loadArrayElem(Quaternion& quater) {
@@ -176,16 +186,16 @@ void loadArrayElem(Quaternion& quater) {
 void storeArrayElem(Quaternion& quater) {
 }
 
-void alu(string result, string left, string right, QuaternionType quater_type, vector<string>& mips_list) {
+void mips_alu(string result, string left, string right, QuaternionType quater_type, vector<string>& mips_list) {
 	
 	string instr;
 	switch (quater_type) {
 	case QuaternionType::AddOp:
-		instr = "add " + result + ", " + left + ", " + right;
+		instr = "addu " + result + ", " + left + ", " + right;
 		break;
 	case QuaternionType::SubOp:
 	case QuaternionType::Neg:
-		instr = "sub " + result + ", " + left + ", " + right;
+		instr = "subu " + result + ", " + left + ", " + right;
 		break;
 	case QuaternionType::MulOp:
 		instr = "mul " + result + ", " + left + ", " + right;
@@ -235,8 +245,4 @@ void write_lf(vector<string>& mips_list) {
 	mips_list.push_back("syscall");
 }
 
-void mips_return(bool ismain, vector<string>& mips_list) {
-	if (ismain) {
-		mips_list.push_back("j .exit");
-	}
-}
+

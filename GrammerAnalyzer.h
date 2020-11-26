@@ -142,7 +142,7 @@ private:
 			, vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>>& case_list, shared_ptr<LabelEntry> endswitch_label);
 	void SwitchDefault(bool* p_exsit_return, ValueType return_value_type);
 	void CallFunc();
-	void CallWithReturn(shared_ptr<FunctionEntry> p_entry);
+	void CallWithReturn(shared_ptr<FunctionEntry> p_entry, shared_ptr<TempEntry>* ret);
 	void CallNoReturn(shared_ptr<FunctionEntry> p_entry);
 	void ValueParameterList(shared_ptr<FunctionEntry> p_entry);
 	void ReadStatement();
