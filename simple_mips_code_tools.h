@@ -21,13 +21,16 @@ string load_strcon(ImmediateEntry& inum);
 /*memory load and store*/
 // lw reg1, offset(reg2) | lb
 void mips_load_mem(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list);
+// lw reg1, label(reg2) | lb
+void mips_load_mem(string reg1, string reg2, string label, ValueType type, vector<string>& mips_list);
 // la reg1, inum || la reg1, label
 void mips_load_num(string reg1, string source, vector<string>& mips_list);
 // move reg1, reg2
 void mips_load_reg(string reg1, string reg2, vector<string>& mips_list);
 // sw reg1, offset(reg2) | sb
 void mips_store(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list);
-
+// sw reg1, label(reg2) | sb
+void mips_store(string reg1, string reg2, string label, ValueType type, vector<string>& mips_list);
 
 /*label and jump*/
 void set_label(Quaternion& quater, vector<string>& mips_list);
@@ -41,6 +44,12 @@ void mips_jal(string func_name, vector<string>& mips_list);
 void mips_jr(bool ismain, vector<string>& mips_list);
 
 /*array*/
+/*
+reg0: 存放最终相对于数组头偏移量结果的寄存器
+reg1: 用于中间运算的寄存器
+entry: 数组变量的symbol Table entry
+reg_idxs: 存有数组下标的寄存器名的数组
+*/
 void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list);
 
 

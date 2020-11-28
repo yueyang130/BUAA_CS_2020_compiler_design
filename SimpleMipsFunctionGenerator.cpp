@@ -106,20 +106,31 @@ void SimpleMipsFunctionGenerator::store_var(shared_ptr<TableEntry> var, string r
 }
 
 void SimpleMipsFunctionGenerator::load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg) {
+	ValueType value_type = var->value_type();
+	auto it = func_var_offset_map_.find(var.get());
+	if (it != func_var_offset_map_.end()) {
+		int offset = it->second;  // 数组头相对于fp的偏移量
+		mips_alu(off_reg, off_reg, "$fp", QuaternionType::AddOp, mips_list_);
+		mips_load_mem(target_reg, off_reg, offset, value_type, mips_list_);
+		return;
+	}
+	// global array
+	mips_load_mem(target_reg, off_reg, var->identifier(), value_type, mips_list_);
+	return;
 }
 
 void SimpleMipsFunctionGenerator::store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg) {
 	ValueType value_type = var->value_type();
 	auto it = func_var_offset_map_.find(var.get());
 	if (it != func_var_offset_map_.end()) {
-		int offset = it->second;
-		mips_alu(off_reg, off_reg, )
-		mips_store(source_reg, "$fp", offset, value_type, mips_list_);
+		int offset = it->second;  // 数组头相对于fp的偏移量
+		mips_alu(off_reg, off_reg, "$fp", QuaternionType::AddOp, mips_list_);
+		mips_store(source_reg, off_reg, offset, value_type, mips_list_);
 		return;
 	}
 	// global array
-	mips_store(source_reg, ,var->identifier(), value_type, mips_list_);
-		
+	mips_store(source_reg, off_reg, var->identifier(), value_type, mips_list_);
+	return;
 
 }
 
@@ -207,6 +218,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		case PushArrayIndex:
 			this->load_var(result, reg_idxs[idx_cnt++]);
 			break;
+
 		case GetArrayElem:
 			off_in_array(reg0, reg1, opA, reg_idxs, mips_list_);
 			idx_cnt = 0;
@@ -219,6 +231,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 			this->load_var(opA, reg1);
 			this->store_array(result, reg0, reg1);
 			break;
+
 		case AddOp: case SubOp:
 		case MulOp: case DivOp:
 			this->load_var(opA, reg1);

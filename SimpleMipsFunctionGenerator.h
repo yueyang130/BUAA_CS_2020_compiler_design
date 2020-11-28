@@ -58,9 +58,19 @@ private:
 	void load_var(shared_ptr<TableEntry> var, string reg);
 	/* 将寄存器中的值存储到局部变量和临时变量对应的内存地址*/
 	void store_var(shared_ptr<TableEntry> var, string reg);
-	/*将内存中的数组元素加载到寄存器*/
+	/*
+	将内存中的数组元素加载到寄存器
+	off_reg:  存有相对于数组头偏移量的寄存器
+	target_reg: 将要存储左值的目标寄存器
+	注意：此函数调用后，offset的值将会发生改变
+	*/
 	void load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg);
-	/* 将寄存器中的值存储到数组元素对应的内存地址*/
+	/* 
+	将寄存器中的值存储到数组元素对应的内存地址
+	off_reg:  存有相对于数组头偏移量的寄存器
+	source_reg: 存储右值的寄存器
+	注意：此函数调用后，offset的值将会发生改变
+	*/
 	void store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg);
 
 public:

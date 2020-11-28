@@ -118,6 +118,15 @@ void mips_load_mem(string reg1, string reg2, int offset, ValueType type, vector<
 	mips_list.push_back(buf);
 }
 
+void mips_load_mem(string reg1, string reg2, string label, ValueType type, vector<string>& mips_list) {
+	if (type == ValueType::INTV) {
+		sprintf(buf, "lw %s, %s(%s)", reg1.c_str(), label, reg2.c_str());
+	} else {
+		sprintf(buf, "lb %s, %s(%s)", reg1.c_str(), label, reg2.c_str());
+	}
+	mips_list.push_back(buf);
+}
+
 void mips_load_num(string reg1, string source, vector<string>& mips_list) {
 	sprintf(buf, "la %s, %s", reg1.c_str(), source.c_str());
 	mips_list.push_back(buf);
@@ -133,6 +142,15 @@ void mips_store(string reg1, string reg2, int offset, ValueType type, vector<str
 		sprintf(buf, "sw %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
 	} else {
 		sprintf(buf, "sb %s, %d(%s)", reg1.c_str(), offset, reg2.c_str());
+	}
+	mips_list.push_back(buf);
+}
+
+void mips_store(string reg1, string reg2, string label, ValueType type, vector<string>& mips_list) {
+	if (type == ValueType::INTV) {
+		sprintf(buf, "sw %s, %s(%s)", reg1.c_str(), label, reg2.c_str());
+	} else {
+		sprintf(buf, "sb %s, %s(%s)", reg1.c_str(), label, reg2.c_str());
 	}
 	mips_list.push_back(buf);
 }
