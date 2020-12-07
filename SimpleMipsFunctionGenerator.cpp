@@ -138,12 +138,17 @@ void SimpleMipsFunctionGenerator::store_array(shared_ptr<TableEntry> var, string
 SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list) :
 	func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list)
 {
+	// TODO: 解决函数嵌套调用时，cnt的计算问题和参数的放置问题
+
 	// 调用子函数时使用的参数，用于统计实参个数
 	int actual_param_cnt = 0;
 	// 进入函数时使用的参数，用于统计形参个数
 	int formal_param_cnt = 0;
 	// 进入函数时使用的参数，函数参数总个数
 	int param_num = 0;
+	// 存有数组下标的寄存器
+	vector<string> reg_idxs{ "$t0", "$t1" };
+	int idx_cnt = 0;
 
 	for (auto& quater : func_.get_quater_list()) {
 		if (!quater) { continue; }
@@ -151,9 +156,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		auto result = quater->result_;
 		auto opA = quater->opA_;
 		auto opB = quater->opB_;
-		// 存有数组下标的寄存器
-		vector<string> reg_idxs{"$t0", "t1"};
-		int idx_cnt = 0;
+		
 
 		switch (quater_type) {
 		case FuncDeclareHead:
@@ -226,7 +229,7 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 			this->store_var(result, reg1);
 			break;
 		case SetArrayELem:
-			off_in_array(reg0, reg1, opA, reg_idxs, mips_list_);
+			off_in_array(reg0, reg1, result, reg_idxs, mips_list_);
 			idx_cnt = 0;
 			this->load_var(opA, reg1);
 			this->store_array(result, reg0, reg1);

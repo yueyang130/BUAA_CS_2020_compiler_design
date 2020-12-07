@@ -8,7 +8,7 @@ Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result
 
 string Quaternion::toString() {
 	stringstream ss;
-	vector<shared_ptr<TableEntry>> idxs;
+	static vector<shared_ptr<TableEntry>> idxs;
 
 	switch (quater_type_) {
 	case QuaternionType::FuncDeclareHead:
@@ -84,7 +84,7 @@ string Quaternion::toString() {
 		} else {
 			ss << result_->identifier() << " = " << opA_->identifier() << "[" << idxs[0]->identifier() << "]";
 		}
-		idxs.clear();
+		idxs.erase(idxs.end()-idxs.size(), idxs.end());
 		break;
 	case QuaternionType::SetArrayELem:
 		if (idxs.size() == 2) {
@@ -92,7 +92,7 @@ string Quaternion::toString() {
 		} else {
 			ss << result_->identifier() << "[" << idxs[0]->identifier() << "]" << " = " << opA_->identifier();
 		}
-		idxs.clear();
+		idxs.erase(idxs.end() - idxs.size(), idxs.end());
 		break;
 
 	case QuaternionType::AddOp:

@@ -821,6 +821,10 @@ ValueType GrammerAnalyzer::Factor() {
 			} else {															// ＜标识符＞'['＜表达式＞']'
 
 			}
+			auto temp = make_shared<TempEntry>(this->new_temp());
+			im_coder_.addQuater(QuaternionFactory::getArrayElem(temp, p_entry));
+			this->stack_push(temp);
+
 		} else if (this->peek_sym_type() == symbolType::LPARENT) {				// 有返回值函数调用
 			shared_ptr<TableEntry> p_entry = sym_table_.checkReference(identifier);
 			if (!p_entry || p_entry->entry_type() != EntryType::FUNCTION || p_entry->value_type() == ValueType::VOIDV) {
@@ -836,7 +840,6 @@ ValueType GrammerAnalyzer::Factor() {
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
 		pop_sym();
 		Expr();
-		stack_pop_value();
 		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
@@ -1463,16 +1466,21 @@ shared_ptr<TableEntry> inline GrammerAnalyzer::stack_pop_value() {
 }
 
 shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
-	auto result = make_shared<TempEntry>(new_temp());
 	shared_ptr<Quaternion> quater;
 	auto opB = stack_pop_value();
 	auto opA = stack_pop_value();
-	stack_.pop_back();
+
+	// 特判 a = +expr这种情况
+	if (alu_type == symbolType::PLUS && opA == nullptr) {
+		stack_push(opB);
+		return nullptr;
+	}
+
+	auto result = make_shared<TempEntry>(new_temp());
 	switch (alu_type) {
 	case symbolType::PLUS:
 		if (opA == nullptr) {
-			quater = nullptr;
-			stack_push(opB);
+			
 		} else {
 			quater = QuaternionFactory::Add(result, opA, opB);
 		}
