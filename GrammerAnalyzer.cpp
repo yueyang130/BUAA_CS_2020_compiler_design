@@ -601,10 +601,14 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 	check(symbolType::RBRACE);
 	pop_sym();
 
+	/* 
+	* *无论是否存在返回语句，对于无返回值的函数，都应该在最后面加一个return
 	// 如果不存在返回语句，生成返回语句的中间代码
 	if (!exsit_return) {
 		im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
 	}
+	*/
+	im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
 
 	// 重定位操作
 	sym_table_.reset();
@@ -695,10 +699,11 @@ void GrammerAnalyzer::Main() {
 	bool exsit_return;
 	CompoundStatement(&exsit_return ,ValueType::VOIDV);
 
-	// 如果不存在返回语句，生成返回语句的中间代码
-	if (!exsit_return) {
-		im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
-	}
+	//// 如果不存在返回语句，生成返回语句的中间代码
+	//if (!exsit_return) {
+	//	im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
+	//}
+	im_coder_.addQuater(QuaternionFactory::FuncReturn(nullptr));
 
 	check(symbolType::RBRACE);
 	pop_sym();

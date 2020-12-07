@@ -257,10 +257,12 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		case Read:
 			read(result->value_type(), mips_list_);
 			this->store_var(result, "$v0");
+			/* 对gui，不会过滤输入字符后的回车；但是，命令行会过滤字符后的回车
 			// 如果是读取字符，还需要读取回车
 			if (result->value_type() == ValueType::CHARV) {
 				read(ValueType::CHARV, mips_list_);
 			}
+			*/
 			break;
 
 		case Write:
