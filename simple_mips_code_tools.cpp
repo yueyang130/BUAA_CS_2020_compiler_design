@@ -200,12 +200,12 @@ void mips_jr(bool ismain, vector<string>& mips_list) {
 
 void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list) {
 	auto arr = dynamic_pointer_cast<VarEntry>(entry);
-	if (reg_idxs.size() == 2) {
-		mips_alu(reg0, reg_idxs[0], to_string(arr->getP(0)), QuaternionType::MulOp, mips_list);
-		mips_alu(reg1, reg_idxs[1], to_string(arr->getP(1)), QuaternionType::MulOp, mips_list);
+	if (arr->ndim() == 2) {
+		mips_alu(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+		mips_alu(reg1, reg_idxs[1], to_string(arr->getDimByte(1)), QuaternionType::MulOp, mips_list);
 		mips_alu(reg0, reg0, reg1, QuaternionType::AddOp, mips_list);
 	} else {
-		mips_alu(reg0, reg_idxs[0], to_string(arr->getP(0)), QuaternionType::MulOp, mips_list);
+		mips_alu(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
 	}
 }
 

@@ -6,8 +6,10 @@ Quaternion::Quaternion(QuaternionType quater_type, shared_ptr<TableEntry> result
 {
 }
 
+
 string Quaternion::toString() {
 	stringstream ss;
+	// 存放数组索引
 	static vector<shared_ptr<TableEntry>> idxs;
 
 	switch (quater_type_) {
@@ -79,22 +81,27 @@ string Quaternion::toString() {
 		idxs.push_back(result_);
 		break;
 	case QuaternionType::GetArrayElem:
-		if (idxs.size() == 2) {
+	{
+		int ndim = dynamic_pointer_cast<VarEntry>(opA_)->ndim();
+		if (ndim == 2) {
 			ss << result_->identifier() << " = " << opA_->identifier() << "[" << idxs[0]->identifier() << "]" << "[" << idxs[1]->identifier() << "]";
 		} else {
 			ss << result_->identifier() << " = " << opA_->identifier() << "[" << idxs[0]->identifier() << "]";
 		}
-		idxs.erase(idxs.end()-idxs.size(), idxs.end());
+		idxs.erase(idxs.end() - ndim, idxs.end());
 		break;
+	}
 	case QuaternionType::SetArrayELem:
-		if (idxs.size() == 2) {
+	{
+		int ndim = dynamic_pointer_cast<VarEntry>(result_)->ndim();
+		if (ndim == 2) {
 			ss << result_->identifier() << "[" << idxs[0]->identifier() << "]" << "[" << idxs[1]->identifier() << "]" << " = " << opA_->identifier();
 		} else {
 			ss << result_->identifier() << "[" << idxs[0]->identifier() << "]" << " = " << opA_->identifier();
 		}
-		idxs.erase(idxs.end() - idxs.size(), idxs.end());
+		idxs.erase(idxs.end() - ndim, idxs.end());
 		break;
-
+	}
 	case QuaternionType::AddOp:
 		ss << result_->identifier() << " = " << opA_->identifier() << " + " << opB_->identifier();
 		break;	

@@ -800,6 +800,7 @@ ValueType GrammerAnalyzer::Item() {
 ValueType GrammerAnalyzer::Factor() {
 	ValueType factor_value_type = ValueType::INTV;   // 默认为INT，除非碰到那三种情况才赋值为CHAR
 	bool isArray = false;
+	vector<shared_ptr<TableEntry>> indexs;
 
 	if (equal(symbolType::IDENFR)) {
 		string identifier = curr_sym_str();
@@ -816,17 +817,21 @@ ValueType GrammerAnalyzer::Factor() {
 			pop_sym();  // pop identifier
 			pop_sym();  // pop '['
 			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-			im_coder_.addQuater(QuaternionFactory::pushArrayIndex(stack_pop_value()));
+			indexs.push_back(stack_pop_value());
 			checkMissRbrack();
 			if (equal(symbolType::LBRACK)) {									// ＜标识符＞'['＜表达式＞']''['＜表达式＞']'
 				pop_sym();
 				if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-				im_coder_.addQuater(QuaternionFactory::pushArrayIndex(stack_pop_value()));
+				indexs.push_back(stack_pop_value());
 				checkMissRbrack();
 			} else {															// ＜标识符＞'['＜表达式＞']'
 
 			}
-			auto temp = make_shared<TempEntry>(this->new_temp());
+			auto temp = make_shared<TempEntry>(this->new_temp(), factor_value_type);
+			// 将pushIndex语句紧邻getArray和setArray语句
+			for (auto x : indexs) {
+				im_coder_.addQuater(QuaternionFactory::pushArrayIndex(x));
+			}
 			im_coder_.addQuater(QuaternionFactory::getArrayElem(temp, p_entry));
 			this->stack_push(temp);
 
@@ -957,21 +962,20 @@ void GrammerAnalyzer::Statement(bool* p_exsit_return, ValueType return_value_typ
 void GrammerAnalyzer::AssignStatement() {
 	check(symbolType::IDENFR);
 	bool isArray = false;
+	vector<shared_ptr<TableEntry>> indexs;
 	shared_ptr<TableEntry> p_entry = checkUndefine();
 	pop_sym();
 	if (equal(symbolType::LBRACK)) { 
 		isArray = true;
 		pop_sym();
 		if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-		auto quater = QuaternionFactory::pushArrayIndex(stack_pop_value());
-		im_coder_.addQuater(quater);
+		indexs.push_back(stack_pop_value());
 		checkMissRbrack();
 
 		if (equal(symbolType::LBRACK)) {  // ＜标识符＞'['＜表达式＞']''['＜表达式＞']'
 			pop_sym();
 			if (Expr() != ValueType::INTV) { addErrorInfor(ErrorType::IllegalArrayIndexType); }
-			auto quater = QuaternionFactory::pushArrayIndex(stack_pop_value());
-			im_coder_.addQuater(quater);
+			indexs.push_back(stack_pop_value());
 			checkMissRbrack();
 		} else { // ＜标识符＞'['＜表达式＞']'
 
@@ -992,6 +996,9 @@ void GrammerAnalyzer::AssignStatement() {
 	if (!isArray) {
 		im_coder_.addQuater(QuaternionFactory::Assign(p_entry, right_value));
 	} else {
+		for (auto x : indexs) {
+			im_coder_.addQuater(QuaternionFactory::pushArrayIndex(x));
+		}
 		im_coder_.addQuater(QuaternionFactory::setArrayElem(p_entry, right_value));
 	}
 

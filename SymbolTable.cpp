@@ -91,7 +91,7 @@ int VarEntry::ByteSize() {
 	return cnt;
 }
 
-int VarEntry::getP(int i) {
+int VarEntry::getDimByte(int i) {
 	int cnt;
 	if (shape_.size() == 2 && i == 0) {
 		cnt = shape_[1];

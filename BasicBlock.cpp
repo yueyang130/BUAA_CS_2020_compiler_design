@@ -43,6 +43,14 @@ void IMCode::addBBlock(shared_ptr<BasicBlock> bblock) {
 	curr_bblock_ = bblock;
 }
 
+void IMCode::addQuater(shared_ptr<Quaternion> quater) {
+	if (!quater) {
+		for (int i = 0; i < 100; i++) {}// for debug
+		return;
+	}
+	curr_bblock_->addQuater(quater);
+}
+
 void IMCode::setCurrBblock(shared_ptr<BasicBlock> bblock) {
 	curr_bblock_ = bblock;
 }

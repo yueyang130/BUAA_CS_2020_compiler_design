@@ -61,13 +61,7 @@ public:
 	/*向当前Function中添加BBlock, 并设为curr_bblock*/
 	void addBBlock(shared_ptr<BasicBlock> bblock);
 	/*向curr_bblock中添加四元式*/
-	void addQuater(shared_ptr<Quaternion> quater) { 
-		if (!quater) {
-			for (int i = 0; i < 100; i++) {}// for debug
-			return;
-		}
-		curr_bblock_->addQuater(quater);
-	}
+	void addQuater(shared_ptr<Quaternion> quater);
 	shared_ptr<BasicBlock> curr_bblock() { return curr_bblock_; }
 	BasicBlock& global_bblock() { return *global_bblock_; }
 	Function& main() { return *main_; }

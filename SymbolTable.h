@@ -66,8 +66,8 @@ public:
 	/*在内存空间中要占用多少字节； 对于数组和单个变量都适用的方法*/
 	int ByteSize();
 	// 数组的第i维的一个元素需要占用空间的大小
-	int getP(int i);
-	//vector<int> shape() { return shape_;  }
+	int getDimByte(int i);
+	int ndim() { return shape_.size();  }
 private:
 	vector<int> shape_;
 
