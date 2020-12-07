@@ -138,11 +138,10 @@ void SimpleMipsFunctionGenerator::store_array(shared_ptr<TableEntry> var, string
 SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list) :
 	func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list)
 {
-	// TODO: 解决函数嵌套调用时，cnt的计算问题和参数的放置问题
-
-	// 调用子函数时使用的参数，用于统计实参个数
-	int actual_param_cnt = 0;
-	// 进入函数时使用的参数，用于统计形参个数
+	
+	// 调用子函数时,已经入栈的参数个数
+	int stack_param_cnt = 0;
+	// 进入函数时使用的参数，用于统计形参个数(形参不存在嵌套)
 	int formal_param_cnt = 0;
 	// 进入函数时使用的参数，函数参数总个数
 	int param_num = 0;
@@ -195,14 +194,19 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 		}
 		case FuncParamPush:
 			this->load_var(opA, reg0);
-			mips_store(reg0, "$sp", -4 * (++actual_param_cnt), opA->value_type(), mips_list_);
+			mips_store(reg0, "$sp", -4 * (++stack_param_cnt), opA->value_type(), mips_list_);
 			break;
 		case FuncCall:
-			mips_alu("$sp", "$sp", to_string(actual_param_cnt *4), QuaternionType::SubOp, mips_list_);
+		{	
+			mips_alu("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::SubOp, mips_list_);
 			mips_jal(opA->identifier(), mips_list);
-			mips_alu("$sp", "$sp", to_string(actual_param_cnt * 4), QuaternionType::AddOp, mips_list_);
-			actual_param_cnt = 0;
+			mips_alu("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::AddOp, mips_list_);
+			// 存在函数嵌套调用的情况，不应该对actual_param_cnt清零，应该减去已经使用到了的参数个数
+			//actual_param_cnt = 0;
+			int pnum = dynamic_pointer_cast<FunctionEntry>(opA)->formal_param_num();
+			stack_param_cnt -= pnum;
 			break;
+		}
 		case RetAssign:
 			this->store_var(result, "$v0");
 			break;
