@@ -57,6 +57,9 @@
     <ClCompile Include="OptMipsGenerator.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ImCoder.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LexicalAnalyzer.h">
@@ -105,6 +108,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="OptMipsFunctionGenerator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstCombineOptimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImCoder.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

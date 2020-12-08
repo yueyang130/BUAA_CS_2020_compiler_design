@@ -519,8 +519,6 @@ void GrammerAnalyzer::FuncDefineWithReturn() {
 
 	// 添加四元式
 	im_coder_.addFunc(func_name);
-	auto bblock = make_shared<BasicBlock>();
-	im_coder_.addBBlock(bblock);
 	im_coder_.addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
 
 
@@ -580,8 +578,6 @@ void GrammerAnalyzer::FuncDefineNoReturn() {
 
 	// 添加四元式
 	im_coder_.addFunc(func_name);
-	auto bblock = make_shared<BasicBlock>();
-	im_coder_.addBBlock(bblock);
 	im_coder_.addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
 
 	// 将形参加入符号表
@@ -690,9 +686,7 @@ void GrammerAnalyzer::Main() {
 
 	// 生成四元式
 	im_coder_.addFunc(func_name);
-	auto bblock = make_shared<BasicBlock>();
-	im_coder_.addBBlock(bblock);
-	bblock->addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
+	im_coder_.addQuater(QuaternionFactory::FuncDeclareHead(p_entry));
 
 	check(symbolType::LBRACE);
 	pop_sym();
@@ -1173,7 +1167,7 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	pop_sym();
 
 	vector<pair<shared_ptr<LabelEntry>, shared_ptr<ImmediateEntry>>> case_list;
-	auto& quater_list = im_coder_.curr_bblock()->get_quater_list();
+	auto& quater_list = im_coder_.curr_func()->get_quater_list();
 	// 向顺序容器插入元素可能会使所有指向容器的迭代器，引用和指针失效； 参见PrimerC++ P315
 	//auto iter = quater_list.end();
 	auto& back_elem = quater_list.back();

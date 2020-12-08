@@ -1,8 +1,8 @@
 #ifndef OPT_MIPS_FUNCTION_GENERATOR_
 #define OPT_MIPS_FUNCTION_GENERATOR_
 
-#include"BasicBlock.h"
-#include"opt_mips_code_tools.h"
+#include"ImCoder.h"
+#include"simple_mips_code_tools.h"
 #include<map>
 
 using namespace std;
@@ -33,56 +33,59 @@ simple dump:
 ------  sp
 */
 
-const string reg0 = "$s0";
-const string reg1 = "$s1";
-const string reg2 = "$s2";
+namespace SimpleMips {
 
-class SimpleMipsFunctionGenerator {
-private:
-	// input and output
-	Function& func_;
-	map<VarEntry*, int>& global_var_offset_map_;
-	vector<string>& mips_list_;
+	const string reg0 = "$s0";
+	const string reg1 = "$s1";
+	const string reg2 = "$s2";
 
-	/*偏移量*/
-	int offset = 0;
-	/*局部变量和临时变量相对于fp的偏移*/
-	map<TableEntry*, int> func_var_offset_map_;
+	class SimpleMipsFunctionGenerator {
+	private:
+		// input and output
+		Function& func_;
+		map<VarEntry*, int>& global_var_offset_map_;
+		vector<string>& mips_list_;
 
-	/* 处理局部变量声明，为局部变量在栈中分配内存空间地址 */
-	void map_local_var();
-	/* 处理函数内的临时变量，为临时变量在栈中分配内存空间地址 */
-	void map_temp_var();
-	/* 如果是局部变量和临时变量，将内存中的变量加载到寄存器*/
-	/* 如果是立即数或者const, 通过la加载*/
-	void load_var(shared_ptr<TableEntry> var, string reg);
-	/* 将寄存器中的值存储到局部变量和临时变量对应的内存地址*/
-	void store_var(shared_ptr<TableEntry> var, string reg);
-	/*
-	将内存中的数组元素加载到寄存器
-	off_reg:  存有相对于数组头偏移量的寄存器
-	target_reg: 将要存储左值的目标寄存器
-	注意：此函数调用后，offset的值将会发生改变
-	*/
-	void load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg);
-	/* 
-	将寄存器中的值存储到数组元素对应的内存地址
-	off_reg:  存有相对于数组头偏移量的寄存器
-	source_reg: 存储右值的寄存器
-	注意：此函数调用后，offset的值将会发生改变
-	*/
-	void store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg);
+		/*偏移量*/
+		int offset = 0;
+		/*局部变量和临时变量相对于fp的偏移*/
+		map<TableEntry*, int> func_var_offset_map_;
 
-public:
-	SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_);
-	vector<string>& getMipsCode() { return mips_list_; }
+		/* 处理局部变量声明，为局部变量在栈中分配内存空间地址 */
+		void map_local_var();
+		/* 处理函数内的临时变量，为临时变量在栈中分配内存空间地址 */
+		void map_temp_var();
+		/* 如果是局部变量和临时变量，将内存中的变量加载到寄存器*/
+		/* 如果是立即数或者const, 通过la加载*/
+		void load_var(shared_ptr<TableEntry> var, string reg);
+		/* 将寄存器中的值存储到局部变量和临时变量对应的内存地址*/
+		void store_var(shared_ptr<TableEntry> var, string reg);
+		/*
+		将内存中的数组元素加载到寄存器
+		off_reg:  存有相对于数组头偏移量的寄存器
+		target_reg: 将要存储左值的目标寄存器
+		注意：此函数调用后，offset的值将会发生改变
+		*/
+		void load_array(shared_ptr<TableEntry> var, string off_reg, string target_reg);
+		/*
+		将寄存器中的值存储到数组元素对应的内存地址
+		off_reg:  存有相对于数组头偏移量的寄存器
+		source_reg: 存储右值的寄存器
+		注意：此函数调用后，offset的值将会发生改变
+		*/
+		void store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg);
 
-};
+	public:
+		SimpleMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_);
+		vector<string>& getMipsCode() { return mips_list_; }
 
-/* 支持函数 */
-// 判断是否是临时变量
-bool isTempVar(shared_ptr<TableEntry> entry);
+	};
 
+	/* 支持函数 */
+	// 判断是否是临时变量
+	bool isTempVar(shared_ptr<TableEntry> entry);
+
+}
 
 #endif // !OPT_MIPS_FUNCTION_GENERATOR_
 

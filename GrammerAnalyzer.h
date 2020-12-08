@@ -3,7 +3,7 @@
 
 #include "LexicalAnalyzer.h"
 #include "SymbolTable.h"
-#include "BasicBlock.h"
+#include "ImCoder.h"
 #include <iostream>
 using namespace std;
 

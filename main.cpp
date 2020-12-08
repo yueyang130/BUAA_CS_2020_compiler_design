@@ -3,15 +3,22 @@
 #include <string>
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
-#include "BasicBlock.h"  // ImCoder
-#define OPT 1
-#if OPT
+#include "ImCoder.h"  // ImCoder
+
+// config
+#define REG_OPT 1			// 寄存器分配优化
+#define CON_COMBINE_OPT 1	// 常数合并
+
+#if REG_OPT
 	#include "OptMipsGenerator.h"
+	using namespace OptMips;
 #else
+// register optimizer
 	#include "SimpleMipsGenerator.h"
-#endif // OPT
+	using namespace SimpleMips;
+#endif
 
-
+#include "ConstCombineOptimizer.h"
 
 
 using namespace std;
