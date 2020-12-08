@@ -6,8 +6,7 @@
 #include "ImCoder.h"  // ImCoder
 
 // config
-#define REG_OPT 0			// 寄存器分配优化
-#define CON_COMBINE_OPT 0	// 常数合并
+#define REG_OPT 1			// 寄存器分配优化
 
 #if REG_OPT
 	#include "OptMipsGenerator.h"
@@ -17,8 +16,6 @@
 	#include "SimpleMipsGenerator.h"
 	using namespace SimpleMips;
 #endif
-
-#include "ConstCombineOptimizer.h"
 
 
 using namespace std;
@@ -61,6 +58,9 @@ int main() {
 	//ferror.close();
 	f_ircode.close();
 	f_targetcode.close();
+
+	// 常数合并优化
+
 
 	return 0;
 }

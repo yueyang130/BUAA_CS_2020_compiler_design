@@ -110,9 +110,6 @@
     <ClInclude Include="OptMipsFunctionGenerator.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ConstCombineOptimizer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ImCoder.h">
       <Filter>头文件</Filter>
     </ClInclude>

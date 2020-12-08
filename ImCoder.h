@@ -25,7 +25,11 @@ private:
 };
 
 
-/*整个源代码的四元式中间代码*/
+/**
+* 1. 存储全局声明的四元式和各个Function的四元式
+* 2. 含有整个源代码的四元式中间代码Vector
+* 3. 不负责基本块的划分，基本块的划分放在部分中间代码优化之后
+*/
 class IMCode {
 public:
 	static IMCode& getInstance();

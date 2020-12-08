@@ -2,6 +2,7 @@
 #include "SymbolTable.h"
 #include "error.h"
 #include <algorithm>
+#include "tools.h"
 
 GrammerAnalyzer::GrammerAnalyzer(LexicalAnalyzer& my_lexical_analyzer, IMCode& im_code):
 	sym_infor_list_(my_lexical_analyzer.sym_infor_list_), 
@@ -1488,6 +1489,41 @@ shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
 		stack_push(opB);
 		return nullptr;
 	}
+
+	// 常量合并
+	/*
+	对算术四元式:
+	  0. 如果a +- 0, a * / 1,化简
+	* 1. 如果t0 = a + b，其中a, b都是常量或立即数, 直接计算
+	* 2. 减法和除法没有交换律, 由于取整性质，乘除也不能换位
+	*/
+	if (alu_type == symbolType::PLUS || alu_type == symbolType::MINU) {
+		if (const_or_immed(opA.get()) && getValue(opA.get()) == 0) {
+			stack_push(opB);
+			return nullptr;
+		}
+		if (const_or_immed(opB.get()) && getValue(opB.get()) == 0) {
+			stack_push(opA);
+			return nullptr;
+		}
+	}
+	if (alu_type == symbolType::MULT || alu_type == symbolType::DIV) {
+		if (alu_type == symbolType::MULT && const_or_immed(opA.get()) && getValue(opA.get()) == 1) {
+			stack_push(opB);
+			return nullptr;
+		}
+		if (const_or_immed(opB.get()) && getValue(opB.get()) == 1) {
+			stack_push(opA);
+			return nullptr;
+		}
+	}
+
+	if (const_or_immed(opA.get()) && const_or_immed(opB.get())) {
+		int result = calValue(alu_type, opA.get(), opB.get());
+		stack_push(make_shared<ImmediateEntry>(ValueType::INTV, to_string(result)));
+		return nullptr;
+	}
+
 
 	auto result = make_shared<TempEntry>(new_temp());
 	switch (alu_type) {

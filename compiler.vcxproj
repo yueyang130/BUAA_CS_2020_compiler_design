@@ -163,7 +163,6 @@
     <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
-    <ClInclude Include="ConstCombineOptimizer.h" />
     <ClInclude Include="ImCoder.h" />
     <ClInclude Include="OptMipsGenerator.h" />
     <ClInclude Include="opt_mips_code_tools.h" />
