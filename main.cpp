@@ -4,7 +4,14 @@
 #include "LexicalAnalyzer.h"
 #include "GrammerAnalyzer.h"
 #include "BasicBlock.h"  // ImCoder
-#include "SimpleMipsGenerator.h"
+#define OPT 1
+#if OPT
+	#include "OptMipsGenerator.h"
+#else
+	#include "SimpleMipsGenerator.h"
+#endif // OPT
+
+
 
 
 using namespace std;

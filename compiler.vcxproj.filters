@@ -48,6 +48,15 @@
     <ClCompile Include="simple_mips_code_tools.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="opt_mips_code_tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OptMipsFunctionGenerator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OptMipsGenerator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LexicalAnalyzer.h">
@@ -87,6 +96,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="simple_mips_code_tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_mips_code_tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OptMipsGenerator.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="OptMipsFunctionGenerator.h">

@@ -1,8 +1,8 @@
-#ifndef SIMPLE_MIPS_FUNCTION_GENERATOR_
-#define SIMPLE_MIPS_FUNCTION_GENERATOR_
+#ifndef OPT_MIPS_FUNCTION_GENERATOR_
+#define OPT_MIPS_FUNCTION_GENERATOR_
 
 #include"BasicBlock.h"
-#include"simple_mips_code_tools.h"
+#include"opt_mips_code_tools.h"
 #include<map>
 
 using namespace std;
@@ -84,6 +84,6 @@ public:
 bool isTempVar(shared_ptr<TableEntry> entry);
 
 
-#endif // !SIMPLE_MIPS_FUNCTION_GENERATOR_
+#endif // !OPT_MIPS_FUNCTION_GENERATOR_
 
 
