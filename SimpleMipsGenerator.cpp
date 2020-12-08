@@ -90,7 +90,7 @@ void dump_strcon(shared_ptr<TableEntry> p_entry, vector<string>& instr_list) {
 	if (p_entry->value_type() != ValueType::STRINGV) {
 		return;
 	}
-	auto& inum = *dynamic_pointer_cast<ImmediateEntry>(p_entry);
+	auto inum = *dynamic_pointer_cast<ImmediateEntry>(p_entry);
 	string instr = load_strcon(inum);
 	instr_list.push_back(instr);
 }

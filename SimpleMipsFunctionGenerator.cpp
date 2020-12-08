@@ -169,6 +169,8 @@ SimpleMipsFunctionGenerator::SimpleMipsFunctionGenerator(Function& func, map<Var
 			this->offset += 8;
 			map_local_var();
 			map_temp_var();
+			// ¶ÔÆëoffset
+			offset = (offset % 4 == 0) ? offset : (offset - (offset % 4) + 4);
 			mips_alu("$sp", "$sp", to_string(this->offset), QuaternionType::SubOp, mips_list_);
 			break;
 		case FuncFormalParam:

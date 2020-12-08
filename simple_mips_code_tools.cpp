@@ -104,7 +104,17 @@ string load_strcon(ImmediateEntry& inum) {
 	//vector<string> instrs;
 
 	string ret = inum.identifier();
-	ret += ":.asciiz \"" + inum.getValue() + "\"";
+	string content = inum.getValue();
+	// ²»×ªÒå
+	for (int i = 0; i < content.length()-1; i++) {
+		//if (content[i] == '\\' && (content[i + 1] == 'n'|| content[i + 1] == 't' || content[i + 1] == '0')) {
+		if (content[i] == '\\') {
+			content.insert(content.begin() + i, '\\');
+			i++;
+		}
+	}
+
+	ret += ":.asciiz \"" + content + "\"";
 	//instrs.push_back(ret);
 	return ret;
 }

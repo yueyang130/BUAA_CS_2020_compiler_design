@@ -849,7 +849,14 @@ ValueType GrammerAnalyzer::Factor() {
 		}
 	} else if (equal(symbolType::LPARENT)) {									// '('＜表达式＞')'
 		pop_sym();
-		Expr();
+		auto expr_type = Expr();
+		// 类型转换
+		if (expr_type == ValueType::CHARV) {
+			auto temp = make_shared<TempEntry>(this->new_temp(), ValueType::INTV);
+			im_coder_.addQuater(QuaternionFactory::Assign(temp, stack_pop_value()));
+			stack_push(temp);
+		}
+
 		checkMissRparent();
 
 	} else if (equal(symbolType::CHARCON)) {									// ＜字符＞
@@ -1285,7 +1292,7 @@ void GrammerAnalyzer::CallWithReturn(shared_ptr<FunctionEntry> p_entry, shared_p
 	ValueParameterList(p_entry);
 	checkMissRparent();
 
-	*ret = make_shared<TempEntry>(string("temp_ret"));;
+	*ret = make_shared<TempEntry>(string("temp_ret"), p_entry->value_type());
 	im_coder_.addQuater(QuaternionFactory::FuncCall(p_entry));
 	im_coder_.addQuater(QuaternionFactory::RetAssign(*ret));
 
