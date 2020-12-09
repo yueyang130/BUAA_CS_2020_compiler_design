@@ -17,5 +17,8 @@ bool const_or_immed(TableEntry* entry);
 int getValue(TableEntry* entry);
 int calValue(symbolType alu_type, TableEntry* opA, TableEntry* opB);
 
+/*÷∏¡Ó—°‘Ò*/
+int log2(int value);
+
 #endif // !TOOLS_H_
 

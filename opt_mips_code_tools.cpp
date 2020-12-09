@@ -1,6 +1,7 @@
 #include"opt_mips_code_tools.h"
 #include<assert.h>
 #include<sstream>
+#include"tools.h"
 
 namespace OptMips {
 
@@ -228,21 +229,94 @@ namespace OptMips {
 		switch (quater_type) {
 		case QuaternionType::AddOp:
 			instr = "addu " + result + ", " + left + ", " + right;
+			mips_list.push_back(instr);
 			break;
 		case QuaternionType::SubOp:
 		case QuaternionType::Neg:
 			instr = "subu " + result + ", " + left + ", " + right;
+			mips_list.push_back(instr);
 			break;
 		case QuaternionType::MulOp:
 			instr = "mul " + result + ", " + left + ", " + right;
+			mips_list.push_back(instr);
 			break;
 		case QuaternionType::DivOp:
-			instr = "div " + result + ", " + left + ", " + right;
+			instr = "div " + left + ", " + right;
+			mips_list.push_back(instr);
+			mips_list.push_back("mflo " + result);
 			break;
 		default:
 			break;
 		}
-		mips_list.push_back(instr);
+	}
+
+	void mips_alui(string result, string left, string immed, QuaternionType quater_type, vector<string>& mips_list) {
+		static int label_cnt = 0;
+		
+		string instr;
+		switch (quater_type) {
+		case QuaternionType::AddOp:
+			instr = "addiu " + result + ", " + left + ", " + immed;
+			mips_list.push_back(instr);
+			break;
+		case QuaternionType::SubOp:
+		case QuaternionType::Neg:
+			instr = "addiu " + result + ", " + left + ", -" + immed;
+			mips_list.push_back(instr);
+			break;
+		case QuaternionType::MulOp:
+		{
+			int opB = stoi(immed);
+			if (opB >= 0 && (opB & (opB - 1)) == 0) {
+				int k = log2(opB);
+				mips_list.push_back("sll " + result + ", " + left + ", " + to_string(k));
+
+			} else if (opB < 0 && (-opB & (-opB - 1)) == 0) {
+				int k = log2(-opB);
+				mips_list.push_back("sll " + result + ", " + left + ", " + to_string(k));
+				mips_alu(result, "$zero", result, QuaternionType::SubOp, mips_list);
+
+			} else {
+				instr = "mul " + result + ", " + left + ", " + immed;
+				mips_list.push_back(instr);
+			}
+			break;
+		}
+		case QuaternionType::DivOp:
+		{
+			int opB = stoi(immed);
+			bool neg = false;
+			if (opB <= 0 && (-opB & (-opB - 1)) == 0){
+				opB = -opB;
+				neg = true;
+			}
+
+			if (opB >= 0 && (opB & (opB - 1)) == 0) {  // 2的整数次幂
+				// result = (x < 0 ? x + (1 << k) - 1 : x) >> k
+				int k = log2(opB);
+				// if left >=0, jump to label noNeg
+				string label = "noNeg" + to_string(++label_cnt); 
+				conditional_jump(left, "$zero", label, QuaternionType::BGE, mips_list);
+				// else, x = x + (1 << k) - 1 
+				mips_alui(left, left, to_string((1 << k) - 1), QuaternionType::AddOp, mips_list);
+				// label noNeg:
+				mips_list.push_back(label + ":");
+				mips_list.push_back("sra " + result + ", " + left + ", " + to_string(k));
+				if (neg) {
+					mips_alu(result, "$zero", result, QuaternionType::SubOp, mips_list);
+				}
+
+			} else {
+				instr = "div " + left + ", " + immed;
+				mips_list.push_back(instr);
+				mips_list.push_back("mflo " + result);
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 

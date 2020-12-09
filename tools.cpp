@@ -32,3 +32,14 @@ int calValue(symbolType alu_type,TableEntry* opA, TableEntry* opB) {
 		return 0;
 	}
 }
+
+
+int log2(int value)   //非递归判断一个数是2的多少次方
+{
+	int x = 0;
+	while (value > 1) {
+		value >>= 1;
+		x++;
+	}
+	return x;
+}

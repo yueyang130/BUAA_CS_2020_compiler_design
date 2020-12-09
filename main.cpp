@@ -6,7 +6,7 @@
 #include "ImCoder.h"  // ImCoder
 
 // config
-#define REG_OPT 1			// 寄存器分配优化
+#define REG_OPT 1			// 寄存器分配优化和目标代码优化
 
 #if REG_OPT
 	#include "OptMipsGenerator.h"

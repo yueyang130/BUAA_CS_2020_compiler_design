@@ -56,6 +56,7 @@ namespace OptMips {
 
 	/*ALU: result and right must be register; right can be a register or a immediate num*/
 	void mips_alu(string result, string left, string right, QuaternionType type, vector<string>& mips_list);
+	void mips_alui(string result, string left, string immed, QuaternionType type, vector<string>& mips_list);
 
 
 	/*read and write*/
