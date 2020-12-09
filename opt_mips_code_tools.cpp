@@ -214,11 +214,11 @@ namespace OptMips {
 	void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list) {
 		auto arr = dynamic_pointer_cast<VarEntry>(entry);
 		if (arr->ndim() == 2) {
-			mips_alu(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
-			mips_alu(reg1, reg_idxs[1], to_string(arr->getDimByte(1)), QuaternionType::MulOp, mips_list);
+			mips_alui(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+			mips_alui(reg1, reg_idxs[1], to_string(arr->getDimByte(1)), QuaternionType::MulOp, mips_list);
 			mips_alu(reg0, reg0, reg1, QuaternionType::AddOp, mips_list);
 		} else {
-			mips_alu(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+			mips_alui(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
 		}
 	}
 
@@ -286,7 +286,7 @@ namespace OptMips {
 		{
 			int opB = stoi(immed);
 			bool neg = false;
-			if (opB <= 0 && (-opB & (-opB - 1)) == 0){
+			if (opB <= 0 && (-opB & (-opB - 1)) == 0){ // 2的整数次幂的负数
 				opB = -opB;
 				neg = true;
 			}
@@ -307,7 +307,8 @@ namespace OptMips {
 				}
 
 			} else {
-				instr = "div " + left + ", " + immed;
+				mips_list.push_back("li $at, " + immed);
+				instr = "div " + left + ", $at";
 				mips_list.push_back(instr);
 				mips_list.push_back("mflo " + result);
 			}

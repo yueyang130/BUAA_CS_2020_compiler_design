@@ -172,7 +172,7 @@ namespace OptMips {
 				map_temp_var();
 				// 对齐offset
 				offset = (offset % 4 == 0) ? offset : (offset - (offset % 4) + 4);
-				mips_alu("$sp", "$sp", to_string(this->offset), QuaternionType::SubOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string(this->offset), QuaternionType::SubOp, mips_list_);
 				break;
 			case FuncFormalParam:
 			{
@@ -201,9 +201,9 @@ namespace OptMips {
 				break;
 			case FuncCall:
 			{
-				mips_alu("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::SubOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::SubOp, mips_list_);
 				mips_jal(opA->identifier(), mips_list);
-				mips_alu("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::AddOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::AddOp, mips_list_);
 				// 存在函数嵌套调用的情况，不应该对actual_param_cnt清零，应该减去已经使用到了的参数个数
 				//actual_param_cnt = 0;
 				int pnum = dynamic_pointer_cast<FunctionEntry>(opA)->formal_param_num();
@@ -244,16 +244,36 @@ namespace OptMips {
 
 			case AddOp: case SubOp:
 			case MulOp: case DivOp:
-				this->load_var(opA, reg1);
-				this->load_var(opB, reg2);
-				mips_alu(reg0, reg1, reg2, quater_type, mips_list_);
-				this->store_var(result, reg0);
-				break;
+				// 由于做过常数合并，opA,opB不会同时为常数或立即数
+				// 2+a, 2*a这种变为a+2, a*2, 可以节省加载立即数的指令，还能用移位加速
+				// 但2-a, 2/a就不能交换位置，只能先载入立即数
+				if (const_or_immed(opA.get()) && (quater_type == AddOp || quater_type == MulOp)) {
+					auto temp = opA;
+					opA = opB;
+					opB = temp;
+				}
+				// 然后如果此时opB是立即数，用alui进行运算
+				if (const_or_immed(opB.get())) {
+					this->load_var(opA, reg1);
+					mips_alui(reg0, reg1, opB->getValue(), quater_type, mips_list_);
+					this->store_var(result, reg0);
 
+				} else {
+					this->load_var(opA, reg1);
+					this->load_var(opB, reg2);
+					mips_alu(reg0, reg1, reg2, quater_type, mips_list_);
+					this->store_var(result, reg0);
+				}
+				break;
 			case Neg:
-				this->load_var(opA, reg2);
-				mips_alu(reg0, "$zero", reg2, quater_type, mips_list_);
-				this->store_var(result, reg0);
+				if (const_or_immed(opA.get())) {
+					mips_alui(reg0, "$zero", opA->getValue(), quater_type, mips_list_);
+					this->store_var(result, reg0);
+				} else {
+					this->load_var(opA, reg2);
+					mips_alu(reg0, "$zero", reg2, quater_type, mips_list_);
+					this->store_var(result, reg0);
+				}
 				break;
 
 			case Assign:
