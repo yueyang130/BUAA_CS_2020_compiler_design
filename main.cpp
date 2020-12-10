@@ -60,14 +60,8 @@ int main() {
 
 	// 中间代码的内联优化
 	if (INLINE_OPT) {
-		// 做三次内联展开，最多开展开三层函数调用
 		InlineOptimizer inline_opt(myIMCode);
 		myIMCode = inline_opt.getOptimizedImcode();
-		for (int i = 0; i < 2; i++) {
-			inline_opt = InlineOptimizer(myIMCode);
-			myIMCode = inline_opt.getOptimizedImcode();
-		}
-		// 输出内联优化后的中间代码
 		inline_opt.dump();
 	}
 

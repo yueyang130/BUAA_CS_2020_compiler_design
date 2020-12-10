@@ -4,11 +4,7 @@
 #include<map>
 
 InlineOptimizer::InlineOptimizer(IMCode imcode): Optimizer("inline_opt", imcode) {
-	for (auto caller : imcode_.func_list()) {
-		if (checkInline(caller.get())) {
-			inlined_func.insert(caller.get());
-		}
-	}
+	
 	optimize();
 }
 
@@ -19,10 +15,7 @@ void InlineOptimizer::optimize() {
 	}
 	// 主体
 	for (auto caller : imcode_.func_list()) {
-		// 如果caller将要被内联,则caller不会被添加到optimized_imcode的func_list中
-		if (inlined_func.find(caller.get()) == inlined_func.end()) {
-			inline_caller(caller.get());
-		}
+		inline_caller(caller.get());
 	}
 	inline_caller(&imcode_.main());
 }
@@ -39,9 +32,11 @@ void InlineOptimizer::inline_caller(Function* caller) {
 			continue;
 		}
 		auto callee_entry = dynamic_pointer_cast<FunctionEntry>((*it)->opA_);
-		auto callee = findFunction(this->imcode_, callee_entry->identifier());
-		// 检查callee是否具有内联资格
-		if (inlined_func.find(callee.get()) == inlined_func.end()) {
+		//auto callee = findFunction(this->imcode_, callee_entry->identifier());
+		// callee使用的是之前作为caller嵌入了内联函数的版本
+		auto callee = findFunction(this->optmized_imcode_, callee_entry->identifier());
+		// 检查callee是否具有被内联资格
+		if (caller->name() == callee_entry->identifier() || !checkInline(callee.get())) {
 			inlined_quaters.push_back(*it);
 			continue;
 		}

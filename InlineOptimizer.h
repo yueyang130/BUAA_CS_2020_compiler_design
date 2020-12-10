@@ -13,8 +13,6 @@ public:
 private:
 	void optimize();
 	void inline_caller(Function* caller);
-	// 将要被内联的函数
-	set<Function*> inlined_func;
 	
 };
 
