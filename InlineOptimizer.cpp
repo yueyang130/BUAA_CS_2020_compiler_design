@@ -70,8 +70,11 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 	// step0: 扫描一遍callee四元式，创建映射
 	for (auto x : callee_quaters) {
 		if (x->quater_type_ == QuaternionType::FuncFormalParam || x->quater_type_ == QuaternionType::VarDeclare) {
-			auto var = x->result_;
-			auto new_var = make_shared<VarEntry>(var->value_type(), var->identifier() + suffix, false);
+			auto var = dynamic_pointer_cast<VarEntry>(x->result_);
+			// 要设置初值
+			//auto new_var = make_shared<VarEntry>(var->value_type(), var->identifier() + suffix, false);
+			auto new_var = make_shared<VarEntry>(*var);
+			new_var->setIdentifier(var->identifier() + suffix);
 			var_map[var.get()] = new_var;
 		}
 	}
@@ -95,7 +98,9 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 		// step2: 将callee的局部变量和参数，声明为caller的局部变量
 		if (x->quater_type_ == QuaternionType::FuncFormalParam || x->quater_type_ == QuaternionType::VarDeclare) {
 			auto var = x->result_;
-			var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()]));
+			// 不要忽略带有初始化的变量声明
+			//var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()]));
+			var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()], x->opA_));
 			continue;
 		} 
 		// 将用到Var和param的替换为caller的var
