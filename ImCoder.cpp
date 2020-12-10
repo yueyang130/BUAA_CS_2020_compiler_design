@@ -41,7 +41,8 @@ void IMCode::addQuater(shared_ptr<Quaternion> quater) {
 }
 
 
-const vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
+
+vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
 	if (quater_list_.size() == 0) {
 		// global var and const decalre
 		quater_list_.insert(quater_list_.end(), gb_list_.begin(), gb_list_.end());
@@ -58,11 +59,11 @@ const vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
 }
 
 void IMCode::show_quaters(ostream& fout) {
-	//cout << string(80, '_') << endl;
+	cout << string(80, '_') << endl;
 	for (auto quater : this->get_quater_list()) {
 		if (quater) {
 			fout << quater->toString() << endl;
-			//cout << quater->toString() << endl;
+			cout << quater->toString() << endl;
 		} else {
 			fout << endl;
 		}

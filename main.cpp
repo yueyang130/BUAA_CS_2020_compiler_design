@@ -9,6 +9,7 @@
 // config
 #define REG_OPT 1			// 寄存器分配优化和目标代码优化
 #define INLINE_OPT 1
+#define PEEPHOLE_OPT 1
 
 #if REG_OPT
 	#include "OptMipsGenerator.h"
@@ -20,7 +21,7 @@
 #endif
 
 #include "InlineOptimizer.h"
-
+#include "PeepholeOptimizer.h"
 
 
 using namespace std;
@@ -63,6 +64,12 @@ int main() {
 		InlineOptimizer inline_opt(myIMCode);
 		myIMCode = inline_opt.getOptimizedImcode();
 		inline_opt.dump();
+	}
+	// 窥孔优化
+	if (PEEPHOLE_OPT) {
+		PeepholeOptimizer peephole_opt(myIMCode);
+		myIMCode = peephole_opt.getOptimizedImcode();
+		peephole_opt.dump();
 	}
 
 	// 输出中间代码

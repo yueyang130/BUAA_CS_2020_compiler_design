@@ -60,10 +60,13 @@
     <ClCompile Include="ImCoder.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Optimizer.cpp">
+    <ClCompile Include="PeepholeOptimizer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="InlineOptimizer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Optimizer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,10 +122,13 @@
     <ClInclude Include="ImCoder.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Optimizer.h">
+    <ClInclude Include="PeepholeOptimizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="InlineOptimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

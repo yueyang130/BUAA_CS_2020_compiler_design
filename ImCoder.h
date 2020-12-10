@@ -46,7 +46,7 @@ public:
 	/*获取整个源代码的中间代码*/
 	vector<shared_ptr<Function>>& func_list() { return func_list_; }
 	/*在整个文件的中间代码全部生成完毕后，才能调用此函数返回一个完整的列表*/
-	const vector<shared_ptr<Quaternion>>& get_quater_list();
+	vector<shared_ptr<Quaternion>>& get_quater_list();
 	/*向输出流写中间代码*/
 	void show_quaters(ostream& fout);
 

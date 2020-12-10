@@ -155,7 +155,7 @@ bool checkInline(Function* callee) {
 
 }
 
-shared_ptr<Function> findFunction(IMCode imcode,string func_name) {
+shared_ptr<Function> findFunction(IMCode& imcode,string func_name) {
 	for (auto x : imcode.func_list()) {
 		if (x->name() == func_name) {
 			return x;
