@@ -15,19 +15,13 @@ bool const_or_immed(TableEntry* entry) {
 
 int getValue(TableEntry* entry) {
 	string v = entry->getValue();
-	const char* p = v.c_str();
 	if (entry->value_type() == ValueType::INTV)
-		return stoi(p);
-	else
-		return int(p[0]);
-}
-
-int getValue(string v) {
-	const char* p = v.c_str();
-	if (isdigit(p[0]))
-		return stoi(p);
-	else
-		return int(p[0]);
+		return stoi(v.c_str());
+	else {
+		
+		return v[1];
+	}
+		
 }
 
 
