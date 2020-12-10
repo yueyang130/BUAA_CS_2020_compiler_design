@@ -2,6 +2,7 @@
 #include<assert.h>
 #include<sstream>
 #include"tools.h"
+#include<set>
 
 namespace OptMips {
 
@@ -102,24 +103,30 @@ namespace OptMips {
 		return ret.str();
 	}
 
-	string load_strcon(ImmediateEntry& inum) {
+	void load_strcon(ImmediateEntry& inum, vector<string>& instr_list) {
 		assert(inum.value_type() == ValueType::STRINGV);
 		//vector<string> instrs;
-
-		string ret = inum.identifier();
-		string content = inum.getValue();
-		// 不转义
-		for (int i = 0; i < content.length() - 1; i++) {
-			//if (content[i] == '\\' && (content[i + 1] == 'n'|| content[i + 1] == 't' || content[i + 1] == '0')) {
-			if (content[i] == '\\') {
-				content.insert(content.begin() + i, '\\');
-				i++;
+		static set<ImmediateEntry*> str_set;
+		// 函数内联后，可能会有一些重复的字符串entry
+		if (str_set.find(&inum) == str_set.end() ) {
+			string ret = inum.identifier();
+			string content = inum.getValue();
+			// 不转义
+			for (int i = 0; i < content.length() - 1; i++) {
+				//if (content[i] == '\\' && (content[i + 1] == 'n'|| content[i + 1] == 't' || content[i + 1] == '0')) {
+				if (content[i] == '\\') {
+					content.insert(content.begin() + i, '\\');
+					i++;
+				}
 			}
+
+			ret += ":.asciiz \"" + content + "\"";
+			instr_list.push_back(ret);
+			str_set.insert(&inum);
+			
 		}
 
-		ret += ":.asciiz \"" + content + "\"";
-		//instrs.push_back(ret);
-		return ret;
+		
 	}
 
 	void mips_load_mem(string reg1, string reg2, int offset, ValueType type, vector<string>& mips_list) {
@@ -355,6 +362,4 @@ namespace OptMips {
 		mips_list.push_back("la $a0, \'\\n\'");
 		mips_list.push_back("syscall");
 	}
-
-
 }

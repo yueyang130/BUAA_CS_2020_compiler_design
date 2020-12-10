@@ -16,7 +16,7 @@ namespace OptMips {
 	/*load global big var, MIPS自动管理地址*/
 	string load_global_big_var(Quaternion& quater);
 	/*load str, MIPS自动管理地址*/
-	string load_strcon(ImmediateEntry& inum);
+	void load_strcon(ImmediateEntry& inum, vector<string>& instr_list);
 
 
 	/*memory load and store*/

@@ -91,9 +91,8 @@ namespace OptMips {
 		if (p_entry->value_type() != ValueType::STRINGV) {
 			return;
 		}
-		auto inum = *dynamic_pointer_cast<ImmediateEntry>(p_entry);
-		string instr = load_strcon(inum);
-		instr_list.push_back(instr);
+		auto& inum = *dynamic_pointer_cast<ImmediateEntry>(p_entry);
+		load_strcon(inum, instr_list);
 	}
 
 }
