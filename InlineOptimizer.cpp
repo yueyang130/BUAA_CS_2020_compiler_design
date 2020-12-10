@@ -114,7 +114,13 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 			quater_list.push_back(new_quater);
 		}
 	}
-	quater_list.insert(quater_list.begin()+1, var_quaters.begin(), var_quaters.end());
+	// 变量声明要插入到函数参数声明的后面
+	auto it = quater_list.begin() + 1;
+	for (; (*it)->quater_type_ == QuaternionType::FuncFormalParam;) {
+		it++;
+	}
+	//quater_list.insert(it-1, var_quaters.begin(), var_quaters.end());
+	quater_list.insert(it, var_quaters.begin(), var_quaters.end());
 	// set exit label
 	quater_list.push_back(QuaternionFactory::Label(label));
 
