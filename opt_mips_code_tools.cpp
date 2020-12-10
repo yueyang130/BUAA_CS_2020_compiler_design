@@ -257,26 +257,23 @@ namespace OptMips {
 		}
 	}
 
-	void mips_alui(string result, string left, string immed, QuaternionType quater_type, vector<string>& mips_list) {
+	void mips_alui(string result, string left, string immed_str, QuaternionType quater_type, vector<string>& mips_list) {
 		static int label_cnt = 0;
-		
+		int immed = getValue(immed_str);
 		string instr;
 		switch (quater_type) {
 		case QuaternionType::AddOp:
-			instr = "addiu " + result + ", " + left + ", " + immed;
+			instr = "addiu " + result + ", " + left + ", " + immed_str;
 			mips_list.push_back(instr);
 			break;
 		case QuaternionType::SubOp:
 		case QuaternionType::Neg:
-			if (stoi(immed) >= 0)
-				instr = "addiu " + result + ", " + left + ", -" + immed;
-			else 
-				instr = "addiu " + result + ", " + left + ", " + to_string(-stoi(immed));
+				instr = "addiu " + result + ", " + left + ", " + to_string(-immed);
 			mips_list.push_back(instr);
 			break;
 		case QuaternionType::MulOp:
 		{
-			int opB = stoi(immed.c_str());
+			int opB = immed;
 			if (opB >= 0 && (opB & (opB - 1)) == 0) {
 				int k = log2(opB);
 				mips_list.push_back("sll " + result + ", " + left + ", " + to_string(k));
@@ -287,14 +284,14 @@ namespace OptMips {
 				mips_alu(result, "$zero", result, QuaternionType::SubOp, mips_list);
 
 			} else {
-				instr = "mul " + result + ", " + left + ", " + immed;
+				instr = "mul " + result + ", " + left + ", " + immed_str;
 				mips_list.push_back(instr);
 			}
 			break;
 		}
 		case QuaternionType::DivOp:
 		{
-			int opB = stoi(immed.c_str());
+			int opB = immed;
 			bool neg = false;
 			if (opB <= 0 && (-opB & (-opB - 1)) == 0){ // 2的整数次幂的负数
 				opB = -opB;
@@ -317,7 +314,7 @@ namespace OptMips {
 				}
 
 			} else {
-				mips_list.push_back("li $at, " + immed);
+				mips_list.push_back("li $at, " + immed_str);
 				instr = "div " + left + ", $at";
 				mips_list.push_back(instr);
 				mips_list.push_back("mflo " + result);

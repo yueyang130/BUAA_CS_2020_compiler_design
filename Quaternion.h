@@ -21,6 +21,7 @@ enum QuaternionType {
 	// 常量和变量声明		
 	VarDeclare,				//		var							None/i
 	ConstDecalre,			//		const						i
+	InlineVarInit,			//		var							i
 	// 条件和跳转
 	BEQ,					//		label						var/const/i					var/const/i
 	BNE,
@@ -75,6 +76,7 @@ public:
 	static shared_ptr<Quaternion> RetAssign(shared_ptr<TableEntry> var);
 	
 	static shared_ptr<Quaternion> VarDecalre(shared_ptr<TableEntry> var, shared_ptr<TableEntry> immediate = nullptr);
+	static shared_ptr<Quaternion> InlineVarInit(shared_ptr<TableEntry> var, shared_ptr<TableEntry> immediate);
 	static shared_ptr<Quaternion> ConstDeclare(shared_ptr<TableEntry> con);
 	static shared_ptr<Quaternion> BEQ(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);
 	static shared_ptr<Quaternion> BNE(shared_ptr<TableEntry>result, shared_ptr<TableEntry> left, shared_ptr<TableEntry> right);

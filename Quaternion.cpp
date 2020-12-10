@@ -42,6 +42,9 @@ string Quaternion::toString() {
 		//	ss << " = " << left_->identifier();
 		//}
 		break;
+	case QuaternionType::InlineVarInit:
+		ss << "Init " << result_->identifier() << endl;
+ 		break;
 	case QuaternionType::ConstDecalre: {
 		string val = dynamic_pointer_cast<ConstEntry>(result_)->getValue();
 		ss << "const " << ValuetypeToString(result_->value_type()) << " " << result_->identifier() << " = " << val;
@@ -166,6 +169,10 @@ shared_ptr<Quaternion> QuaternionFactory::RetAssign(shared_ptr<TableEntry> var) 
 
 shared_ptr<Quaternion> QuaternionFactory::VarDecalre(shared_ptr<TableEntry> var, shared_ptr<TableEntry> immdediate) {
 	return make_shared<Quaternion>(QuaternionType::VarDeclare, var, immdediate, nullptr);
+}
+
+shared_ptr<Quaternion> QuaternionFactory::InlineVarInit(shared_ptr<TableEntry> var, shared_ptr<TableEntry> immediate) {
+	return make_shared<Quaternion>(QuaternionType::InlineVarInit, var, immediate, nullptr);
 }
 
 shared_ptr<Quaternion> QuaternionFactory::ConstDeclare(shared_ptr<TableEntry> con) {

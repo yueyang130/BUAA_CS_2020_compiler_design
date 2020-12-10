@@ -17,13 +17,18 @@ int getValue(TableEntry* entry) {
 	string v = entry->getValue();
 	if (entry->value_type() == ValueType::INTV)
 		return stoi(v.c_str());
-	else {
-		
+	else {	
 		return v[1];
-	}
-		
+	}	
 }
 
+int getValue(string v) {
+	if (v[0] != '\'')
+		return stoi(v);
+	else {
+		return v[1];
+	}
+}
 
 
 int calValue(symbolType alu_type,TableEntry* opA, TableEntry* opB) {

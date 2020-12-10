@@ -55,7 +55,13 @@ void InlineOptimizer::inline_caller(Function* caller) {
 	}
 }
 
-/*将callee内联到caller*/
+/**将callee内联到caller
+* 
+* 对于callee函数的参数和变量的处理:
+* 1.参数和变量都在caller的头部进行声明，为在栈上预留空间
+* 2.每次进入内联代码时，参数都有assign quater进行赋值操作
+* 3.callee变量的初始化不能在声明时进行，要每次进入内联代码时都要重新初始化
+*/
 shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType value_type, vector<shared_ptr<Quaternion>>& quater_list) {
 	static int label_cnt = 0;
 	string name = callee->name();
@@ -71,8 +77,6 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 	for (auto x : callee_quaters) {
 		if (x->quater_type_ == QuaternionType::FuncFormalParam || x->quater_type_ == QuaternionType::VarDeclare) {
 			auto var = dynamic_pointer_cast<VarEntry>(x->result_);
-			// 要设置初值
-			//auto new_var = make_shared<VarEntry>(var->value_type(), var->identifier() + suffix, false);
 			auto new_var = make_shared<VarEntry>(*var);
 			new_var->setIdentifier(var->identifier() + suffix);
 			var_map[var.get()] = new_var;
@@ -97,13 +101,17 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 		if (x->quater_type_ == QuaternionType::FuncDeclareHead) continue;
 		// step2: 将callee的局部变量和参数，声明为caller的局部变量
 		if (x->quater_type_ == QuaternionType::FuncFormalParam || x->quater_type_ == QuaternionType::VarDeclare) {
-			auto var = x->result_;
-			// 不要忽略带有初始化的变量声明
-			//var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()]));
-			var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()], x->opA_));
+			auto var = dynamic_pointer_cast<VarEntry>(x->result_);
+			// 变量声明时无需初始化
+			var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()]));
+			//var_quaters.push_back(QuaternionFactory::VarDecalre(var_map[var.get()], x->opA_));
+			// 将带有初始化的变量声明改为赋值语句
+			if (x->opA_ != nullptr) {
+				quater_list.push_back(QuaternionFactory::InlineVarInit(var_map[var.get()], x->opA_));
+			}
 			continue;
 		} 
-		// 将用到Var和param的替换为caller的var
+		// 将用到Var和param的四元式替换为caller的var
 		auto new_quater = changeVarQuater(x, var_map);
 		if (new_quater->quater_type_ == QuaternionType::FuncReturn) {
 			// step3: 将return改为assign + j 
@@ -119,12 +127,11 @@ shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType valu
 			quater_list.push_back(new_quater);
 		}
 	}
-	// 变量声明要插入到函数参数声明的后面
+	// 变量声明要插入到caller参数声明的后面
 	auto it = quater_list.begin() + 1;
 	for (; (*it)->quater_type_ == QuaternionType::FuncFormalParam;) {
 		it++;
 	}
-	//quater_list.insert(it-1, var_quaters.begin(), var_quaters.end());
 	quater_list.insert(it, var_quaters.begin(), var_quaters.end());
 	// set exit label
 	quater_list.push_back(QuaternionFactory::Label(label));

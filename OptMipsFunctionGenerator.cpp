@@ -159,6 +159,24 @@ namespace OptMips {
 
 
 			switch (quater_type) {
+			case InlineVarInit:
+			{
+				auto var = dynamic_pointer_cast<VarEntry>(result);
+				auto inum = dynamic_pointer_cast<ImmediateEntry>(opA);
+				if (var->isArray()) {
+					int offset = this->func_var_offset_map_.at(var.get());
+					int a_off = 0;
+					for (string value : inum->initializingList()) {
+						mips_load_num(reg0, value, mips_list_);
+						mips_store(reg0, "$fp", offset + a_off, var->value_type(), mips_list_);
+						a_off += (var->value_type() == ValueType::INTV) ? 4 : 1;
+					}
+				} else {
+					load_var(inum, reg0);
+					store_var(var, reg0);
+				}
+				break;
+			}
 			case FuncDeclareHead:
 				set_label(*quater, mips_list_);
 				param_num = dynamic_pointer_cast<FunctionEntry>(result)->formal_param_num();
