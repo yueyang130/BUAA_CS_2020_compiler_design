@@ -15,7 +15,12 @@ bool strcmp_wo_case(string str1, string str2);
 /*用于常数合并*/
 bool const_or_immed(TableEntry* entry);
 int getValue(TableEntry* entry);
+int getValue(string v);
 int calValue(symbolType alu_type, TableEntry* opA, TableEntry* opB);
+
+/*生成便签名称*/
+string new_label();
+
 
 /*指令选择*/
 int log2(int value);

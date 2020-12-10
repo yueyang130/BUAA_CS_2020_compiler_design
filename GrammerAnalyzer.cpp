@@ -110,7 +110,7 @@ void GrammerAnalyzer::Program() {
 			symbolType peek2 = peek_sym_type(2);
 			if (peek2 == symbolType::LBRACK || peek2 == symbolType::SEMICN ||
 				peek2 == symbolType::COMMA || peek2 == symbolType::ASSIGN) {
-				VarDeclare();
+				VarDeclare(true);
 			}
 		} 
 
@@ -305,8 +305,8 @@ string GrammerAnalyzer::ConstValue() {
 /**
 ＜变量说明＞  ::= ＜变量定义＞;{＜变量定义＞;}
 */
-void GrammerAnalyzer::VarDeclare() {
-	VarDefine();
+void GrammerAnalyzer::VarDeclare(bool global = false) {
+	VarDefine(global);
 	checkMissSemi();
 	// 判断是<变量定义> 还是 <有返回值函数定义>
 	while (true) {
@@ -317,7 +317,7 @@ void GrammerAnalyzer::VarDeclare() {
 			peek2 == symbolType::COMMA || peek2 == symbolType::ASSIGN)) {
 			break;
 		}
-		VarDefine();
+		VarDefine(global);
 		checkMissSemi();
 	}
 	output_list_.push_back("<变量说明>");
@@ -330,7 +330,7 @@ void GrammerAnalyzer::VarDeclare() {
 * version2：考虑到错误处理中同样会出现却少 ]等情况，所以决定以 int|char|void的最近的一个为结束符（其实就是换行）
 *   
 */
-void GrammerAnalyzer::VarDefine() {
+void GrammerAnalyzer::VarDefine(bool global) {
 	check(INTTK, CHARTK);
 
 	
@@ -345,8 +345,8 @@ void GrammerAnalyzer::VarDefine() {
 	}
 	
 
-	if (no_init) { VarDefineNoInit(); }
-	else { VarDefineWithInit(); }
+	if (no_init) { VarDefineNoInit(global); }
+	else { VarDefineWithInit(global); }
 	
 
 	output_list_.push_back("<变量定义>");
@@ -358,14 +358,14 @@ void GrammerAnalyzer::VarDefine() {
 	|＜标识符＞'['＜无符号整数＞']''['＜无符号整数＞']')
 	{,(＜标识符＞|＜标识符＞'['＜无符号整数＞']'|＜标识符＞'['＜无符号整数＞']''['＜无符号整数＞']' )}
 */
-void GrammerAnalyzer::VarDefineNoInit() {
+void GrammerAnalyzer::VarDefineNoInit(bool global) {
 	check(INTTK, CHARTK);
 	ValueType value_type = (curr_sym_type() == INTTK) ? ValueType::INTV : ValueType::CHARV;
 	pop_sym();
-	VarDefineType(value_type);
+	VarDefineType(value_type, global);
 	while (equal(COMMA)) {
 		pop_sym();
-		VarDefineType(value_type);
+		VarDefineType(value_type, global);
 	}
 
 	output_list_.push_back("<变量定义无初始化>");
@@ -376,7 +376,7 @@ void GrammerAnalyzer::VarDefineNoInit() {
   ＜标识符＞'['＜无符号整数＞']'|
   ＜标识符＞'['＜无符号整数＞']''['＜无符号整数＞']'
 */
-void GrammerAnalyzer::VarDefineType(ValueType entry_value_type) {
+void GrammerAnalyzer::VarDefineType(ValueType entry_value_type, bool global) {
 	check(IDENFR);
 	// 重名检查
 	string& var_name = curr_sym_str();
@@ -395,7 +395,7 @@ void GrammerAnalyzer::VarDefineType(ValueType entry_value_type) {
 			checkMissRbrack();
 		}
 	}
-	auto p_entry = make_shared<VarEntry>(entry_value_type, var_name, shape);
+	auto p_entry = make_shared<VarEntry>(entry_value_type, var_name, shape, global);
 	sym_table_.add(p_entry);
 	// 添加四元式
 	im_coder_.addQuater(QuaternionFactory::VarDecalre(p_entry));
@@ -408,7 +408,7 @@ void GrammerAnalyzer::VarDefineType(ValueType entry_value_type) {
 
 * 	有初始化的变量定义一次只能对一个标识符进行初始化
 */
-void GrammerAnalyzer::VarDefineWithInit() {
+void GrammerAnalyzer::VarDefineWithInit(bool global) {
 	check(INTTK, CHARTK);
 	vector<int> declared_shape;   // 左边定义的shape
 	string e;					// 记录用于初始化的当前元素
@@ -483,7 +483,7 @@ void GrammerAnalyzer::VarDefineWithInit() {
 
 	} else { error(); }
 
-	auto var_entry = make_shared<VarEntry>(value_type, var_name, declared_shape);
+	auto var_entry = make_shared<VarEntry>(value_type, var_name, declared_shape, global);
 	sym_table_.add(var_entry);
 	// 四元式生成
 	auto immediate_entry = make_shared<ImmediateEntry>(value_type, declared_shape, elems);
@@ -642,7 +642,7 @@ void GrammerAnalyzer::ParameterList(vector<ValueType>& formal_param_list) {
 		pop_sym();
 		check(symbolType::IDENFR);
 		// 将形参加入符号表
-		auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str());
+		auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str(), false);
 		sym_table_.add(var_entry);
 		// 生成四元式
 		im_coder_.addQuater(QuaternionFactory::FuncFormalParam(var_entry));
@@ -655,7 +655,7 @@ void GrammerAnalyzer::ParameterList(vector<ValueType>& formal_param_list) {
 			pop_sym();
 			check(symbolType::IDENFR);
 			// 将形参加入符号表
-			auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str());
+			auto var_entry = make_shared<VarEntry>(value_type, curr_sym_str(), false);
 			sym_table_.add(var_entry);
 			// 生成四元式
 			im_coder_.addQuater(QuaternionFactory::FuncFormalParam(var_entry));
@@ -1011,7 +1011,7 @@ void GrammerAnalyzer::AssignStatement() {
 ＜条件语句＞  ::= if '('＜条件＞')'＜语句＞［else＜语句＞］
 */
 void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_type) {
-	auto label_entry1 = make_shared<LabelEntry>(this->new_label());
+	auto label_entry1 = make_shared<LabelEntry>(new_label());
 	
 	check(symbolType::IFTK);
 	pop_sym();
@@ -1025,7 +1025,7 @@ void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_t
 
 
 	if (equal(symbolType::ELSETK)) {
-		auto label_entry2 = make_shared<LabelEntry>(this->new_label());
+		auto label_entry2 = make_shared<LabelEntry>(new_label());
 		im_coder_.addQuater(QuaternionFactory::Goto(label_entry2));
 		// 生成标签四元式
 		im_coder_.addQuater(QuaternionFactory::Label(label_entry1));
@@ -1072,8 +1072,8 @@ void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> labe
 */
 void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value_type) {
 	
-	auto begin_label = make_shared<LabelEntry>(this->new_label());
-	auto end_label = make_shared<LabelEntry>(this->new_label());
+	auto begin_label = make_shared<LabelEntry>(new_label());
+	auto end_label = make_shared<LabelEntry>(new_label());
 	
 	if (equal(WHILETK)) {
 		pop_sym();
@@ -1171,9 +1171,9 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	auto& quater_list = im_coder_.curr_func()->get_quater_list();
 	// 向顺序容器插入元素可能会使所有指向容器的迭代器，引用和指针失效； 参见PrimerC++ P315
 	//auto iter = quater_list.end();
-	auto& back_elem = quater_list.back();
+	auto back_elem = quater_list.back();
 
-	auto endswitch_label = make_shared<LabelEntry>(this->new_label());
+	auto endswitch_label = make_shared<LabelEntry>(new_label());
 
 	CaseList(p_exsit_return, return_value_type, switch_value_type, case_list, endswitch_label);
 
@@ -1182,7 +1182,7 @@ void GrammerAnalyzer::SwitchStatement(bool* p_exsit_return, ValueType return_val
 	for (auto it : case_list) {
 		jump_list.push_back(QuaternionFactory::BEQ(it.first,expr ,it.second));
 	}
-	auto default_label = make_shared<LabelEntry>(this->new_label());
+	auto default_label = make_shared<LabelEntry>(new_label());
 	jump_list.push_back(QuaternionFactory::Goto(default_label));
 	auto it = quater_list.begin();
 	for (; (*it).get() != back_elem.get(); it++) {}
@@ -1229,7 +1229,7 @@ void GrammerAnalyzer::CaseStatement(bool* p_exsit_return, ValueType return_value
 	string value = ConstValue(switch_value_type);
 
 	// 生成case分支标签的中间代码
-	auto label_entry = make_shared<LabelEntry>(this->new_label());
+	auto label_entry = make_shared<LabelEntry>(new_label());
 	auto inum_entry = make_shared<ImmediateEntry>(switch_value_type, value);
 	im_coder_.addQuater(QuaternionFactory::Label(label_entry));
 	case_list.push_back(make_pair(label_entry, inum_entry));
@@ -1322,20 +1322,23 @@ void GrammerAnalyzer::ValueParameterList(shared_ptr<FunctionEntry> p_entry) {
 	vector<ValueType> actual_param_list;
 	// 可能')'缺失，所以不能用')'来判断是否为空参数表
 	//if (!equal(symbolType::RPARENT) ) {
+	// 记录实参的列表
+	vector<shared_ptr<TableEntry>> param_list;
 	if (isExpr()) {
 		ValueType value_type = Expr();
-		shared_ptr<TableEntry> out = stack_pop_value(); 
-		im_coder_.addQuater(QuaternionFactory::FuncParamPush(out));  // 四元式
+		param_list.push_back(stack_pop_value()); 
 		actual_param_list.push_back(value_type);
 
 		while (equal(symbolType::COMMA)) {
 			pop_sym();
 			value_type = Expr();
-			out = stack_pop_value();
-			im_coder_.addQuater(QuaternionFactory::FuncParamPush(out));  // 四元式
+			param_list.push_back(stack_pop_value());
 			actual_param_list.push_back(value_type);
 		}
 	}
+	// push param quater
+	for (auto x : param_list)
+		im_coder_.addQuater(QuaternionFactory::FuncParamPush(x));
 	// 一行最多出现一个错误，因此使用if - else if的逻辑
 	if (actual_param_list.size() != p_entry->formal_param_num()) {
 		addErrorInfor(ErrorType::FuncParamNumUnmatch);
@@ -1509,7 +1512,7 @@ shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
 			}
 			if ((alu_type == symbolType::MULT && const_or_immed(opA.get()) && getValue(opA.get()) == 0) ||
 				(alu_type == symbolType::MULT && const_or_immed(opB.get()) && getValue(opB.get()) == 0)) {
-				stack_push(make_shared<ImmediateEntry>(ValueType::INTV, string(0)));
+				stack_push(make_shared<ImmediateEntry>(ValueType::INTV, string("0")));
 				return nullptr;
 			}
 			if (const_or_immed(opB.get()) && getValue(opB.get()) == 1) {

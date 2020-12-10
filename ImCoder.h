@@ -32,7 +32,8 @@ private:
 */
 class IMCode {
 public:
-	static IMCode& getInstance();
+	IMCode();
+	virtual ~IMCode();
 
 	/*添加函数定义，会自动区分main函数和其他函数; 将添加的函数设置为curr_func*/
 	void addFunc(string& func);
@@ -49,11 +50,7 @@ public:
 	/*向输出流写中间代码*/
 	void show_quaters(ostream& fout);
 
-
 private:
-	IMCode();
-	virtual ~IMCode();
-
 	/*声明全局变量和全局常量的基本块*/
 	//shared_ptr<BasicBlock> global_bblock_;
 	vector<shared_ptr<Quaternion>> gb_list_;

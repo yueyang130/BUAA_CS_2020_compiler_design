@@ -146,6 +146,8 @@
     <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="GrammerAnalyzer.cpp" />
     <ClCompile Include="ImCoder.cpp" />
+    <ClCompile Include="InlineOptimizer.cpp" />
+    <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="OptMipsFunctionGenerator.cpp" />
     <ClCompile Include="OptMipsGenerator.cpp" />
     <ClCompile Include="opt_mips_code_tools.cpp" />
@@ -164,6 +166,8 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="GrammerAnalyzer.h" />
     <ClInclude Include="ImCoder.h" />
+    <ClInclude Include="InlineOptimizer.h" />
+    <ClInclude Include="Optimizer.h" />
     <ClInclude Include="OptMipsGenerator.h" />
     <ClInclude Include="opt_mips_code_tools.h" />
     <ClInclude Include="OptMipsFunctionGenerator.h" />

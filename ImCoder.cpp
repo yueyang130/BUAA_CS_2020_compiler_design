@@ -13,11 +13,6 @@ IMCode::IMCode() {
 IMCode::~IMCode() {
 }
 
-IMCode& IMCode::getInstance() {
-	static IMCode im_coder;
-	return im_coder;
-}
-
 void IMCode::addFunc(string& func) {
 	if (strcmp_wo_case(func, "main")) {
 		main_ = make_shared<Function>(func);
@@ -63,9 +58,11 @@ const vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
 }
 
 void IMCode::show_quaters(ostream& fout) {
+	//cout << string(80, '_') << endl;
 	for (auto quater : this->get_quater_list()) {
 		if (quater) {
 			fout << quater->toString() << endl;
+			//cout << quater->toString() << endl;
 		} else {
 			fout << endl;
 		}

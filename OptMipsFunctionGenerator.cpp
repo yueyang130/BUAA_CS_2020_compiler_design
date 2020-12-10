@@ -102,7 +102,7 @@ namespace OptMips {
 			return;
 		}
 
-		cout << "the variable can not be found in global and local var map";
+		cout << var->identifier() <<" can not be found in global and local var map";
 		exit(EXIT_FAILURE);
 
 	}

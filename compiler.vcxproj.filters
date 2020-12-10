@@ -60,6 +60,12 @@
     <ClCompile Include="ImCoder.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Optimizer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InlineOptimizer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LexicalAnalyzer.h">
@@ -111,6 +117,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImCoder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InlineOptimizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

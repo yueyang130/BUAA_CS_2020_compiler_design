@@ -23,6 +23,7 @@ public:
 	EntryType entry_type() { return entry_type_; }
 	ValueType value_type() { return entry_value_type_; }
 	virtual string& identifier() { return identifier_; }
+	virtual void setIdentifier(string iden) { identifier_ = iden; }
 	virtual string getValue() { return ""; }
 	/*
 	dynamic_cast can only be used in the case of a pointer or reference cast,
@@ -55,11 +56,11 @@ private:
 class VarEntry : public TableEntry {
 public:
 	/*单个变量的构造函数*/
-	VarEntry(ValueType entry_value_type, string identifier) :
-		TableEntry(EntryType::VAR, entry_value_type, identifier) {};
+	VarEntry(ValueType entry_value_type, string identifier,bool global) :
+		TableEntry(EntryType::VAR, entry_value_type, identifier), global_(global) {};
 	/*数组变量的构造函数*/
-	VarEntry(ValueType entry_value_type, string identifier, vector<int>& shape) :
-		TableEntry(EntryType::VAR, entry_value_type, identifier),shape_(shape)  {};
+	VarEntry(ValueType entry_value_type, string identifier, vector<int>& shape, bool global) :
+		TableEntry(EntryType::VAR, entry_value_type, identifier),shape_(shape), global_(global)  {};
 
 	bool checkSize(vector<int> assign_shape);
 	bool isArray();
@@ -68,9 +69,10 @@ public:
 	// 数组的第i维的一个元素需要占用空间的大小
 	int getDimByte(int i);
 	int ndim() { return shape_.size();  }
+	bool isGlobal() { return global_;  }
 private:
 	vector<int> shape_;
-
+	bool global_;
 };
 
 

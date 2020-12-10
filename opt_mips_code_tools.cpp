@@ -266,7 +266,7 @@ namespace OptMips {
 			break;
 		case QuaternionType::MulOp:
 		{
-			int opB = stoi(immed);
+			int opB = getValue(immed);
 			if (opB >= 0 && (opB & (opB - 1)) == 0) {
 				int k = log2(opB);
 				mips_list.push_back("sll " + result + ", " + left + ", " + to_string(k));
@@ -284,7 +284,7 @@ namespace OptMips {
 		}
 		case QuaternionType::DivOp:
 		{
-			int opB = stoi(immed);
+			int opB = getValue(immed);
 			bool neg = false;
 			if (opB <= 0 && (-opB & (-opB - 1)) == 0){ // 2的整数次幂的负数
 				opB = -opB;

@@ -12,6 +12,7 @@ using namespace std;
 class GrammerAnalyzer {
 
 public:
+
 	static GrammerAnalyzer& getInstance(LexicalAnalyzer&, IMCode&);
 	void analyzeGrammer();
 
@@ -107,11 +108,11 @@ private:
 	string ConstValue(ValueType vartype);   // 用于<变量定义及初始化>和<情况子语句>
 	string ConstValue();   // 暂时不用进行类型匹配检查时使用的函数
 
-	void VarDeclare();
-	void VarDefine();
-	void VarDefineNoInit();
-	void VarDefineType(ValueType entry_value_type);
-	void VarDefineWithInit();
+	void VarDeclare(bool global);
+	void VarDefine(bool global);
+	void VarDefineNoInit(bool global);
+	void VarDefineType(ValueType entry_value_type, bool global);
+	void VarDefineWithInit(bool global);
 
 	void FuncDefineWithReturn();
 	void FuncDefineNoReturn();
@@ -158,9 +159,7 @@ private:
 	/*根据跳转类型(条件为真跳转/条件为假跳转)和条件类型(==,!=,>,...)生成跳转的四元式*/
 	shared_ptr<Quaternion> jump(symbolType jump_type, symbolType condition_type, 
 		shared_ptr<LabelEntry> p_label, shared_ptr<TableEntry> expr1, shared_ptr<TableEntry>expr2);
-	/*获得一个没有用过的标签名*/
-	int label_cnt = 0;
-	string new_label() { return "label" + to_string(++label_cnt); }
+
 };
 
 

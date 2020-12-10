@@ -14,8 +14,23 @@ bool const_or_immed(TableEntry* entry) {
 }
 
 int getValue(TableEntry* entry) {
-	return stoi(entry->getValue().c_str());
+	string v = entry->getValue();
+	const char* p = v.c_str();
+	if (entry->value_type() == ValueType::INTV)
+		return stoi(p);
+	else
+		return int(p[0]);
 }
+
+int getValue(string v) {
+	const char* p = v.c_str();
+	if (isdigit(p[0]))
+		return stoi(p);
+	else
+		return int(p[0]);
+}
+
+
 
 int calValue(symbolType alu_type,TableEntry* opA, TableEntry* opB) {
 	int a = getValue(opA), b = getValue(opB);
@@ -32,6 +47,12 @@ int calValue(symbolType alu_type,TableEntry* opA, TableEntry* opB) {
 		return 0;
 	}
 }
+
+string new_label() { 
+	static int label_cnt = 0;
+	return "label" + to_string(++label_cnt); 
+}
+
 
 
 int log2(int value)   //非递归判断一个数是2的多少次方

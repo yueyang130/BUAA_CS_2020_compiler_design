@@ -56,7 +56,7 @@ public:
 	string toString();
 	const QuaternionType quater_type_;
 	/*直接使用符号表项作为操作数和结果*/
-	const shared_ptr<TableEntry> result_;
+	shared_ptr<TableEntry> result_;
 	const shared_ptr<TableEntry> opA_;
 	const shared_ptr<TableEntry> opB_;
 	
