@@ -268,7 +268,10 @@ namespace OptMips {
 			break;
 		case QuaternionType::SubOp:
 		case QuaternionType::Neg:
-			instr = "addiu " + result + ", " + left + ", -" + immed;
+			if (stoi(immed) >= 0)
+				instr = "addiu " + result + ", " + left + ", -" + immed;
+			else 
+				instr = "addiu " + result + ", " + left + ", " + to_string(-stoi(immed));
 			mips_list.push_back(instr);
 			break;
 		case QuaternionType::MulOp:
