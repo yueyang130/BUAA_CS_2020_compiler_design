@@ -24,18 +24,40 @@ void PeepholeOptimizer::deleteJump(Function* func) {
 			if ((*it)->result_->identifier() == (*(it + 1))->result_->identifier()) {
 				it = quater_list.erase(it);
 			}
-			// goro label1 -> label2: -> label1:
+			// goto label1 -> label2: -> label1:
 			else if ((*(it + 2))->quater_type_ == QuaternionType::Label &&
 				(*it)->result_->identifier() == (*(it + 2))->result_->identifier()) {
 				it = quater_list.erase(it);
 			}
-		}
-			
+		}			
 		it++;
 	}
 }
 
 void PeepholeOptimizer::deleteTempVar(Function* func) {
+	auto& quater_list = func->get_quater_list();
+	auto it = quater_list.begin();
+	while (it != quater_list.end()) {
+		if (is_op_with_assign((*it)->quater_type_) && (*(it + 1))->quater_type_ == QuaternionType::Assign) {
+			// 要求必须是临时变量才能删去！如果是局部变量或全局变量是不能删去的！
+			if ((*it)->result_.get() == (*(it + 1))->opA_.get() && (*it)->result_->entry_type() == EntryType::TEMP) {
+				auto new_quater = make_shared<Quaternion>(**it);
+				new_quater->result_ = (*(it + 1))->result_;
+				it = quater_list.erase(it, it + 2);
+				it = quater_list.insert(it, new_quater);
+				it--;
+			}
+		}
+		it++;
+	}
+}
+
+bool is_op_with_assign(QuaternionType type) {
+	return type == QuaternionType::AddOp || type == QuaternionType::SubOp
+		|| type == QuaternionType::MulOp || type == QuaternionType::DivOp
+		|| type == QuaternionType::Neg
+		|| type == QuaternionType::GetArrayElem
+		|| type == QuaternionType::Assign;
 }
 
 

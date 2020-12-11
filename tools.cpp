@@ -47,6 +47,10 @@ int calValue(symbolType alu_type,TableEntry* opA, TableEntry* opB) {
 	}
 }
 
+bool is_alu_type() {
+	return false;
+}
+
 string new_label() { 
 	static int label_cnt = 0;
 	return "label" + to_string(++label_cnt); 

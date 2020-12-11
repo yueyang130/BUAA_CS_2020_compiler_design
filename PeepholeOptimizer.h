@@ -13,6 +13,7 @@ private:
 	void deleteTempVar(Function* func);
 };
 
+bool is_op_with_assign(QuaternionType type);
 
 #endif // !PEEPHOLE_OPTIMIZER_
 
