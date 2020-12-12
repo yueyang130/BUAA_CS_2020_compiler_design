@@ -25,6 +25,7 @@ public:
 	void divide_bblock();
 	/*活跃变量分析*/
 	void active_analysis();
+	void print_bblock(ofstream& fout);
 
 private:
 	string func_name_;
@@ -65,7 +66,7 @@ public:
 	void divide_bblock();
 	/*活跃变量分析*/
 	void active_analysis();
-
+	void print_bblock();
 
 private:
 	/*声明全局变量和全局常量的基本块*/
@@ -87,6 +88,10 @@ private:
 bool is_con_jump(QuaternionType type);
 
 bool is_uncon_jump(QuaternionType type);
+
+shared_ptr<Quaternion> findLabelQuater(string label, vector<shared_ptr<Quaternion>>& list);
+
+shared_ptr<Quaternion> findNextQuater(shared_ptr<Quaternion> q, vector<shared_ptr<Quaternion>>& list);
 
 
 #endif // !IM_CODER_

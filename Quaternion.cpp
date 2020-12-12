@@ -81,6 +81,7 @@ string Quaternion::toString() {
 		ss << result_->identifier() << " :";
 		break;
 	case QuaternionType::PushArrayIndex:
+		ss << "push index";
 		idxs.push_back(result_);
 		break;
 	case QuaternionType::GetArrayElem:

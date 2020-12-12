@@ -30,15 +30,15 @@ namespace OptMips {
 					if (entry->isArray()) {
 						int a_off = 0;
 						for (string value : inum->initializingList()) {
-							string treg = reg_pool_.assign_temp_reg(value);
-							mips_store(treg, "$sp", -offset + a_off, value_type, mips_list_);
+							mips_load_num(buf_reg1, value, mips_list_);
+							mips_store(buf_reg1, "$sp", -offset + a_off, value_type, mips_list_);
 							a_off += unit_byte;
 						}
 					} else {
 						// TODO:此时对于函数的局部变量，先写回内存空间
 						// 等做完全局寄存器分配，再给它们分配全局寄存器
-						string treg = reg_pool_.assign_temp_reg(inum->getValue());
-						mips_store(treg, "$sp", -offset, value_type, mips_list_);
+						mips_load_num(buf_reg1, inum->getValue(), mips_list_);
+						mips_store(buf_reg1, "$sp", -offset, value_type, mips_list_);
 					}
 				}
 
@@ -89,6 +89,7 @@ namespace OptMips {
 
 
 	void OptMipsFunctionGenerator::write_back(shared_ptr<TableEntry> var, string reg) {
+
 		ValueType value_type = var->value_type();
 		auto it = func_var_offset_map_.find(var.get());
 		if (it != func_var_offset_map_.end()) {
@@ -141,7 +142,7 @@ namespace OptMips {
 
 	OptMipsFunctionGenerator::OptMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list
 		,RegisterPool& reg_pool, IMCode& im_code) :
-		func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list), reg_pool_(reg_pool), im_coder_(im_code) {
+		 reg_pool_(reg_pool), func_(func), global_var_offset_map_(gb_var_map), mips_list_(mips_list) {
 
 		// 调用子函数时,已经入栈的参数个数
 		int stack_param_cnt = 0;
@@ -158,8 +159,9 @@ namespace OptMips {
 		for (auto it = quater_list.begin(); it != quater_list.end(); it++) {
 			auto quater = *it;
 			// 如果编译一个新的函数，或者函数内跨越基本块，清空临时寄存器池
-			if (it == quater_list.begin() || func_.getBBlock(*it) != func_.getBBlock(*(it - 1))) {
-				reg_pool_.clearTempRegs(func_.getBBlock(*it)->active_in_);
+			if (it != quater_list.begin() && func_.getBBlock(*it) != func_.getBBlock(*(it - 1))) {
+				auto bblock = func_.getBBlock(*(it-1));
+				reg_pool_.clearTempRegs(bblock->active_out_);
 			}
 
 			if (!quater) { continue; }
@@ -180,14 +182,14 @@ namespace OptMips {
 					int a_off = 0;
 					for (string value : inum->initializingList()) {
 						// 将数组初始值保存到内存空间
-						string treg = reg_pool_.assign_temp_reg(value);
-						mips_store(treg, "$fp", offset + a_off, var->value_type(), mips_list_);
+						mips_load_num(buf_reg1, inum->getValue(), mips_list_);
+						mips_store(buf_reg1, "$fp", offset + a_off, var->value_type(), mips_list_);
 						a_off += (var->value_type() == ValueType::INTV) ? 4 : 1;
 					}
 				} else {
 					// 此处加载的内联变量视为局部变量，分配全局寄存器
-					string treg = reg_pool_.assign_temp_reg(inum->getValue());
-					write_back(var, treg);
+					mips_load_num(buf_reg1, inum->getValue(), mips_list_);
+					write_back(var, buf_reg1);
 				}
 				break;
 			}
@@ -271,28 +273,37 @@ namespace OptMips {
 				break;
 			case PushArrayIndex:
 			{
-				string treg = reg_pool_.assign_temp_reg(result);
-				reg_idxs.push_back(treg);
+				if (reg_idxs.size() == 1 && (result->entry_type() == EntryType::IMMEDIATE
+					|| result->entry_type() == EntryType::CONST) ) {
+					// 两个索引都是立即数或常数的情况
+					load_var(result, buf_reg2);
+					reg_idxs.push_back(buf_reg2);
+				} else {
+					string treg = reg_pool_.assign_temp_reg(result);
+					reg_idxs.push_back(treg);
+				}
+				
 				break;
 			}
 			case GetArrayElem:
 			{
-				string treg1 = reg_pool_.assign_temp_reg();
-				string treg2 = reg_pool_.assign_temp_reg();
-				off_in_array(treg1, treg2, opA, reg_idxs, mips_list_);
+				off_in_array(buf_reg1, buf_reg2, opA, reg_idxs, mips_list_);
 				reg_idxs.clear();
 				string treg3 = reg_pool_.assign_temp_reg(result, false);
-				this->load_array(opA, treg1, treg3);
+				this->load_array(opA, buf_reg1, treg3);
 				break;
 			}
 			case SetArrayELem:
 			{
-				string treg1 = reg_pool_.assign_temp_reg();
-				string treg2 = reg_pool_.assign_temp_reg();
-				off_in_array(treg1, treg2, result, reg_idxs, mips_list_);
+				off_in_array(buf_reg1, buf_reg2, result, reg_idxs, mips_list_);
 				reg_idxs.clear();
-				string treg3 = reg_pool_.assign_temp_reg(opA);
-				this->store_array(result, treg1, treg3);
+				if (opA->entry_type() == IMMEDIATE || opA->entry_type() == EntryType::CONST) {
+					load_var(opA, buf_reg2);
+					this->store_array(result, buf_reg1, buf_reg2);
+				} else {
+					string treg3 = reg_pool_.assign_temp_reg(opA);
+					this->store_array(result, buf_reg1, treg3);
+				}
 				break;
 			}
 			case AddOp: case SubOp:
@@ -309,13 +320,13 @@ namespace OptMips {
 				// 然后如果此时opB是立即数，用alui进行运算
 				if (const_or_immed(opB.get())) {
 					string treg1 = reg_pool_.assign_temp_reg(opA);
-					string treg2 = reg_pool_.assign_temp_reg(opB, false);
+					string treg2 = reg_pool_.assign_temp_reg(result, false);
 					mips_alui(treg2, treg1, opB->getValue(), quater_type, mips_list_);
 
 				} else {
 					string treg1 = reg_pool_.assign_temp_reg(opA);
 					string treg2 = reg_pool_.assign_temp_reg(opB);
-					string treg3 = reg_pool_.assign_temp_reg(opB, false);
+					string treg3 = reg_pool_.assign_temp_reg(result, false);
 					mips_alu(treg3, treg1, treg2, quater_type, mips_list_);
 				}
 				break;
@@ -335,7 +346,7 @@ namespace OptMips {
 			{
 				string treg1 = reg_pool_.assign_temp_reg(opA);
 				string treg2 = reg_pool_.assign_temp_reg(result, false);
-				mips_alu(treg2, treg1, "$zero", QuaternionType::AddOp, mips_list_);
+				mips_move(treg2, treg1, mips_list_);
 				break;
 			}
 			case Read:

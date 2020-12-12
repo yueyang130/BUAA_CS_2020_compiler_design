@@ -3,7 +3,7 @@
 
 #include<vector>
 #include<memory>
-#include<set>
+#include<unordered_set>
 #include"Quaternion.h"
 #include<iostream>
 
@@ -21,19 +21,32 @@ using namespace std;
 */
 class BasicBlock {
 public:
-	BasicBlock() { quater_list_.reserve(128);  };
+	BasicBlock();
+	void cal_use_and_def();
 	void addPrevBlock(shared_ptr<BasicBlock> bblock) { pre_set_.insert(bblock);  }
 	void addNextBlock(shared_ptr<BasicBlock> bblock) { next_set_.insert(bblock); }
 	void addQuater(shared_ptr<Quaternion> quater) { quater_list_.push_back(quater); }
-	void active_analysis();
+	/*返回值为true表示进行这一轮活跃变量分析后，in集合没有改变*/
+	bool active_analysis();
 	vector<shared_ptr<Quaternion>>& get_quater_list() { return quater_list_; }
-	set<shared_ptr<TableEntry>> active_in_;
-	set<shared_ptr<TableEntry>> active_out_;
+	// 只对局部变量和临时变量进行活跃变量分析
+	unordered_set<shared_ptr<TableEntry>> active_in_;
+	unordered_set<shared_ptr<TableEntry>> active_out_;
+	void print_bblock(ofstream& fout);
 
 private:
-	set<shared_ptr<BasicBlock>> pre_set_;
-	set<shared_ptr<BasicBlock>> next_set_;
+	unordered_set<shared_ptr<BasicBlock>> pre_set_;
+	unordered_set<shared_ptr<BasicBlock>> next_set_;
 	vector<shared_ptr<Quaternion>> quater_list_;
+
+	unordered_set<shared_ptr<TableEntry>> use_;
+	unordered_set<shared_ptr<TableEntry>> def_;
+
+	// 如果这个变量不在def_中，把它加入use_
+	void add_use_var(shared_ptr<TableEntry> var);
+	// 如果这个变量不在use_中，把它加入def_
+	void add_def_var(shared_ptr<TableEntry> var);
+	
 };
 
 

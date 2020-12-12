@@ -109,6 +109,11 @@ int VarEntry::getDimByte(int i) {
 
 int ImmediateEntry::str_cnt = 0;
 
+ImmediateEntry::ImmediateEntry(string value):
+	ImmediateEntry(value[0] == '\'' ? CHARV : INTV, value)
+{
+}
+
 ImmediateEntry::ImmediateEntry(ValueType value_type, string value)
 	: TableEntry(EntryType::IMMEDIATE, value_type, "")
 {	

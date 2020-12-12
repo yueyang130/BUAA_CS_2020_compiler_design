@@ -1,17 +1,19 @@
 #include "RegisterPool.h"
 #include "OptMipsFunctionGenerator.h"
 
+using OptMips::RegisterPool;
+
 RegisterPool::RegisterPool() {
     for (int i = 0; i < T_NUM; i++) {
         t_regs[i] = nullptr;
     }
 }
 
-void RegisterPool::clearTempRegs(set<TableEntry*> active_set) {
+void RegisterPool::clearTempRegs(unordered_set<shared_ptr<TableEntry>> active_set) {
     for (int i = 0; i < T_NUM; i++) {
         if (t_regs[i] == nullptr) continue;
         if (t_regs[i]->entry_type() == EntryType::IMMEDIATE) continue;
-        if (active_set.find(t_regs[i].get()) != active_set.end()) {
+        if (active_set.find(t_regs[i]) != active_set.end()) {
             func_generator_->write_back(t_regs[i], treg_name(i));
         }
     }
@@ -22,6 +24,13 @@ void RegisterPool::clearTempRegs(set<TableEntry*> active_set) {
 }
 
 string RegisterPool::assign_temp_reg(shared_ptr<TableEntry> var, bool load_var) {
+
+    auto entry_type = var->entry_type();
+    if (entry_type == EntryType::CONST || entry_type == EntryType::IMMEDIATE) {
+        mips_load_num(buf_reg1, var->getValue(), func_generator_->mips_list_);
+        return buf_reg1;
+    }
+
     int index;
     if (find(var, &index)) {
         lru_queue_.insert(lru_queue_.begin(), index);
@@ -45,42 +54,32 @@ string RegisterPool::assign_temp_reg(shared_ptr<TableEntry> var, bool load_var) 
     if (load_var) {
         func_generator_->load_var(var, treg_name(index));
     }
-    
+    return treg_name(index);
 }
 
-string RegisterPool::assign_temp_reg(string value) {
-    return string();
-}
-
-string RegisterPool::assign_temp_reg() {
-    return string();
-}
 
 bool RegisterPool::find(shared_ptr<TableEntry> var, int* p_index) {
-    //for (int i = 0; i < A_NUM; i++) {
-    //    if (a_regs[i].get() == var.get()) {
-    //        *p_str = "$a" + to_string(i);
-    //        return true;
-    //    }
-    //}
+
     for (int i = 0; i < T_NUM; i++) {
         if (t_regs[i].get() == var.get()) {
             *p_index = i;
             return true;
         }
     }
-    //for (int i = 0; i < S_NUM; i++) {
-    //    if (s_regs[i].get() == var.get()) {
-    //        *p_str = "$s" + to_string(i);
-    //        return true;
-    //    }
-    //}
-    //for (int i = 0; i < V_NUM; i++) {
-    //    if (v_regs[i].get() == var.get()) {
-    //        *p_str = "$v" + to_string(i);
-    //        return true;
-    //    }
-    //}
+
+    return false;
+}
+
+bool RegisterPool::find(string value, int* p_index) {
+
+    for (int i = 0; i < T_NUM; i++) {
+        if (!t_regs[i]) continue;
+        if (t_regs[i]->entry_type() == EntryType::IMMEDIATE && t_regs[i]->getValue() == value) {
+            *p_index = i;
+            return true;
+        }
+    }
+
     return false;
 }
 

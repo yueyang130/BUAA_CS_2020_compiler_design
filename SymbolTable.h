@@ -110,6 +110,7 @@ private:
 class ImmediateEntry : public TableEntry{
 public:
 	/*单值立即数的构造函数*/
+	ImmediateEntry(string value);
 	ImmediateEntry(ValueType value_type, string value);
 	/*数组立即数的构造函数*/
 	ImmediateEntry(ValueType value_type, vector<int>& shape, vector<string>& value);

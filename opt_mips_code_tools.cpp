@@ -328,7 +328,7 @@ namespace OptMips {
 	}
 
 	void mips_move(string result, string left, vector<string>& mips_list) {
-		mips_list.push_back("move " + result + ", " + "left");
+		mips_list.push_back("move " + result + ", " + left);
 	}
 
 

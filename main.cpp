@@ -75,7 +75,8 @@ int main() {
 	// 划分基本块和活跃变量计算
 	myIMCode.divide_bblock();
 	myIMCode.active_analysis();
-
+	// 输出基本块划分和活跃变量分析的结果
+	myIMCode.print_bblock();
 	// 输出中间代码
 	myIMCode.show_quaters(f_ircode);
 

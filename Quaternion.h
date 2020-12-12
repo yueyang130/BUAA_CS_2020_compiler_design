@@ -34,7 +34,7 @@ enum QuaternionType {
 	Label,					//		label
 	// Êı×é
 	PushArrayIndex,		    //	var/const/i/temp (index)
-	GetArrayElem,			//		var							var	(array£©			 
+	GetArrayElem,			//		var/const/i/temp			var	(array£©			 
 	SetArrayELem,			//		var£¨array)					var/const/i/temp
 	// ËãÊõ
 	AddOp,					//		tmp/var						var/const/i/tmp			   var/const/i/tmp

@@ -44,9 +44,7 @@ namespace OptMips {
 
 	*/
 
-	// Á½¸ö»º´æ¼Ä´æÆ÷
-	//const string treg8 = "$t8";
-	//const string treg9 = "$t9";
+
 
 	class OptMipsFunctionGenerator {
 		friend class RegisterPool;
@@ -54,7 +52,6 @@ namespace OptMips {
 		// ¼Ä´æÆ÷³Ø
 		RegisterPool& reg_pool_;
 		// 
-		IMCode& im_coder_;
 		// input and output
 		Function& func_;
 		map<VarEntry*, int>& global_var_offset_map_;
