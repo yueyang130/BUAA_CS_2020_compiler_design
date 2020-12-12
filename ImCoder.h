@@ -3,12 +3,12 @@
 
 #include<vector>
 #include<memory>
-#include<set>
+#include<unordered_set>
+#include<unordered_map>
 #include"Quaternion.h"
 #include<iostream>
 #include<string>
 #include"BasicBlock.h"
-#include<map>
 
 using namespace std;
 
@@ -20,7 +20,7 @@ public:
 	vector<shared_ptr<Quaternion>>& get_quater_list();
 	string name() { return func_name_; }
 	/*查找quater所在的基本块*/
-	BasicBlock* getBBlock(shared_ptr<Quaternion> quater);
+	shared_ptr<BasicBlock> getBBlock(shared_ptr<Quaternion> quater);
 	/*划分基本块*/
 	void divide_bblock();
 	/*活跃变量分析*/
@@ -31,9 +31,9 @@ private:
 	/*列表的第一个元素一定是函数的入口*/
 	vector<shared_ptr<Quaternion>> quater_list_;
 	/*所有四元式到基本块的映射，用于查找四元式属于哪一个基本块*/
-	map<Quaternion*, BasicBlock*> quater_bblock_map_;
+	unordered_map<shared_ptr<Quaternion>, shared_ptr<BasicBlock>> quater_bblock_map_;
 	/*基本块列表*/
-	vector<BasicBlock*> bblock_list_;
+	vector<shared_ptr<BasicBlock>> bblock_list_;
 };
 
 
@@ -52,7 +52,7 @@ public:
 	/*向curr_func中添加四元式*/
 	void addQuater(shared_ptr<Quaternion> quater);
 	/*获取curr_func的引用*/
-	Function* curr_func() { return curr_func_.get(); }
+	shared_ptr<Function> curr_func() { return curr_func_; }
 	vector<shared_ptr<Quaternion>>& global_list() { return gb_list_;  }
 	Function& main() { return *main_; }
 	/*获取整个源代码的中间代码*/

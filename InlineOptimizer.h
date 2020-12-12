@@ -14,7 +14,7 @@ private:
 	void optimize();
 	void inline_caller(Function* caller);
 	
-};
+};   
 
 shared_ptr<TableEntry> do_inline(Function* callee, int param_num, ValueType value_type, vector<shared_ptr<Quaternion>>& quater_list);
 bool checkInline(Function* callee);

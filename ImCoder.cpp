@@ -7,24 +7,24 @@ vector<shared_ptr<Quaternion>>& Function::get_quater_list() {
 	return quater_list_;
 }
 
-BasicBlock* Function::getBBlock(shared_ptr<Quaternion> quater) {
-	return quater_bblock_map_[quater.get()];
+shared_ptr<BasicBlock> Function::getBBlock(shared_ptr<Quaternion> quater) {
+	return quater_bblock_map_[quater];
 }
 
 void Function::divide_bblock() {
 	// 求入口语句： 函数入口，跳转后的第一条，跳转到的第一条(label)，return
-	set<Quaternion*> enter_set;
+	unordered_set<shared_ptr<Quaternion>> enter_set;
 	for (auto it = quater_list_.begin(); it != quater_list_.end(); it++) {
 		auto qtype = (*it)->quater_type_;
 		if (qtype == QuaternionType::FuncDeclareHead) {
-			enter_set.insert((*it).get());
+			enter_set.insert(*it);
 		} else if (is_con_jump(qtype) || is_uncon_jump(qtype)) {
-			enter_set.insert((*(it + 1)).get());
+			enter_set.insert(*(it + 1));
 		} else if (qtype == QuaternionType::Label) {
-			enter_set.insert((*it).get());
+			enter_set.insert(*it);
 		} else if (qtype == QuaternionType::FuncReturn) {
 			if (it + 1 != quater_list_.end()) {
-				enter_set.insert((*(it + 1)).get());
+				enter_set.insert(*(it + 1));
 			}
 		}
 	}
@@ -32,8 +32,9 @@ void Function::divide_bblock() {
 	// 划分基本块
 	shared_ptr<BasicBlock> curr_bblock;
 	for (auto quater : quater_list_) {
-		if (enter_set.find(quater.get()) != enter_set.end()) {
-
+		if (enter_set.find(quater) != enter_set.end()) {
+			curr_bblock = make_shared<BasicBlock>();
+			this->bblock_list_.push_back()
 		}
 		
 	}

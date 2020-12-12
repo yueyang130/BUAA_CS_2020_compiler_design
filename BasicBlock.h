@@ -22,17 +22,17 @@ using namespace std;
 class BasicBlock {
 public:
 	BasicBlock() { quater_list_.reserve(128);  };
-	void addPrevBlock(shared_ptr<BasicBlock> bblock) { pre_set_.insert(bblock.get());  }
-	void addNextBlock(shared_ptr<BasicBlock> bblock) { next_set_.insert(bblock.get()); }
+	void addPrevBlock(shared_ptr<BasicBlock> bblock) { pre_set_.insert(bblock);  }
+	void addNextBlock(shared_ptr<BasicBlock> bblock) { next_set_.insert(bblock); }
 	void addQuater(shared_ptr<Quaternion> quater) { quater_list_.push_back(quater); }
 	void active_analysis();
 	vector<shared_ptr<Quaternion>>& get_quater_list() { return quater_list_; }
-	set<TableEntry*> active_in_;
-	set<TableEntry*> active_out_;
+	set<shared_ptr<TableEntry>> active_in_;
+	set<shared_ptr<TableEntry>> active_out_;
 
 private:
-	set<BasicBlock*> pre_set_;
-	set<BasicBlock*> next_set_;
+	set<shared_ptr<BasicBlock>> pre_set_;
+	set<shared_ptr<BasicBlock>> next_set_;
 	vector<shared_ptr<Quaternion>> quater_list_;
 };
 
