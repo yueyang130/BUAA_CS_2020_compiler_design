@@ -327,6 +327,10 @@ namespace OptMips {
 		}
 	}
 
+	void mips_move(string result, string left, vector<string>& mips_list) {
+		mips_list.push_back("move " + result + ", " + "left");
+	}
+
 
 
 	void read(ValueType type, vector<string>& mips_list) {

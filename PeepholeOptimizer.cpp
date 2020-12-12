@@ -38,12 +38,17 @@ void PeepholeOptimizer::deleteTempVar(Function* func) {
 	auto& quater_list = func->get_quater_list();
 	auto it = quater_list.begin();
 	while (it != quater_list.end()) {
-		if (is_op_with_assign((*it)->quater_type_) && (*(it + 1))->quater_type_ == QuaternionType::Assign) {
+		// 如果it的下一个是label则跳过
+		auto it2 = it + 1;
+		for (; it2 != quater_list.end() && (*it2)->quater_type_ == QuaternionType::Label; it2++);
+		if (is_op_with_assign((*it)->quater_type_) && (*it2)->quater_type_ == QuaternionType::Assign) {
 			// 要求必须是临时变量才能删去！如果是局部变量或全局变量是不能删去的！
-			if ((*it)->result_.get() == (*(it + 1))->opA_.get() && (*it)->result_->entry_type() == EntryType::TEMP) {
+			if ((*it)->result_.get() == (*it2)->opA_.get() && (*it)->result_->entry_type() == EntryType::TEMP) {
 				auto new_quater = make_shared<Quaternion>(**it);
-				new_quater->result_ = (*(it + 1))->result_;
-				it = quater_list.erase(it, it + 2);
+				new_quater->result_ = (*it2)->result_;
+				// 先删除后面的，不会影响it的指向
+				quater_list.erase(it2);
+				it = quater_list.erase(it);
 				it = quater_list.insert(it, new_quater);
 				it--;
 			}

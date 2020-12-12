@@ -4,6 +4,7 @@
 #include"ImCoder.h"
 #include"opt_mips_code_tools.h"
 #include<map>
+#include"RegisterPool.h"
 
 using namespace std;
 
@@ -43,12 +44,17 @@ namespace OptMips {
 
 	*/
 
-	const string reg0 = "$s0";
-	const string reg1 = "$s1";
-	const string reg2 = "$s2";
+	// 两个缓存寄存器
+	//const string treg8 = "$t8";
+	//const string treg9 = "$t9";
 
 	class OptMipsFunctionGenerator {
+		friend class RegisterPool;
 	private:
+		// 寄存器池
+		RegisterPool& reg_pool_;
+		// 
+		IMCode& im_coder_;
 		// input and output
 		Function& func_;
 		map<VarEntry*, int>& global_var_offset_map_;
@@ -67,7 +73,7 @@ namespace OptMips {
 		/* 如果是立即数或者const, 通过la加载*/
 		void load_var(shared_ptr<TableEntry> var, string reg);
 		/* 将寄存器中的值存储到局部变量和临时变量对应的内存地址*/
-		void store_var(shared_ptr<TableEntry> var, string reg);
+		void write_back(shared_ptr<TableEntry> var, string reg);
 		/*
 		将内存中的数组元素加载到寄存器
 		off_reg:  存有相对于数组头偏移量的寄存器
@@ -84,7 +90,8 @@ namespace OptMips {
 		void store_array(shared_ptr<TableEntry> var, string off_reg, string source_reg);
 
 	public:
-		OptMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_);
+		OptMipsFunctionGenerator(Function& func, map<VarEntry*, int>& gb_var_map, vector<string>& mips_list_,
+			RegisterPool& reg_pool, IMCode& im_code);
 		vector<string>& getMipsCode() { return mips_list_; }
 
 	};

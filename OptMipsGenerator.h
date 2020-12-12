@@ -39,6 +39,8 @@ namespace OptMips {
 	private:
 		MipsGenerator(IMCode& im_code);
 
+		RegisterPool reg_pool_;
+
 		// input and output
 		IMCode& im_code_;
 		vector<string> MipsCode_list_;

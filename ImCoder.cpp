@@ -7,6 +7,55 @@ vector<shared_ptr<Quaternion>>& Function::get_quater_list() {
 	return quater_list_;
 }
 
+BasicBlock* Function::getBBlock(shared_ptr<Quaternion> quater) {
+	return quater_bblock_map_[quater.get()];
+}
+
+void Function::divide_bblock() {
+	// 求入口语句： 函数入口，跳转后的第一条，跳转到的第一条(label)，return
+	set<Quaternion*> enter_set;
+	for (auto it = quater_list_.begin(); it != quater_list_.end(); it++) {
+		auto qtype = (*it)->quater_type_;
+		if (qtype == QuaternionType::FuncDeclareHead) {
+			enter_set.insert((*it).get());
+		} else if (is_con_jump(qtype) || is_uncon_jump(qtype)) {
+			enter_set.insert((*(it + 1)).get());
+		} else if (qtype == QuaternionType::Label) {
+			enter_set.insert((*it).get());
+		} else if (qtype == QuaternionType::FuncReturn) {
+			if (it + 1 != quater_list_.end()) {
+				enter_set.insert((*(it + 1)).get());
+			}
+		}
+	}
+
+	// 划分基本块
+	shared_ptr<BasicBlock> curr_bblock;
+	for (auto quater : quater_list_) {
+		if (enter_set.find(quater.get()) != enter_set.end()) {
+
+		}
+		
+	}
+
+	// 组织流图
+}
+
+void Function::active_analysis() {
+}
+
+bool is_con_jump(QuaternionType type) {
+	return type == QuaternionType::BEQ || type == QuaternionType::BNE
+		|| type == QuaternionType::BGT || type == QuaternionType::BGE
+		|| type == QuaternionType::BLT || type == QuaternionType::BLE;
+}
+
+bool is_uncon_jump(QuaternionType type) {
+	return type == QuaternionType::Goto;
+}
+
+/**********************************************************************************/
+
 IMCode::IMCode() {
 }
 
@@ -59,16 +108,29 @@ vector<shared_ptr<Quaternion>>& IMCode::get_quater_list() {
 }
 
 void IMCode::show_quaters(ostream& fout) {
-	cout << string(80, '_') << endl;
+	//cout << string(80, '_') << endl;
 	for (auto quater : this->get_quater_list()) {
 		if (quater) {
 			fout << quater->toString() << endl;
-			cout << quater->toString() << endl;
+			//cout << quater->toString() << endl;
 		} else {
 			fout << endl;
 		}
 	}
 }
+
+void IMCode::divide_bblock() {
+	for (auto func : func_list_) {
+		func->divide_bblock();
+	}
+}
+
+void IMCode::active_analysis() {
+	for (auto func : func_list_) {
+		func->active_analysis();
+	}
+}
+
 
 
 

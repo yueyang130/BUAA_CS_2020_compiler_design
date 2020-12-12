@@ -28,7 +28,7 @@ namespace OptMips {
 
 		for (auto func : im_code_.func_list()) {
 			MipsCode_list_.push_back("");
-			OptMipsFunctionGenerator func_generator(*func, gb_small_var_offset_map_, MipsCode_list_);
+			OptMipsFunctionGenerator func_generator(*func, gb_small_var_offset_map_, MipsCode_list_, reg_pool_, im_code_);
 		}
 	}
 
@@ -77,7 +77,7 @@ namespace OptMips {
 		MipsCode_list_.push_back("li $v0, 10");
 		MipsCode_list_.push_back("syscall");
 		MipsCode_list_.push_back("");
-		OptMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_);
+		OptMipsFunctionGenerator main_generator(im_code_.main(), gb_small_var_offset_map_, MipsCode_list_, reg_pool_, im_code_);
 
 	}
 

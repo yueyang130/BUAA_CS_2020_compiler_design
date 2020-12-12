@@ -72,6 +72,10 @@ int main() {
 		peephole_opt.dump();
 	}
 
+	// 划分基本块和活跃变量计算
+	myIMCode.divide_bblock();
+	myIMCode.active_analysis();
+
 	// 输出中间代码
 	myIMCode.show_quaters(f_ircode);
 
