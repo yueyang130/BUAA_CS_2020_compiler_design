@@ -57,7 +57,7 @@ int main() {
 	//myGrammerAnalyzer.show(fout);
 	//myGrammerAnalyzer.showError(ferror);
 	myIMCode.show_quaters(f_unopt_code);
-	
+
 
 	// 中间代码的内联优化
 	if (INLINE_OPT) {
@@ -85,9 +85,12 @@ int main() {
 	myMipsGenerator.generateMipsCode();
 	myMipsGenerator.showMipsCode(f_targetcode);
 
+
+	// 关闭优化后的输出文件流
 	fin.close();
 	//fout.close();
 	//ferror.close();
+	f_unopt_code.close();
 	f_ircode.close();
 	f_targetcode.close();
 

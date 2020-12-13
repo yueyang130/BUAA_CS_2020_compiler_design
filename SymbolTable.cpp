@@ -153,7 +153,9 @@ string& ImmediateEntry::identifier() {
 }
 
 string ImmediateEntry::getValue() {
-	assert(this->shape_.empty());
+	if (!this->shape_.empty()) {   // for debug
+		assert(this->shape_.empty());
+	}
 	return value_[0];
 }
 

@@ -47,8 +47,14 @@ namespace OptMips {
 		OptMips::OptMipsFunctionGenerator* func_generator_;
 		RegisterPool();
 
+
 		// 清空临时寄存器池，将活跃的临时变量回写到内存;立即数直接清除
-		void clearTempRegs(unordered_set<shared_ptr<TableEntry>> active_set);
+		void write_back(unordered_set<shared_ptr<TableEntry>> active_set);
+		void clearTempRegs();
+
+		// 函数调用时，保存现场
+		void save_tregs(unordered_set<shared_ptr<TableEntry>> active_set, vector<string>& save_list);
+		void restore_tregs(vector<string>& save_list);
 
 		/** assign an available $s0-$s7 reg for var in memory space, return reg name
 		* load_var: 当变量不在寄存器中时，是否需要从内存中load
@@ -57,6 +63,7 @@ namespace OptMips {
 		 * 3. 如果不存在空闲寄存器，取出队尾寄存器，先将寄存器内的值写回内存，再load新变量，移至队首
 		*/
 		string assign_temp_reg(shared_ptr<TableEntry> var, bool load_var = true);
+		vector<string> assign_temp_reg(shared_ptr<TableEntry> var1, shared_ptr<TableEntry> var2, bool load_var = true);
 		/**assign an available $t0-$t9 reg for const, immediate num; return reg name*/
 		//string assign_buf_reg(string value);
 		///* 传入null表示该值是缓存值，无需保存。可以直接被再分配 */

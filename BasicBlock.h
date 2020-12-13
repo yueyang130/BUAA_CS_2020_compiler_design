@@ -34,13 +34,15 @@ public:
 	unordered_set<shared_ptr<TableEntry>> active_out_;
 	void print_bblock(ofstream& fout);
 
+	unordered_set<shared_ptr<TableEntry>> use_;
+	unordered_set<shared_ptr<TableEntry>> def_;
+
 private:
 	unordered_set<shared_ptr<BasicBlock>> pre_set_;
 	unordered_set<shared_ptr<BasicBlock>> next_set_;
 	vector<shared_ptr<Quaternion>> quater_list_;
 
-	unordered_set<shared_ptr<TableEntry>> use_;
-	unordered_set<shared_ptr<TableEntry>> def_;
+	
 
 	// 如果这个变量不在def_中，把它加入use_
 	void add_use_var(shared_ptr<TableEntry> var);

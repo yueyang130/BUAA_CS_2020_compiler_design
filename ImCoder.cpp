@@ -47,9 +47,12 @@ void Function::divide_bblock() {
 		if (is_uncon_jump(qtype)) {
 			string label = last_quater->result_->identifier();
 			auto q = findLabelQuater(label, quater_list_);
-			auto b = quater_bblock_map_[q];
-			bblock->addNextBlock(b);
-			b->addPrevBlock(bblock);
+			if (q) {
+				auto b = quater_bblock_map_[q];
+				bblock->addNextBlock(b);
+				b->addPrevBlock(bblock);
+			}
+			
 
 		} else if(is_con_jump(qtype)) {
 			string label = last_quater->result_->identifier();
@@ -63,19 +66,21 @@ void Function::divide_bblock() {
 			b2->addPrevBlock(bblock);
 
 		} else if (qtype == QuaternionType::FuncReturn) {
-			// 排除return是整个函数最后一条语句的情况
-			if (last_quater != quater_list_.back()) {
+			// 以return语句结尾的基本块没有后继块
+			/*if (last_quater != quater_list_.back()) {
 				auto q = findNextQuater(last_quater, quater_list_);
 				auto b = quater_bblock_map_[q];
 				bblock->addNextBlock(b);
 				b->addPrevBlock(bblock);
-			}
+			}*/
 		} else {
 			// 普通的顺序执行语句
 			auto q = findNextQuater(last_quater, quater_list_);
-			auto b = quater_bblock_map_[q];
-			bblock->addNextBlock(b);
-			b->addPrevBlock(bblock);
+			if (q) {
+				auto b = quater_bblock_map_[q];
+				bblock->addNextBlock(b);
+				b->addPrevBlock(bblock);
+			}
 		}
 	}
 
@@ -128,7 +133,7 @@ shared_ptr<Quaternion> findLabelQuater(string label, vector<shared_ptr<Quaternio
 }
 
 shared_ptr<Quaternion> findNextQuater(shared_ptr<Quaternion> q, vector<shared_ptr<Quaternion>>& list) {
-	for (auto it = list.begin(); it != list.end(); it++) {
+	for (auto it = list.begin(); it != list.end()-1; it++) {
 		if (*it  == q) {
 			return *(it+1);
 		}

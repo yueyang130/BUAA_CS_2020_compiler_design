@@ -152,25 +152,36 @@ namespace OptMips {
 		int param_num = 0;
 		// 存有数组下标的寄存器
 		vector<string> reg_idxs;
+		// 用于寄存器保护的标志位
+		bool save_reg = true;
+		// 用于记录哪些寄存器需要保护
+		vector<string> save_list;
 
 		reg_pool_.func_generator_ = this;
 
 		auto& quater_list = this->func_.get_quater_list();
 		for (auto it = quater_list.begin(); it != quater_list.end(); it++) {
 			auto quater = *it;
-			// 如果编译一个新的函数，或者函数内跨越基本块，清空临时寄存器池
-			if (it != quater_list.begin() && func_.getBBlock(*it) != func_.getBBlock(*(it - 1))) {
-				auto bblock = func_.getBBlock(*(it-1));
-				reg_pool_.clearTempRegs(bblock->active_out_);
-			}
 
+			// 如果编译一个新的函数，或者函数内跨越基本块，清空临时寄存器池
+			// 写回时机应该发生在离开当前基本块前，而不是进入下一个基本块后
+			// 具体而言，如果最后一句是跳转，发生在跳转前，否则发生最后一句语句之后
+			shared_ptr<BasicBlock> bblock;
+			if (it == quater_list.end()-1 || func_.getBBlock(*it) != func_.getBBlock(*(it + 1))) {
+				bblock = func_.getBBlock(*it);
+			}
+			auto qtype = quater->quater_type_;
+			if (bblock) {
+				if (is_con_jump(qtype) || is_uncon_jump(qtype) || qtype == QuaternionType::FuncReturn) {
+					reg_pool_.write_back(bblock->active_out_);
+				}
+			}
+			
 			if (!quater) { continue; }
 			QuaternionType quater_type = quater->quater_type_;
 			auto result = quater->result_;
 			auto opA = quater->opA_;
 			auto opB = quater->opB_;
-
-
 			switch (quater_type) {
 				// TODO: 对局部变量，目前分配的是临时寄存器，之后应改为分配全局寄存器
 			case InlineVarInit:
@@ -182,7 +193,7 @@ namespace OptMips {
 					int a_off = 0;
 					for (string value : inum->initializingList()) {
 						// 将数组初始值保存到内存空间
-						mips_load_num(buf_reg1, inum->getValue(), mips_list_);
+						mips_load_num(buf_reg1, value, mips_list_);
 						mips_store(buf_reg1, "$fp", offset + a_off, var->value_type(), mips_list_);
 						a_off += (var->value_type() == ValueType::INTV) ? 4 : 1;
 					}
@@ -231,27 +242,36 @@ namespace OptMips {
 				break;
 			}
 			case FuncParamPush:
-				// TODO
+				// TODO: 函数调用前，保护弱保护寄存器
+				if (save_reg) {
+					auto b = func_.getBBlock(*it);
+					auto saved_vars = b->active_in_;
+					saved_vars.insert(b->def_.begin(), b->def_.end());
+					reg_pool_.save_tregs(saved_vars, save_list);
+					save_reg = false;
+				}
 				if (stack_param_cnt < 3) {
 					/*this->load_var(opA, "$a" + to_string(stack_param_cnt + 1));
 					stack_param_cnt++;*/
 					string treg = reg_pool_.assign_temp_reg(opA);
-					mips_store(treg, "$sp", -4 * (++stack_param_cnt), opA->value_type(), mips_list_);
+					mips_store(treg, "$sp", -4 * (++stack_param_cnt + save_list.size()), opA->value_type(), mips_list_);
 				} else {
 					string treg = reg_pool_.assign_temp_reg(opA);
-					mips_store(treg, "$sp", -4 * (++stack_param_cnt), opA->value_type(), mips_list_);
+					mips_store(treg, "$sp", -4 * (++stack_param_cnt + save_list.size()), opA->value_type(), mips_list_);
 				}
 				break;
 			case FuncCall:
 			{
-				// TODO: 函数调用前，保护弱保护寄存器
-				mips_alui("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::SubOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size() )* 4), QuaternionType::SubOp, mips_list_);
 				mips_jal(opA->identifier(), mips_list);
-				mips_alui("$sp", "$sp", to_string(stack_param_cnt * 4), QuaternionType::AddOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size()) * 4), QuaternionType::AddOp, mips_list_);
 				// 存在函数嵌套调用的情况，不应该对actual_param_cnt清零，应该减去已经使用到了的参数个数
 				//actual_param_cnt = 0;
 				int pnum = dynamic_pointer_cast<FunctionEntry>(opA)->formal_param_num();
 				stack_param_cnt -= pnum;
+				// 恢复现场
+				reg_pool_.restore_tregs(save_list);
+				save_reg = true;
 				break;
 			}
 			case RetAssign:
@@ -260,8 +280,9 @@ namespace OptMips {
 			case BEQ: case BNE: case BLT:
 			case BLE: case BGT: case BGE:
 			{
-				string treg1 = reg_pool_.assign_temp_reg(opA);
-				string treg2 = reg_pool_.assign_temp_reg(opB);
+				auto tregs = reg_pool_.assign_temp_reg(opA, opB);
+				string treg1 = tregs[0];
+				string treg2 = tregs[1];
 				conditional_jump(treg1, treg2, result->identifier(), quater_type, mips_list_);
 				break;
 			}
@@ -353,7 +374,7 @@ namespace OptMips {
 			{
 				read(result->value_type(), mips_list_);
 				string treg = reg_pool_.assign_temp_reg(result, false);
-				mips_alu(treg, "$v0", "$zero", QuaternionType::AddOp, mips_list_);
+				mips_move(treg, "$v0", mips_list_);
 				/* 对gui，不会过滤输入字符后的回车；但是，命令行会过滤字符后的回车
 				// 如果是读取字符，还需要读取回车
 				if (result->value_type() == ValueType::CHARV) {
@@ -379,7 +400,16 @@ namespace OptMips {
 				break;
 			}
 
+			if (bblock) {
+				if (!(is_con_jump(qtype) || is_uncon_jump(qtype) || qtype == QuaternionType::FuncReturn)) {
+					reg_pool_.write_back(bblock->active_out_);
+				}
+				// 统一在最后清空寄存器与内存间的映射
+				reg_pool_.clearTempRegs();
+			}
+
 		}
+
 
 	}
 
