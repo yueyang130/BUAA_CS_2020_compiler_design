@@ -31,17 +31,15 @@ void RegisterPool::clearTempRegs() {
     lru_queue_.clear();
 }
 
-void RegisterPool::save_tregs(unordered_set<shared_ptr<TableEntry>> active_set, vector<string>& save_list) {
+void RegisterPool::save_tregs(vector<string>& save_list) {
     save_list.clear();
     int offset = 0;
     for (int i = 0; i < T_NUM; i++) {
         if (t_regs[i] == nullptr) continue;
         if (t_regs[i]->entry_type() == EntryType::IMMEDIATE) continue;
-        if (active_set.find(t_regs[i]) != active_set.end()) {
-            offset += 4;
-            mips_store(treg_name(i), "$sp", -offset, ValueType::INTV, func_generator_->mips_list_);
-            save_list.push_back(treg_name(i));
-        }
+        offset += 4;
+        mips_store(treg_name(i), "$sp", -offset, ValueType::INTV, func_generator_->mips_list_);
+        save_list.push_back(treg_name(i));
     }
 }
 

@@ -53,7 +53,7 @@ namespace OptMips {
 		void clearTempRegs();
 
 		// 函数调用时，保存现场
-		void save_tregs(unordered_set<shared_ptr<TableEntry>> active_set, vector<string>& save_list);
+		void save_tregs(vector<string>& save_list);
 		void restore_tregs(vector<string>& save_list);
 
 		/** assign an available $s0-$s7 reg for var in memory space, return reg name

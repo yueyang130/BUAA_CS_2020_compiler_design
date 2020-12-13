@@ -247,10 +247,7 @@ namespace OptMips {
 			{
 				// TODO: 函数调用前，保护弱保护寄存器
 				if (save_reg) {
-					auto b = func_.getBBlock(*it);
-					auto saved_vars = b->active_in_;
-					saved_vars.insert(b->def_.begin(), b->def_.end());
-					reg_pool_.save_tregs(saved_vars, save_list);
+					reg_pool_.save_tregs(save_list);
 					save_reg = false;
 				}
 				if (stack_param_cnt < 3) {
@@ -268,10 +265,7 @@ namespace OptMips {
 			{
 				// 防止没有参数push的情况
 				if (save_reg) {
-					auto b = func_.getBBlock(*it);
-					auto saved_vars = b->active_in_;
-					saved_vars.insert(b->def_.begin(), b->def_.end());
-					reg_pool_.save_tregs(saved_vars, save_list);
+					reg_pool_.save_tregs(save_list);
 					save_reg = false;
 				}
 				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size() )* 4), QuaternionType::SubOp, mips_list_);
@@ -419,9 +413,7 @@ namespace OptMips {
 				// 统一在最后清空寄存器与内存间的映射
 				reg_pool_.clearTempRegs();
 			}
-			if (qtype == QuaternionType::FuncCall) {
-				reg_pool_.clearTempRegs();
-			}
+
 
 		}
 
