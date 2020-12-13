@@ -8,6 +8,8 @@
 
 using namespace std;
 
+const int SAVE_SPACE = 16;
+
 namespace OptMips {
 
 	/*

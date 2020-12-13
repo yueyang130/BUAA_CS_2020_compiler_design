@@ -245,32 +245,29 @@ namespace OptMips {
 			}
 			case FuncParamPush:
 			{
-				// TODO: 函数调用前，保护弱保护寄存器
-				if (save_reg) {
-					reg_pool_.save_tregs(save_list);
-					save_reg = false;
-				}
 				if (stack_param_cnt < 3) {
 					/*this->load_var(opA, "$a" + to_string(stack_param_cnt + 1));
 					stack_param_cnt++;*/
 					string treg = reg_pool_.assign_temp_reg(opA);
-					mips_store(treg, "$sp", -4 * (++stack_param_cnt + save_list.size()), opA->value_type(), mips_list_);
+					mips_store(treg, "$sp", -4 * (++stack_param_cnt + SAVE_SPACE), opA->value_type(), mips_list_);
 				} else {
 					string treg = reg_pool_.assign_temp_reg(opA);
-					mips_store(treg, "$sp", -4 * (++stack_param_cnt + save_list.size()), opA->value_type(), mips_list_);
+					mips_store(treg, "$sp", -4 * (++stack_param_cnt + SAVE_SPACE), opA->value_type(), mips_list_);
 				}
 				break;
 			}
 			case FuncCall:
 			{
-				// 防止没有参数push的情况
+				// 参数push后，函数调用前，保护弱保护寄存器
+				// 不能放在参数push前，因为这样的话，有的reg是在参数push的时候才load，就没有被保护到
+				// 直接在栈中留八个空位
 				if (save_reg) {
 					reg_pool_.save_tregs(save_list);
 					save_reg = false;
 				}
-				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size() )* 4), QuaternionType::SubOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string((stack_param_cnt + SAVE_SPACE)* 4), QuaternionType::SubOp, mips_list_);
 				mips_jal(opA->identifier(), mips_list);
-				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size()) * 4), QuaternionType::AddOp, mips_list_);
+				mips_alui("$sp", "$sp", to_string((stack_param_cnt + SAVE_SPACE) * 4), QuaternionType::AddOp, mips_list_);
 				// 存在函数嵌套调用的情况，不应该对actual_param_cnt清零，应该减去已经使用到了的参数个数
 				//actual_param_cnt = 0;
 				int pnum = dynamic_pointer_cast<FunctionEntry>(opA)->formal_param_num();
