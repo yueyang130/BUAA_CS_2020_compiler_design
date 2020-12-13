@@ -205,6 +205,7 @@ namespace OptMips {
 				break;
 			}
 			case FuncDeclareHead:
+			{
 				set_label(*quater, mips_list_);
 				param_num = dynamic_pointer_cast<FunctionEntry>(result)->formal_param_num();
 
@@ -219,6 +220,7 @@ namespace OptMips {
 				offset = (offset % 4 == 0) ? offset : (offset - (offset % 4) + 4);
 				mips_alui("$sp", "$sp", to_string(this->offset), QuaternionType::SubOp, mips_list_);
 				break;
+			}
 			case FuncFormalParam:
 			{
 				int offset = (param_num - (++formal_param_cnt)) * 4;
@@ -242,6 +244,7 @@ namespace OptMips {
 				break;
 			}
 			case FuncParamPush:
+			{
 				// TODO: 函数调用前，保护弱保护寄存器
 				if (save_reg) {
 					auto b = func_.getBBlock(*it);
@@ -260,6 +263,7 @@ namespace OptMips {
 					mips_store(treg, "$sp", -4 * (++stack_param_cnt + save_list.size()), opA->value_type(), mips_list_);
 				}
 				break;
+			}
 			case FuncCall:
 			{
 				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size() )* 4), QuaternionType::SubOp, mips_list_);

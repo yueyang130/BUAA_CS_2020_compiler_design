@@ -1,12 +1,15 @@
 #include "RegisterPool.h"
 #include "OptMipsFunctionGenerator.h"
 #include"tools.h"
+#include<algorithm>
 
 using OptMips::RegisterPool;
+using std::find;
 
 RegisterPool::RegisterPool() {
     for (int i = 0; i < T_NUM; i++) {
         t_regs[i] = nullptr;
+
     }
 }
 
@@ -18,6 +21,14 @@ void RegisterPool::write_back(unordered_set<shared_ptr<TableEntry>> active_set) 
             func_generator_->write_back(t_regs[i], treg_name(i));
         }
     }
+}
+
+void RegisterPool::clearTempRegs() {
+
+    for (int i = 0; i < T_NUM; i++) {
+        t_regs[i] = nullptr;
+    }
+    lru_queue_.clear();
 }
 
 void RegisterPool::save_tregs(unordered_set<shared_ptr<TableEntry>> active_set, vector<string>& save_list) {
@@ -43,13 +54,6 @@ void RegisterPool::restore_tregs(vector<string>& save_list) {
     save_list.clear();
 }
 
-void RegisterPool::clearTempRegs() {
-   
-    for (int i = 0; i < T_NUM; i++) {
-        t_regs[i] = nullptr;
-    }
-    
-}
 
 string RegisterPool::assign_temp_reg(shared_ptr<TableEntry> var, bool load_var) {
 
@@ -60,6 +64,8 @@ string RegisterPool::assign_temp_reg(shared_ptr<TableEntry> var, bool load_var) 
 
     int index;
     if (find(var, &index)) {
+        auto it = std::find(lru_queue_.begin(), lru_queue_.end(), index);
+        lru_queue_.erase(it);
         lru_queue_.insert(lru_queue_.begin(), index);
         return treg_name(index);
     }
