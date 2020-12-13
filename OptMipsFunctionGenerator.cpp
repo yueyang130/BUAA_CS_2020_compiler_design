@@ -266,6 +266,14 @@ namespace OptMips {
 			}
 			case FuncCall:
 			{
+				// 防止没有参数push的情况
+				if (save_reg) {
+					auto b = func_.getBBlock(*it);
+					auto saved_vars = b->active_in_;
+					saved_vars.insert(b->def_.begin(), b->def_.end());
+					reg_pool_.save_tregs(saved_vars, save_list);
+					save_reg = false;
+				}
 				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size() )* 4), QuaternionType::SubOp, mips_list_);
 				mips_jal(opA->identifier(), mips_list);
 				mips_alui("$sp", "$sp", to_string((stack_param_cnt + save_list.size()) * 4), QuaternionType::AddOp, mips_list_);
@@ -409,6 +417,9 @@ namespace OptMips {
 					reg_pool_.write_back(bblock->active_out_);
 				}
 				// 统一在最后清空寄存器与内存间的映射
+				reg_pool_.clearTempRegs();
+			}
+			if (qtype == QuaternionType::FuncCall) {
 				reg_pool_.clearTempRegs();
 			}
 
