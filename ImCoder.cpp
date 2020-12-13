@@ -11,6 +11,7 @@ shared_ptr<BasicBlock> Function::getBBlock(shared_ptr<Quaternion> quater) {
 	return quater_bblock_map_[quater];
 }
 
+/*以基本块为粒度的划分*/
 void Function::divide_bblock() {
 	// 求入口语句： 函数入口，跳转后的第一条，跳转到的第一条(label)，return的下一条
 	unordered_set<shared_ptr<Quaternion>> enter_set;
@@ -85,6 +86,64 @@ void Function::divide_bblock() {
 	}
 
 }
+
+/*以语句为粒度的划分*/
+//void Function::divide_bblock() {
+//
+//	// 为每个语句分配基本块
+//	shared_ptr<BasicBlock> curr_bblock;
+//	for (auto quater : quater_list_) {
+//		curr_bblock = make_shared<BasicBlock>();
+//		this->bblock_list_.push_back(curr_bblock);
+//		curr_bblock->addQuater(quater);
+//		quater_bblock_map_[quater] = curr_bblock;
+//	}
+//
+//	// 组织流图: 无条件跳转和return都有一个后继块，有条件跳转有两个,其他顺序语句有一个后继块
+//	for (auto bblock : bblock_list_) {
+//		auto last_quater = bblock->get_quater_list().back();
+//		auto qtype = last_quater->quater_type_;
+//		if (is_uncon_jump(qtype)) {
+//			string label = last_quater->result_->identifier();
+//			auto q = findLabelQuater(label, quater_list_);
+//			if (q) {
+//				auto b = quater_bblock_map_[q];
+//				bblock->addNextBlock(b);
+//				b->addPrevBlock(bblock);
+//			}
+//
+//
+//		} else if (is_con_jump(qtype)) {
+//			string label = last_quater->result_->identifier();
+//			auto q1 = findNextQuater(last_quater, quater_list_);
+//			auto q2 = findLabelQuater(label, quater_list_);
+//			auto b1 = quater_bblock_map_[q1];
+//			auto b2 = quater_bblock_map_[q2];
+//			bblock->addNextBlock(b1);
+//			bblock->addNextBlock(b2);
+//			b1->addPrevBlock(bblock);
+//			b2->addPrevBlock(bblock);
+//
+//		} else if (qtype == QuaternionType::FuncReturn) {
+//			// 以return语句结尾的基本块没有后继块
+//			/*if (last_quater != quater_list_.back()) {
+//				auto q = findNextQuater(last_quater, quater_list_);
+//				auto b = quater_bblock_map_[q];
+//				bblock->addNextBlock(b);
+//				b->addPrevBlock(bblock);
+//			}*/
+//		} else {
+//			// 普通的顺序执行语句
+//			auto q = findNextQuater(last_quater, quater_list_);
+//			if (q) {
+//				auto b = quater_bblock_map_[q];
+//				bblock->addNextBlock(b);
+//				b->addPrevBlock(bblock);
+//			}
+//		}
+//	}
+//
+//}
 
 void Function::active_analysis() {
 	// 基本块计算use和def集合

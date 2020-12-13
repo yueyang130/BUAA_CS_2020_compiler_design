@@ -8,7 +8,7 @@
 
 
 const int A_NUM = 4;
-const int T_NUM = 8;
+const int T_NUM = 8 ;
 const int S_NUM = 8;
 const int V_NUM = 2;
 

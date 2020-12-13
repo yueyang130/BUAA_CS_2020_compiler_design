@@ -5,7 +5,7 @@
 #include<set>
 #include<map>
 
-const int MAX_INLINE_ROW = 40;
+const int MAX_INLINE_ROW = 1000;
 
 class InlineOptimizer: public Optimizer {
 public:
