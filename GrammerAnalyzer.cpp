@@ -1045,7 +1045,11 @@ void GrammerAnalyzer::IfStatement(bool* p_exsit_return, ValueType return_value_t
 ＜关系运算符＞  ::=  <｜<=｜>｜>=｜!=｜==
 表达式需均为整数类型才能进行比较
 */
-void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> label_entry) {
+void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> label_entry, vector<shared_ptr<Quaternion>>* con_jump) {
+	
+	auto& qlist = im_coder_.curr_func()->get_quater_list();
+	auto curr = qlist.back();
+	
 	symbolType condition_type = symbolType::EQL;
 	ValueType value_type1 = Expr();
 	auto  expr1 = stack_pop_value();
@@ -1059,6 +1063,14 @@ void GrammerAnalyzer::Condition(symbolType jump_type,shared_ptr<LabelEntry> labe
 	//添加条件跳转四元式
 	auto quater = jump(jump_type, condition_type, label_entry,expr1, expr2);
 	im_coder_.addQuater(quater);
+
+	// 将Condition中生成的所有四元式全部加入con_jump
+	if (con_jump) {
+		auto it = std::find(qlist.begin(), qlist.end(), curr) + 1;
+		for (; it != qlist.end(); it++) {
+			con_jump->push_back(*it);
+		}
+	}
 
 	if (value_type1 != ValueType::INTV || value_type2 != ValueType::INTV) {
 		addErrorInfor(ErrorType::IllegalCondition);
@@ -1074,15 +1086,16 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 	
 	auto begin_label = make_shared<LabelEntry>(new_label());
 	auto end_label = make_shared<LabelEntry>(new_label());
-	
+	vector<shared_ptr<Quaternion>> con_jump;
+
 	if (equal(WHILETK)) {
 		pop_sym();
 		check(LPARENT);
 		pop_sym();
+
+		Condition(WHILETK, end_label, &con_jump);
 		// 生成 设置循环体开始标签的四元式
 		im_coder_.addQuater(QuaternionFactory::Label(begin_label));
-
-		Condition(WHILETK, end_label);
 		checkMissRparent();
 		Statement(p_exsit_return, return_value_type);
 
@@ -1102,10 +1115,10 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 		Expr();
 		im_coder_.addQuater(stack_assign());
 		checkMissSemi();
+		// ＜条件＞
+		Condition(FORTK, end_label, &con_jump);
 		// 生成 设置循环体开始标签的四元式
 		im_coder_.addQuater(QuaternionFactory::Label(begin_label));
-		// ＜条件＞
-		Condition(FORTK, end_label);
 		checkMissSemi();
 		// ＜标识符＞＝＜标识符＞(+| -)＜步长＞
 		check(IDENFR);
@@ -1132,8 +1145,12 @@ void GrammerAnalyzer::LoopStatement(bool* p_exsit_return, ValueType return_value
 
 	} else { error(); }
 
-	// 无条件跳转到循环体开始的四元式
-	im_coder_.addQuater(QuaternionFactory::Goto(begin_label));
+	//// 无条件跳转到循环体开始的四元式
+	//im_coder_.addQuater(QuaternionFactory::Goto(begin_label));
+
+	// 第二个条件跳转
+	reverse_jump(begin_label, con_jump, im_coder_);
+
 	// 设置结束标签的四元式
 	im_coder_.addQuater(QuaternionFactory::Label(end_label));
 	
@@ -1598,4 +1615,46 @@ shared_ptr<Quaternion> GrammerAnalyzer::jump(symbolType jump_type, symbolType co
 	}
 	return quater;
 
+}
+
+void reverse_jump(shared_ptr<TableEntry> label, vector<shared_ptr<Quaternion>> con_list, IMCode& im_coder) {
+
+	for (auto it = con_list.begin(); it != con_list.end() - 1; it++) {
+		// 不能直接把原来的四元式添加进去，因为会导致quater_list中有两个相同四元式
+		// 在quater_bblock_map中，后一个会覆盖前一个导致出错
+		//im_coder.addQuater(*it);
+
+		auto new_quater = make_shared<Quaternion>(**it);
+		im_coder.addQuater(new_quater);
+	}
+
+	auto jump0 = con_list.back();
+	auto opA = jump0->opA_;
+	auto opB = jump0->opB_;
+	auto qtype = jump0->quater_type_;
+	shared_ptr<Quaternion> jump1;
+	switch (qtype) {
+	case QuaternionType::BEQ:
+		jump1 = QuaternionFactory::BNE(label, opA, opB);
+		break;
+	case QuaternionType::BNE:
+		jump1 =  QuaternionFactory::BEQ(label, opA, opB);
+		break;
+	case QuaternionType::BLT:
+		jump1 = QuaternionFactory::BGE(label, opA, opB);
+		break;
+	case QuaternionType::BLE:
+		jump1 =  QuaternionFactory::BGT(label, opA, opB);
+		break;
+	case QuaternionType::BGT:
+		jump1 =  QuaternionFactory::BLE(label, opA, opB);
+		break;
+	case QuaternionType::BGE:
+		jump1 = QuaternionFactory::BLT(label, opA, opB);
+		break;
+	default:
+		break;
+	}
+	im_coder.addQuater(jump1);
+	
 }

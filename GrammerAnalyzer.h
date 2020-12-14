@@ -129,7 +129,7 @@ private:
 	void Statement(bool* p_exist_return, ValueType return_value_type);
 	void AssignStatement();
 	void IfStatement(bool* p_exsit_return, ValueType return_value_type);
-	void Condition(symbolType jump_type, shared_ptr<LabelEntry> label_entry);
+	void Condition(symbolType jump_type, shared_ptr<LabelEntry> label_entry, vector<shared_ptr<Quaternion>>* con_jump = nullptr);
 	void LoopStatement(bool* p_exsit_return, ValueType return_value_type);
 	int Step();
 	void SwitchStatement(bool* p_exsit_return, ValueType return_value_type);
@@ -162,6 +162,8 @@ private:
 
 };
 
+// 生成与跳转四元式相反的四元式，用于for和while的改写
+void reverse_jump(shared_ptr<TableEntry> label, vector<shared_ptr<Quaternion>> con_list, IMCode& im_coder);
 
 
 #endif // !GRAMMER_ANALYZER_H_

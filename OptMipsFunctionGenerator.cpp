@@ -215,7 +215,8 @@ namespace OptMips {
 			// 如果编译一个新的函数，或者函数内跨越基本块，清空临时寄存器池
 			// 写回时机应该发生在离开当前基本块前，而不是进入下一个基本块后
 			// 具体而言，如果最后一句是跳转，发生在跳转前，否则发生最后一句语句之后
-			shared_ptr<BasicBlock> bblock;
+			shared_ptr<BasicBlock> bblock = nullptr;
+	
 			if (it == quater_list.end()-1 || func_.getBBlock(*it) != func_.getBBlock(*(it + 1))) {
 				bblock = func_.getBBlock(*it);
 			}
@@ -229,6 +230,7 @@ namespace OptMips {
 			if (!quater) { continue; }
 			QuaternionType quater_type = quater->quater_type_;
 			auto result = quater->result_;
+	
 			auto opA = quater->opA_;
 			auto opB = quater->opB_;
 			switch (quater_type) {
