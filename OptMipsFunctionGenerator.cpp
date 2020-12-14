@@ -198,7 +198,7 @@ namespace OptMips {
 		// 进入函数时使用的参数，函数参数总个数
 		int param_num = 0;
 		// 存有数组下标的寄存器
-		vector<string> reg_idxs;
+		vector<shared_ptr<TableEntry>> idxs;
 		// 用于寄存器保护的标志位
 		bool save_reg = true;
 		// 用于记录哪些寄存器需要保护
@@ -348,30 +348,31 @@ namespace OptMips {
 				break;
 			case PushArrayIndex:
 			{
-				if (reg_idxs.size() == 1 && (result->entry_type() == EntryType::IMMEDIATE
-					|| result->entry_type() == EntryType::CONST) ) {
-					// 两个索引都是立即数或常数的情况
-					load_var(result, buf_reg2);
-					reg_idxs.push_back(buf_reg2);
-				} else {
-					string treg = reg_pool_.assign_reg(result);
-					reg_idxs.push_back(treg);
-				}
+				idxs.push_back(result);
+				//if (idxs.size() == 1 && (result->entry_type() == EntryType::IMMEDIATE
+				//	|| result->entry_type() == EntryType::CONST) ) {
+				//	// 两个索引都是立即数或常数的情况
+				//	load_var(result, buf_reg2);
+				//	idxs.push_back(buf_reg2);
+				//} else {
+				//	string treg = reg_pool_.assign_reg(result);
+				//	idxs.push_back(treg);
+				//}
 				
 				break;
 			}
 			case GetArrayElem:
 			{
-				off_in_array(buf_reg1, buf_reg2, opA, reg_idxs, mips_list_);
-				reg_idxs.clear();
+				off_in_array(buf_reg1, buf_reg2, opA, idxs, mips_list_, *this, reg_pool_);
+				idxs.clear();
 				string treg3 = reg_pool_.assign_reg(result, false);
 				this->load_array(opA, buf_reg1, treg3);
 				break;
 			}
 			case SetArrayELem:
 			{
-				off_in_array(buf_reg1, buf_reg2, result, reg_idxs, mips_list_);
-				reg_idxs.clear();
+				off_in_array(buf_reg1, buf_reg2, result, idxs, mips_list_, *this, reg_pool_);
+				idxs.clear();
 				if (opA->entry_type() == IMMEDIATE || opA->entry_type() == EntryType::CONST) {
 					load_var(opA, buf_reg2);
 					this->store_array(result, buf_reg1, buf_reg2);
@@ -416,7 +417,7 @@ namespace OptMips {
 					mips_alu(treg2, "$zero", treg1, quater_type, mips_list_);
 				}
 				break;
-
+				
 			case Assign:
 			{
 				if (const_or_immed(opA.get())) {

@@ -5,6 +5,7 @@
 #include"SymbolTable.h"
 #include"Quaternion.h"
 #include<map>
+#include"RegisterPool.h"
 
 
 namespace OptMips {
@@ -51,7 +52,8 @@ namespace OptMips {
 	entry: 数组变量的symbol Table entry
 	reg_idxs: 存有数组下标的寄存器名的数组
 	*/
-	void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list);
+	void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<shared_ptr<TableEntry>> idxs, vector<string>& mips_list,
+		OptMipsFunctionGenerator& func_, RegisterPool& pool_);
 
 
 	/*ALU: result and right must be register; right can be a register or a immediate num*/

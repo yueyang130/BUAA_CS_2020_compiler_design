@@ -218,15 +218,49 @@ namespace OptMips {
 		mips_list.push_back("jr $ra");
 	}
 
-	void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<string> reg_idxs, vector<string>& mips_list) {
+	void off_in_array(string reg0, string reg1, shared_ptr<TableEntry> entry, vector<shared_ptr<TableEntry>> idxs, vector<string>& mips_list,
+		OptMipsFunctionGenerator& func_ ,RegisterPool& pool_) {
 		auto arr = dynamic_pointer_cast<VarEntry>(entry);
+		// 如果index是常数，直接计算； 如果是临时变量或局部变量，加载到寄存器计算
+
 		if (arr->ndim() == 2) {
-			mips_alui(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
-			mips_alui(reg1, reg_idxs[1], to_string(arr->getDimByte(1)), QuaternionType::MulOp, mips_list);
+			// 加载第一个偏移
+			if (const_or_immed(idxs[0].get())) {
+				int off1 = getValue(idxs[0]->getValue()) * arr->getDimByte(0);
+				mips_load_num(reg1, to_string(off1), mips_list);
+			} else {
+				string r_reg = pool_.assign_reg(idxs[0]);
+				mips_alui(reg1, r_reg, to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+			}
+			// 加载第二个偏移
+			if (const_or_immed(idxs[1].get())) {
+				int off2 = getValue(idxs[1]->getValue()) * arr->getDimByte(1);
+				mips_load_num(reg0, to_string(off2), mips_list);
+			} else {
+				string r_reg = pool_.assign_reg(idxs[1]);
+				mips_alui(reg0, r_reg, to_string(arr->getDimByte(1)), QuaternionType::MulOp, mips_list);
+			}
 			mips_alu(reg0, reg0, reg1, QuaternionType::AddOp, mips_list);
+
 		} else {
-			mips_alui(reg0, reg_idxs[0], to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+			if (const_or_immed(idxs[0].get())) {
+				int off1 = getValue(idxs[0]->getValue()) * arr->getDimByte(0);
+				mips_load_num(reg0, to_string(off1), mips_list);
+			} else {
+				string r_reg = pool_.assign_reg(idxs[0]);
+				mips_alui(reg0, r_reg, to_string(arr->getDimByte(0)), QuaternionType::MulOp, mips_list);
+			}
 		}
+
+		//if (idxs.size() == 1 && (result->entry_type() == EntryType::IMMEDIATE
+		//	|| result->entry_type() == EntryType::CONST) ) {
+		//	// 两个索引都是立即数或常数的情况
+		//	load_var(result, buf_reg2);
+		//	idxs.push_back(buf_reg2);
+		//} else {
+		//	string treg = reg_pool_.assign_reg(result);
+		//	idxs.push_back(treg);
+		//}
 	}
 
 
