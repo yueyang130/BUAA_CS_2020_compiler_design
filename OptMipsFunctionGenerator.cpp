@@ -273,6 +273,7 @@ namespace OptMips {
 			{
 				int offset = (param_num - (++formal_param_cnt)) * 4;
 				func_var_offset_map_[result.get()] = offset;
+				reg_pool.deal_param_decalre(result, offset);
 				break;
 			}
 			case FuncReturn:

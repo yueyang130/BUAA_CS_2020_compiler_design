@@ -7,11 +7,12 @@
 #include<unordered_set>
 #include<unordered_map>
 
-// 不包括$a0
+// 不包括$a0,用作syscall
+// 内联也无法避免所有的函数调用，递归是一定要用函数调用实现的
 //const int A_NUM = 3;
-//const int V_NUM = 2;
+//const int V_NUM = 1;
 const int T_NUM = 8;
-const int S_NUM = 8 + 3 + 2;
+const int S_NUM = 8 + 3 + 1;
 
 
 // 两个缓存寄存器
@@ -51,6 +52,7 @@ namespace OptMips {
 
 		void count_var_ref(unordered_map<shared_ptr<TableEntry>, int> ref_map);
 		void deal_var_decalre(shared_ptr<TableEntry> var, string value, int offset);
+		void deal_param_decalre(shared_ptr<TableEntry> var, int offset);
 		void load_gb_var();
 		void clear_sreg();
 
@@ -107,8 +109,8 @@ namespace OptMips {
 			return "$s" + to_string(i);
 		if (i < 11)
 			return "$a" + to_string(i - 7);
-		// i < 13
-		return "$v" + to_string(i - 11);
+		// i < 12
+		return "$v" + to_string(i - 10);
 	}
 }
 

@@ -48,6 +48,13 @@ void OptMips::RegisterPool::deal_var_decalre(shared_ptr<TableEntry> var, string 
     }
 }
 
+void OptMips::RegisterPool::deal_param_decalre(shared_ptr<TableEntry> var, int offset) {
+    int index;
+    if (find_var_in_sreg(var, &index)) {
+        mips_load_mem(sreg_name(index), "$fp", offset, var->value_type(), func_generator_->mips_list_);
+    }
+}
+
 void OptMips::RegisterPool::load_gb_var() {
     // load global
     for (int i = 0; i < S_NUM; i++) {
