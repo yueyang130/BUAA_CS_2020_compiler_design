@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const int SAVE_SPACE = 16;
+const int SAVE_SPACE = 32;
 
 namespace OptMips {
 
@@ -59,10 +59,15 @@ namespace OptMips {
 		map<VarEntry*, int>& global_var_offset_map_;
 		vector<string>& mips_list_;
 
+
+
 		/*偏移量*/
 		int offset = 0;
 		/*局部变量和临时变量相对于fp的偏移*/
 		map<TableEntry*, int> func_var_offset_map_;
+
+		// 为局部变量和全局变量计数
+		unordered_map<shared_ptr<TableEntry>, int> count_ref();
 
 		/* 处理局部变量声明，为局部变量在栈中分配内存空间地址 */
 		void map_local_var();
@@ -98,6 +103,8 @@ namespace OptMips {
 	/* 支持函数 */
 	// 判断是否是临时变量
 	bool isTempVar(shared_ptr<TableEntry> entry);
+	/*如果是var，则计数加一*/
+	void _count(shared_ptr<TableEntry> entry, unordered_map<shared_ptr<TableEntry>, int>& ref_map, int w = 1);
 
 }
 

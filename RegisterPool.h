@@ -5,12 +5,14 @@
 #include<memory>
 #include"SymbolTable.h"
 #include<unordered_set>
+#include<unordered_map>
 
+// 不包括$a0
+//const int A_NUM = 3;
+//const int V_NUM = 2;
+const int T_NUM = 8;
+const int S_NUM = 8 + 3 + 2;
 
-const int A_NUM = 4;
-const int T_NUM = 8 ;
-const int S_NUM = 8;
-const int V_NUM = 2;
 
 // 两个缓存寄存器
 const string buf_reg1 = "$t8";
@@ -47,9 +49,13 @@ namespace OptMips {
 		OptMips::OptMipsFunctionGenerator* func_generator_;
 		RegisterPool();
 
+		void count_var_ref(unordered_map<shared_ptr<TableEntry>, int> ref_map);
+		void deal_var_decalre(shared_ptr<TableEntry> var, string value, int offset);
+		void load_gb_var();
+		void clear_sreg();
 
 		// 清空临时寄存器池，将活跃的临时变量回写到内存;立即数直接清除
-		void write_back(unordered_set<shared_ptr<TableEntry>> active_set);
+		void treg_write_back(unordered_set<shared_ptr<TableEntry>> active_set);
 		void clearTempRegs();
 
 		// 函数调用时，保存现场
@@ -62,8 +68,8 @@ namespace OptMips {
 		 * 2. 如果不存在，且有空余寄存器，取一个空余寄存器， load变量，寄存器移至队首
 		 * 3. 如果不存在空闲寄存器，取出队尾寄存器，先将寄存器内的值写回内存，再load新变量，移至队首
 		*/
-		string assign_temp_reg(shared_ptr<TableEntry> var, bool load_var = true);
-		vector<string> assign_temp_reg(shared_ptr<TableEntry> var1, shared_ptr<TableEntry> var2, bool load_var = true);
+		string assign_reg(shared_ptr<TableEntry> var, bool load_var = true);
+		vector<string> assign_reg(shared_ptr<TableEntry> var1, shared_ptr<TableEntry> var2, bool load_var = true);
 		/**assign an available $t0-$t9 reg for const, immediate num; return reg name*/
 		//string assign_buf_reg(string value);
 		///* 传入null表示该值是缓存值，无需保存。可以直接被再分配 */
@@ -73,21 +79,37 @@ namespace OptMips {
 		bool hasEmptyTReg(int* p_index);
 		//bool hasEmptySReg(int* p_index);
 		// find if the var has been map to a regiter
-		bool find(shared_ptr<TableEntry> var, int* p_index);
+		bool find_var_in_treg(shared_ptr<TableEntry> var, int* p_index);
 
-		bool find(string value, int* p_index);
+		bool find_var_in_sreg(shared_ptr<TableEntry> var, int* p_index);
+
+		//bool find(string value, int* p_index);
 
 		shared_ptr<TableEntry> t_regs[T_NUM];
-		//shared_ptr<TableEntry> s_regs[S_NUM];
-		//shared_ptr<TableEntry> v_regs[V_NUM];
+		shared_ptr<TableEntry> s_regs[S_NUM];
 
 		vector<int> lru_queue_;
 
+
+		string assign_temp_reg(shared_ptr<TableEntry> var, bool load_var = true);
+		string assign_s_reg(shared_ptr<TableEntry> var, bool load_var = true);
+
 	};
 
-	inline string treg_name(int i) { return "$t" + to_string(i); }
-	inline string bufreg_name(int i) { return "$t" + to_string(i + T_NUM); }
+	inline string treg_name(int i) { 
+		return "$t" + to_string(i); 
+	}
 
+	inline string bufreg_name(int i) { return "$t" + to_string(i + 8); }
+
+	inline string sreg_name(int i) {
+		if (i < 8)
+			return "$s" + to_string(i);
+		if (i < 11)
+			return "$a" + to_string(i - 7);
+		// i < 13
+		return "$v" + to_string(i - 11);
+	}
 }
 
 #endif // !REGISTER_POOL_H_
