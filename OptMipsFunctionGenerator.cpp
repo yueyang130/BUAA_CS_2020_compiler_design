@@ -419,9 +419,14 @@ namespace OptMips {
 
 			case Assign:
 			{
-				string treg1 = reg_pool_.assign_reg(opA);
-				string treg2 = reg_pool_.assign_reg(result, false);
-				mips_move(treg2, treg1, mips_list_);
+				if (const_or_immed(opA.get())) {
+					string treg2 = reg_pool_.assign_reg(result, false);
+					mips_load_num(treg2, opA->getValue(), mips_list_);
+				} else {
+					string treg1 = reg_pool_.assign_reg(opA);
+					string treg2 = reg_pool_.assign_reg(result, false);
+					mips_move(treg2, treg1, mips_list_);
+				}
 				break;
 			}
 			case Read:
