@@ -1507,7 +1507,7 @@ shared_ptr<Quaternion> GrammerAnalyzer::stack_alu(symbolType alu_type) {
 	// 常量合并
 	/*
 	对算术四元式:
-	  0. 如果a +- 0, a * / 1,  a*0化简
+	  0. 如果a +- 0, a*0， a * / 1化简
 	* 1. 如果t0 = a + b，其中a, b都是常量或立即数, 直接计算
 	* 2. 减法和除法没有交换律, 由于取整性质，乘除也不能换位
 	*/

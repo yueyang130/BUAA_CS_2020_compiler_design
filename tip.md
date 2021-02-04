@@ -36,8 +36,8 @@
 
 6. C++的多态是依赖指针和引用实现的；不能直接将继承类的对象赋值给基类对象，会产生“剪切”。
 
-7. 向下传播时，static_cast/static_pointer_cast(用于智能指针)不进行动态检查，可能产生错误。
-	dynamic_cast/dynamic_pinter_cast进行动态检查。但基类中必须有virtual method(将虚构函数设为virtual即可)
+7. 向下传播时，static_cast（用于基础变量和一般指针）/static_pointer_cast(用于智能指针)不进行动态检查，可能产生错误。
+	dynamic_cast/dynamic_pointer_cast进行动态检查。但基类中必须有virtual method(将虚构函数设为virtual即可)
 
 8.  make_shared<T>()并不是返回空指针，而是调用T的默认构造函数构造对象。
 	使用shared_ptr<T>()得到空指针。

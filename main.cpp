@@ -7,9 +7,9 @@
 
 
 // config
-#define REG_OPT 1			// 寄存器分配优化和目标代码优化
-#define INLINE_OPT 1
-#define PEEPHOLE_OPT 1
+#define REG_OPT 0			// 寄存器分配优化和目标代码优化
+#define INLINE_OPT 0
+#define PEEPHOLE_OPT 0
 
 #if REG_OPT
 	#include "OptMipsGenerator.h"
